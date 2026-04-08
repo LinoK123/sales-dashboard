@@ -6,6 +6,7 @@
 <title>Short Course Sales Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root{
   --rose:#f9c8d0;--rose2:#f2a0b0;--sage:#c8e6c8;--sage2:#9ecf9e;
@@ -1067,7 +1068,40 @@ function renderTeamPage(){
   assignChart=new Chart(document.getElementById('assignChart').getContext('2d'),{type:'bar',data:{labels:TEAM.map(m=>m.name),datasets:[{data:TEAM.map(m=>Object.values(CRM).filter(c=>c.assigneeId===m.id).length),backgroundColor:TEAM.map(m=>m.colour),borderRadius:8,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+' assigned'}}},scales:{x:{grid:{display:false},ticks:{font:{size:11},color:'#6b6b82'}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{stepSize:1,font:{size:11},color:'#6b6b82'},border:{display:false}}}}});
 }
 
-async function init(){await loadStorage();initOverview();}
+async function init(){
+  await loadStorage();
+  initOverview();
+  // ── REALTIME subscription ──
+  const sbClient = supabase.createClient(SB_URL, SB_KEY);
+  sbClient.channel('crm_changes')
+    .on('postgres_changes', {event:'UPDATE', schema:'public', table:'crm_data', filter:'id=eq.1'}, payload => {
+      if(!payload.new||!payload.new.data) return;
+      const incoming = payload.new.data;
+      // Merge incoming into local CRM without overwriting unsaved local edits
+      for(const key of Object.keys(incoming)){
+        if(!CRM[key]){
+          CRM[key] = incoming[key];
+        } else {
+          const localLogs = CRM[key].callLog || [];
+          const serverLogs = incoming[key].callLog || [];
+          const seen = new Set(localLogs.map(l => l.ts+'|'+(l.agentId||'')));
+          for(const l of serverLogs){
+            if(!seen.has(l.ts+'|'+(l.agentId||''))) localLogs.push(l);
+          }
+          CRM[key].callLog = localLogs.sort((a,b) => (a.ts||'').localeCompare(b.ts||''));
+          if(incoming[key].status && !CRM[key]._localEdit) CRM[key].status = incoming[key].status;
+          if(incoming[key].assigneeId !== undefined && !CRM[key]._localEdit) CRM[key].assigneeId = incoming[key].assigneeId;
+        }
+      }
+      // Refresh visible pages
+      if(document.getElementById('page-followups').classList.contains('active')) renderFollowUps();
+      if(document.getElementById('page-performance').classList.contains('active')) renderPerformancePage();
+      if(document.getElementById('page-team').classList.contains('active')) renderTeamPage();
+      if(document.getElementById('page-outreach').classList.contains('active')) renderOutreach();
+      toast('🔄 Updated by a teammate');
+    })
+    .subscribe();
+}
 init();
 </script>
 </body>
