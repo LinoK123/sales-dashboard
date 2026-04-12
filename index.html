@@ -49,6 +49,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 .kpi-card.kpi-overdue::before{background:#c0392b !important;}
 .kpi-card.kpi-today::before{background:#e6a817 !important;}
 .kpi-card.kpi-upcoming::before{background:#2d7a2d !important;}
+.kpi-card.kpi-declining::before{background:#e67e22 !important;}
 .kpi-label{font-size:0.73rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;}
 .kpi-value{font-family:'DM Serif Display',serif;font-size:1.7rem;color:var(--text);}
 .kpi-sub{font-size:0.75rem;color:var(--text2);margin-top:3px;}
@@ -370,9 +371,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
     <input class="search-input" style="max-width:240px" type="text" id="out-search" placeholder="🔍  Search company…" oninput="filterOutreach()">
   </div>
   <div class="outreach-kpi-row">
-    <div class="kpi-card" style="border-left:4px solid #c0392b"><div class="kpi-label">🔴 Lapsed (High Value)</div><div class="kpi-value" id="out-kpi-lapsed">—</div><div class="kpi-sub">Spent 10K+ in 2024, zero in 2025</div></div>
-    <div class="kpi-card" style="border-left:4px solid #e6a817"><div class="kpi-label">🟡 Gone Quiet</div><div class="kpi-value" id="out-kpi-dormant">—</div><div class="kpi-sub">Active in 2024, silent 3+ months</div></div>
-    <div class="kpi-card" style="border-left:4px solid #e67e22"><div class="kpi-label">🟠 Declining Spend</div><div class="kpi-value" id="out-kpi-declining">—</div><div class="kpi-sub">H2 2025 down 50%+ vs H1</div></div>
+    <div class="kpi-card kpi-overdue" style="border-left:4px solid #c0392b"><div class="kpi-label">🔴 Lapsed (High Value)</div><div class="kpi-value" id="out-kpi-lapsed">—</div><div class="kpi-sub">Spent 10K+ in 2024, zero in 2025</div></div>
+    <div class="kpi-card kpi-today" style="border-left:4px solid #e6a817"><div class="kpi-label">🟡 Gone Quiet</div><div class="kpi-value" id="out-kpi-dormant">—</div><div class="kpi-sub">Active in 2024, silent 3+ months</div></div>
+    <div class="kpi-card kpi-declining" style="border-left:4px solid #e67e22"><div class="kpi-label">🟠 Declining Spend</div><div class="kpi-value" id="out-kpi-declining">—</div><div class="kpi-sub">H2 2025 down 50%+ vs H1</div></div>
   </div>
   <div class="outreach-filters">
     <button class="filter-btn active" onclick="setOutFilter('all',this)">All Targets</button>
@@ -447,7 +448,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
           </div>
         </div>
         <div class="call-form-grid">
-          <div class="form-group" style="margin-bottom:0"><label class="form-label">Contact Name</label><input class="form-input" id="crm-contact" placeholder="e.g. John Smith"></div>
+          <div class="form-group" style="margin-bottom:0"><label class="form-label">Contact Name <span style="color:#c0392b">*</span></label><input class="form-input" id="crm-contact" placeholder="e.g. John Smith (required)"></div>
           <div class="form-group" style="margin-bottom:0"><label class="form-label">Company Size</label>
             <select class="form-select" id="crm-company-size">
               <option value="">Select size…</option><option value="1-10">1–10 employees</option><option value="11-25">11–25 employees</option><option value="26-50">26–50 employees</option><option value="51-100">51–100 employees</option><option value="101-250">101–250 employees</option><option value="251-500">251–500 employees</option><option value="500+">500+ employees</option>
@@ -592,14 +593,14 @@ async function saveCRM(){
           if(!CRM[key]){
             CRM[key]=serverCRM[key];
           }else{
-            // Merge call logs — combine both arrays, deduplicate by timestamp+agentId
+            // Merge call logs — local wins (we just edited), server fills in any entries we don't have
             const localLogs=CRM[key].callLog||[];
             const serverLogs=serverCRM[key].callLog||[];
-            const seen=new Set(localLogs.map(l=>l.ts+'|'+(l.agentId||'')));
+            const localIds=new Set(localLogs.map(l=>l.id));
             for(const l of serverLogs){
-              if(!seen.has(l.ts+'|'+(l.agentId||'')))localLogs.push(l);
+              if(!localIds.has(l.id))localLogs.push(l);
             }
-            CRM[key].callLog=localLogs.sort((a,b)=>(a.ts||'').localeCompare(b.ts||''));
+            CRM[key].callLog=localLogs.sort((a,b)=>(b.id||0)-(a.id||0));
           }
         }
       }
@@ -891,7 +892,9 @@ function toggleCourse(name){
 function saveCallLog(){
   if(!selAttempt){toast('Please select a call attempt');return;}
   if(!selOutcome){toast('Please select a call outcome');return;}
+  if(!document.getElementById('crm-contact').value.trim()){toast('Please enter a contact name');return;}
   const crm=getCRM(crmCompany);
+  if(!crm.assigneeId){toast('Please assign a team member before logging a call');return;}
   const member=TEAM.find(m=>m.id===crm.assigneeId);
   crm.callLog.unshift({id:Date.now(),date:today(),attempt:selAttempt,outcome:selOutcome,contact:document.getElementById('crm-contact').value.trim(),companySize:document.getElementById('crm-company-size').value,objection:document.getElementById('crm-objection').value,coursesInterested:[...selCourses],followup:document.getElementById('crm-followup').value,notes:document.getElementById('crm-notes').value.trim(),agentId:crm.assigneeId,agentName:member?.name||'Unassigned',company:crmCompany});
   saveCRM();renderCallHistory(crm);
@@ -903,10 +906,80 @@ function saveCallLog(){
 function renderCallHistory(crm){
   const log=crm.callLog||[];
   if(!log.length){document.getElementById('crm-call-history').innerHTML='<div style="font-size:0.82rem;color:var(--text2);text-align:center;padding:20px">No calls logged yet</div>';return;}
-  document.getElementById('crm-call-history').innerHTML=log.map(e=>{
+  document.getElementById('crm-call-history').innerHTML=log.map((e,idx)=>{
     const dd=daysDiff(e.followup);const overdueHtml=e.followup&&dd!==null?(dd<0?`<span class="overdue-flag">Overdue ${Math.abs(dd)}d</span>`:dd===0?`<span class="followup-flag">Today!</span>`:`<span class="followup-flag">Follow up ${fmtDate(e.followup)}</span>`):'';
-    return `<div class="call-log-item"><div class="call-log-top"><span class="call-log-outcome-label" style="color:${OUTCOME_COLOURS[e.outcome]||'#2d2d3a'}">● ${OUTCOME_LABELS[e.outcome]||e.outcome}</span><span class="call-log-date">${fmtDate(e.date)}</span></div><div class="call-log-chips"><span class="call-log-chip chip-attempt">Attempt ${e.attempt}</span>${e.contact?`<span class="call-log-chip" style="background:var(--sky);color:#1565a8">👤 ${e.contact}</span>`:''} ${e.companySize?`<span class="call-log-chip chip-size">${e.companySize}</span>`:''} ${e.objection?`<span class="call-log-chip chip-objection">${OBJECTION_LABELS[e.objection]||e.objection}</span>`:''} ${(e.coursesInterested||[]).map(c=>`<span class="call-log-chip chip-course">${c}</span>`).join('')}</div>${e.notes?`<div class="call-log-notes">${e.notes}</div>`:''}<div class="call-log-footer"><span>👤 ${e.agentName||'—'}</span>${overdueHtml}</div></div>`;
+    const outcomeOptions=Object.entries(OUTCOME_LABELS).map(([k,v])=>`<option value="${k}" ${e.outcome===k?'selected':''}>${v}</option>`).join('');
+    const objectionOptions=`<option value="">None / not raised</option><option value="budget" ${e.objection==='budget'?'selected':''}>Budget constraints</option><option value="timing" ${e.objection==='timing'?'selected':''}>Bad timing</option><option value="competitor" ${e.objection==='competitor'?'selected':''}>Using another provider</option><option value="no-need" ${e.objection==='no-need'?'selected':''}>No current training need</option><option value="decision-maker" ${e.objection==='decision-maker'?'selected':''}>Need decision maker</option><option value="price" ${e.objection==='price'?'selected':''}>Price too high</option><option value="quality" ${e.objection==='quality'?'selected':''}>Quality concerns</option><option value="location" ${e.objection==='location'?'selected':''}>Location concerns</option><option value="other" ${e.objection==='other'?'selected':''}>Other</option>`;
+    return `<div class="call-log-item" id="call-log-item-${idx}" data-entry-id="${e.id}">
+      <div class="call-log-top">
+        <span class="call-log-outcome-label" style="color:${OUTCOME_COLOURS[e.outcome]||'#2d2d3a'}">● ${OUTCOME_LABELS[e.outcome]||e.outcome}</span>
+        <span style="display:flex;align-items:center;gap:8px">
+          <span class="call-log-date">${fmtDate(e.date)}</span>
+          <button onclick="toggleEditLog(${idx})" style="font-size:0.7rem;padding:2px 8px;border-radius:6px;border:1px solid var(--border);background:var(--white);cursor:pointer;color:var(--text2)">Edit</button>
+        </span>
+      </div>
+      <div class="call-log-chips"><span class="call-log-chip chip-attempt">Attempt ${e.attempt}</span>${e.contact?`<span class="call-log-chip" style="background:var(--sky);color:#1565a8">👤 ${e.contact}</span>`:''} ${e.companySize?`<span class="call-log-chip chip-size">${e.companySize}</span>`:''} ${e.objection?`<span class="call-log-chip chip-objection">${OBJECTION_LABELS[e.objection]||e.objection}</span>`:''} ${(e.coursesInterested||[]).map(c=>`<span class="call-log-chip chip-course">${c}</span>`).join('')}</div>
+      ${e.notes?`<div class="call-log-notes">${e.notes}</div>`:''}
+      <div class="call-log-footer"><span>👤 ${e.agentName||'—'}</span><span style="display:flex;align-items:center;gap:6px">${overdueHtml}${e.followup&&!e.followupDone?`<button onclick="markFollowUpDone('${`'+crmCompany+'`}',${`'+e.id+'`})" style="font-size:0.68rem;padding:2px 8px;border-radius:6px;border:1.5px solid #2d7a2d;background:#edf7ed;color:#2d7a2d;cursor:pointer;font-weight:600">✓ Done</button>`:e.followupDone?'<span style="font-size:0.68rem;color:#2d7a2d;font-weight:600">✓ Follow-up done</span>':''}</span></div>
+      <div id="call-log-edit-${idx}" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+        <div class="call-form-grid" style="margin-bottom:10px">
+          <div><label class="form-label">Contact Name <span style="color:#c0392b">*</span></label><input class="form-input" id="edit-contact-${idx}" value="${(e.contact||'').replace(/"/g,'&quot;')}" placeholder="e.g. John Smith"></div>
+          <div><label class="form-label">Outcome</label><select class="form-select" id="edit-outcome-${idx}">${outcomeOptions}</select></div>
+        </div>
+        <div class="call-form-grid" style="margin-bottom:10px">
+          <div><label class="form-label">Team Member <span style="color:#c0392b">*</span></label><select class="form-select" id="edit-agent-${idx}">${TEAM.map(m=>`<option value="${m.id}" ${e.agentId===m.id?'selected':''}>${m.name}</option>`).join('')}</select></div>
+          <div></div>
+        </div>
+        <div class="call-form-grid" style="margin-bottom:10px">
+          <div><label class="form-label">Objection</label><select class="form-select" id="edit-objection-${idx}">${objectionOptions}</select></div>
+          <div><label class="form-label">Follow-up Date</label><input class="form-input" type="date" id="edit-followup-${idx}" value="${e.followup||''}"></div>
+        </div>
+        <div style="margin-bottom:10px"><label class="form-label">Notes</label><textarea class="form-textarea" id="edit-notes-${idx}" style="min-height:60px">${(e.notes||'').replace(/</g,'&lt;')}</textarea></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn-primary" style="font-size:0.78rem;padding:6px 14px" onclick="saveEditLog(${idx})">Save</button>
+          <button class="btn-ghost" style="font-size:0.78rem;padding:6px 14px" onclick="toggleEditLog(${idx})">Cancel</button>
+        </div>
+      </div>
+    </div>`;
   }).join('');
+}
+function toggleEditLog(idx){
+  const el=document.getElementById(`call-log-edit-${idx}`);
+  el.style.display=el.style.display==='none'?'block':'none';
+}
+function saveEditLog(idx){
+  const contact=document.getElementById(`edit-contact-${idx}`).value.trim();
+  if(!contact){toast('Contact name is required');return;}
+  const crm=getCRM(crmCompany);
+  // Find by id stored in the element, not by array index which can shift
+  const entryId=parseInt(document.getElementById(`call-log-item-${idx}`).dataset.entryId);
+  const entry=crm.callLog.find(l=>l.id===entryId);
+  if(!entry){toast('Could not find entry — please refresh');return;}
+  entry.contact=contact;
+  entry.outcome=document.getElementById(`edit-outcome-${idx}`).value;
+  entry.objection=document.getElementById(`edit-objection-${idx}`).value;
+  entry.followup=document.getElementById(`edit-followup-${idx}`).value;
+  entry.notes=document.getElementById(`edit-notes-${idx}`).value.trim();
+  const editedAgentId=parseInt(document.getElementById(`edit-agent-${idx}`).value);
+  const editedMember=TEAM.find(m=>m.id===editedAgentId);
+  entry.agentId=editedAgentId;
+  entry.agentName=editedMember?.name||'Unknown';
+  saveCRM();
+  renderCallHistory(crm);
+  if(document.getElementById('page-followups').classList.contains('active'))renderFollowUps();
+  if(document.getElementById('page-performance').classList.contains('active'))renderPerformancePage();
+  toast('Call log updated ✓');
+  if(outreachInit)renderOutreach();
+}
+function markFollowUpDone(company,entryId){
+  const crm=getCRM(company);
+  const entry=crm.callLog.find(l=>l.id===entryId);
+  if(!entry)return;
+  entry.followupDone=true;
+  saveCRM();
+  renderCallHistory(getCRM(crmCompany));
+  renderFollowUps();
+  toast('Follow-up marked as done ✓');
 }
 function closeCRM(){showPage(prevPage,document.querySelector(`.nav-item[onclick*="'${prevPage}'"]`));}
 
@@ -916,7 +989,7 @@ function setFuFilter(f,btn){fuFilter=f;document.querySelectorAll('.outreach-filt
 function renderFollowUps(){
   const allFu=[];
   Object.entries(CRM).forEach(([company,crm])=>{
-    const logsWithFu=(crm.callLog||[]).filter(l=>l.followup);
+    const logsWithFu=(crm.callLog||[]).filter(l=>l.followup&&!l.followupDone);
     if(!logsWithFu.length)return;
     const latest=logsWithFu[0];
     allFu.push({company,crm,log:latest,days:daysDiff(latest.followup),member:TEAM.find(m=>m.id===crm.assigneeId)});
@@ -941,7 +1014,7 @@ function renderFollowUps(){
   document.getElementById('fu-tbody').innerHTML=filtered.length?filtered.map(f=>{
     const d=f.days;const db=d===null?'':(d<0?`<span class="days-badge days-overdue">${Math.abs(d)}d overdue</span>`:d===0?`<span class="days-badge days-today">Today</span>`:d<=7?`<span class="days-badge days-soon">In ${d}d</span>`:`<span class="days-badge days-later">In ${d}d</span>`);
     const mHtml=f.member?`<div style="display:inline-flex;align-items:center;gap:6px"><div style="width:20px;height:20px;border-radius:50%;background:${f.member.colour};display:inline-flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#fff">${initials(f.member.name)}</div>${f.member.name}</div>`:'<span style="color:var(--text2)">—</span>';
-    return `<tr onclick="openCRM('${f.company.replace(/'/g,"\\'")}')"><td style="font-weight:600;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.company}</td><td style="font-size:0.8rem">${f.log.contact||'—'}</td><td style="font-size:0.8rem">${fmtDate(f.log.followup)}</td><td>${db}</td><td style="font-size:0.76rem;font-weight:600;color:${OUTCOME_COLOURS[f.log.outcome]||'#2d2d3a'}">${OUTCOME_LABELS[f.log.outcome]||f.log.outcome}</td><td style="font-size:0.76rem;color:var(--text2)">${(f.log.coursesInterested||[]).slice(0,2).join(', ')||'—'}</td><td>${mHtml}</td><td><button class="btn-primary" style="font-size:0.72rem;padding:5px 10px" onclick="event.stopPropagation();openCRM('${f.company.replace(/'/g,"\\'")}')">Open</button></td></tr>`;
+    return `<tr onclick="openCRM('${f.company.replace(/'/g,"\\'")}')"><td style="font-weight:600;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.company}</td><td style="font-size:0.8rem">${f.log.contact||'—'}</td><td style="font-size:0.8rem">${fmtDate(f.log.followup)}</td><td>${db}</td><td style="font-size:0.76rem;font-weight:600;color:${OUTCOME_COLOURS[f.log.outcome]||'#2d2d3a'}">${OUTCOME_LABELS[f.log.outcome]||f.log.outcome}</td><td style="font-size:0.76rem;color:var(--text2)">${(f.log.coursesInterested||[]).slice(0,2).join(', ')||'—'}</td><td>${mHtml}</td><td style="display:flex;gap:6px"><button class="btn-primary" style="font-size:0.72rem;padding:5px 10px" onclick="event.stopPropagation();openCRM('${f.company.replace(/'/g,"\\'")}')">Open</button><button style="font-size:0.72rem;padding:5px 10px;border-radius:10px;border:1.5px solid #2d7a2d;background:#edf7ed;color:#2d7a2d;cursor:pointer;font-weight:600;white-space:nowrap" onclick="event.stopPropagation();markFollowUpDone('${f.company.replace(/'/g,"\\'")}',${ f.log.id})">✓ Done</button></td></tr>`;
   }).join(''):'<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text2)">No follow-ups match the current filter</td></tr>';
 }
 
