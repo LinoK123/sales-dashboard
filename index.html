@@ -388,7 +388,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
   <div class="out-table-wrap"><div style="overflow-x:auto"><table class="out-table"><thead><tr>
     <th onclick="sortOut('n')">Company</th><th onclick="sortOut('signal')">Signal</th>
     <th onclick="sortOut('r24')" class="num">2024 Rev</th><th onclick="sortOut('r25')" class="num">2025 Rev</th>
-    <th onclick="sortOut('t')" class="num">Total</th><th>Reason</th><th>Assigned To</th><th>Status</th>
+    <th onclick="sortOut('t')" class="num">Total</th><th>Reason</th><th>Assigned To</th><th>Last Outcome</th><th>Status</th>
   </tr></thead><tbody id="out-tbody"></tbody></table></div>
   <div class="list-pagination" id="out-pagination"></div></div>
 </div>
@@ -770,7 +770,9 @@ function renderOutreach(){
     const st=crm.status||'pending';const scol={contacted:'#1565a8',won:'#2d7a2d',lost:'#b33050'};
     const statusHtml=st!=='pending'?`<span style="font-size:0.72rem;font-weight:600;color:${scol[st]};background:${scol[st]}18;padding:2px 8px;border-radius:99px;text-transform:capitalize">${st}</span>`:'—';
     const csqBadge=CSQ_SET.has(o.n)?` <span style="background:#edf7ed;border:1px solid #9ecf9e;border-radius:4px;padding:1px 5px;font-size:0.64rem;font-weight:700;color:#2d7a2d;vertical-align:middle">CSQ</span>`:'';
-    return `<tr onclick="openCRM('${o.n.replace(/'/g,"\\'")}')"><td style="font-weight:600;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${o.n}${csqBadge}</td><td><span class="badge ${sBadge[o.signal]}">${sLabel[o.signal]}</span></td><td class="num" style="font-size:0.78rem">${o.r24>0?fmt(o.r24):'—'}</td><td class="num" style="font-size:0.78rem;${o.r25===0?'color:#c0392b;font-weight:700':''}">${o.r25>0?fmt(o.r25):'$0'}</td><td class="num" style="font-size:0.78rem">${fmt(o.t)}</td><td style="font-size:0.76rem;color:var(--text2);max-width:200px">${o.reason}</td><td>${avatarHtml}</td><td>${statusHtml}</td></tr>`;
+    const lastLog=(crm.callLog||[]).filter(l=>l.outcome)[0];
+    const lastOutcomeHtml=lastLog?`<span style="font-size:0.72rem;font-weight:600;color:${OUTCOME_COLOURS[lastLog.outcome]||'#2d2d3a'}">${OUTCOME_LABELS[lastLog.outcome]||lastLog.outcome}</span>`:`<span style="color:var(--text2);font-size:0.78rem">—</span>`;
+    return `<tr onclick="openCRM('${o.n.replace(/'/g,"\\'")}')"><td style="font-weight:600;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${o.n}${csqBadge}</td><td><span class="badge ${sBadge[o.signal]}">${sLabel[o.signal]}</span></td><td class="num" style="font-size:0.78rem">${o.r24>0?fmt(o.r24):'—'}</td><td class="num" style="font-size:0.78rem;${o.r25===0?'color:#c0392b;font-weight:700':''}">${o.r25>0?fmt(o.r25):'$0'}</td><td class="num" style="font-size:0.78rem">${fmt(o.t)}</td><td style="font-size:0.76rem;color:var(--text2);max-width:200px">${o.reason}</td><td>${avatarHtml}</td><td>${lastOutcomeHtml}</td><td>${statusHtml}</td></tr>`;
   }).join('');
   renderPag('out-pagination',outFiltered.length,OUT_PER,outPage,'goOP');
 }
