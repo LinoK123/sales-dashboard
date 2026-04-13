@@ -512,6 +512,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 <div id="page-performance" class="page">
   <div class="page-header"><div><div class="page-title">Performance</div><div class="page-subtitle">Call activity and outcomes by team member</div></div></div>
   <div class="perf-member-selector" id="perf-member-selector"></div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;padding-bottom:18px;border-bottom:1.5px solid var(--border)" id="perf-date-filter">
+    <button class="filter-btn active" onclick="setPerfDateFilter('all',this)">All Time</button>
+    <button class="filter-btn" onclick="setPerfDateFilter('today',this)">Today</button>
+    <button class="filter-btn" onclick="setPerfDateFilter('week',this)">This Week</button>
+    <button class="filter-btn" onclick="setPerfDateFilter('month',this)">This Month</button>
+    <button class="filter-btn" onclick="setPerfDateFilter('lastmonth',this)">Last Month</button>
+    <span id="perf-date-label" style="font-size:0.78rem;color:var(--text2);align-self:center;margin-left:4px"></span>
+  </div>
   <div id="perf-content">
     <div class="perf-kpi-row">
       <div class="perf-kpi"><div class="perf-kpi-val" id="p-assigned">—</div><div class="perf-kpi-lbl">Assigned</div></div>
@@ -563,7 +571,7 @@ const OUTCOME_COLOURS={'no-answer':'#8d99ae','left-message':'#1565a8','callback'
 const fmt=v=>v>=1e6?'$'+(v/1e6).toFixed(2)+'M':v>=1e3?'$'+(v/1e3).toFixed(1)+'K':'$'+v.toFixed(0);
 const fmtFull=v=>'$'+v.toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2});
 function initials(n){return n.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||n[0].toUpperCase();}
-function today(){return new Date().toISOString().slice(0,10);}
+function today(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function fmtDate(d){if(!d)return '';try{return new Date(d+'T12:00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});}catch(e){return d;}}
 function daysDiff(d){if(!d)return null;const dt=new Date(d+'T12:00:00');const now=new Date();now.setHours(12,0,0,0);return Math.round((dt-now)/(1000*60*60*24));}
 
@@ -1034,6 +1042,7 @@ function renderFollowUps(){
 
 // ── PERFORMANCE ──
 let perfMemberId=null;
+let perfDateFilter='all';
 // Store chart instances by canvas id so we can cleanly destroy them
 const perfCharts={};
 
@@ -1057,21 +1066,65 @@ function selectPerfMember(id){
   });
   loadPerfData(id);
 }
+function setPerfDateFilter(range,btn){
+  perfDateFilter=range;
+  document.querySelectorAll('#perf-date-filter .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  loadPerfData(perfMemberId===null?0:perfMemberId);
+}
+function getPerfDateRange(){
+  const d=new Date();
+  const pad=n=>String(n).padStart(2,'0');
+  const todayStr=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  if(perfDateFilter==='today') return{from:todayStr,to:todayStr,label:'Today'};
+  if(perfDateFilter==='week'){
+    const wk=new Date(d);wk.setDate(d.getDate()-d.getDay());
+    const from=`${wk.getFullYear()}-${pad(wk.getMonth()+1)}-${pad(wk.getDate())}`;
+    return{from,to:todayStr,label:'This Week'};
+  }
+  if(perfDateFilter==='month'){
+    const from=`${d.getFullYear()}-${pad(d.getMonth()+1)}-01`;
+    return{from,to:todayStr,label:'This Month'};
+  }
+  if(perfDateFilter==='lastmonth'){
+    const lm=new Date(d.getFullYear(),d.getMonth()-1,1);
+    const lme=new Date(d.getFullYear(),d.getMonth(),0);
+    const from=`${lm.getFullYear()}-${pad(lm.getMonth()+1)}-01`;
+    const to=`${lme.getFullYear()}-${pad(lme.getMonth()+1)}-${pad(lme.getDate())}`;
+    return{from,to,label:'Last Month'};
+  }
+  return{from:null,to:null,label:''};
+}
 
 function loadPerfData(id){
   const isAll=id===0;
   const member=isAll?{name:'All Team',colour:'#b8a9de'}:TEAM.find(m=>m.id===id);
   if(!member)return;
-  // Gather calls
+  // Gather calls with date filter
+  const {from:dfrom,to:dto,label:dlabel}=getPerfDateRange();
+  document.getElementById('perf-date-label').textContent=dlabel?`Showing: ${dlabel}`:'';
   const allCalls=[];
   Object.values(CRM).forEach(crm=>{
     (crm.callLog||[]).forEach(l=>{
-      if(isAll||l.agentId===id)allCalls.push(l);
+      if(!isAll&&l.agentId!==id)return;
+      if(dfrom&&l.date&&l.date<dfrom)return;
+      if(dto&&l.date&&l.date>dto)return;
+      allCalls.push(l);
     });
   });
   const assigned=isAll?Object.values(CRM).filter(c=>c.assigneeId!=null).length:Object.values(CRM).filter(c=>c.assigneeId===id).length;
-  const contacted=isAll?Object.values(CRM).filter(c=>['contacted','won','lost'].includes(c.status)).length:Object.values(CRM).filter(c=>c.assigneeId===id&&['contacted','won','lost'].includes(c.status)).length;
-  const won=isAll?Object.values(CRM).filter(c=>c.status==='won').length:Object.values(CRM).filter(c=>c.assigneeId===id&&c.status==='won').length;
+  // When a date filter is active, derive contacted/won from filtered call logs so they respect the date range
+  let contacted,won;
+  if(perfDateFilter==='all'){
+    contacted=isAll?Object.values(CRM).filter(c=>['contacted','won','lost'].includes(c.status)).length:Object.values(CRM).filter(c=>c.assigneeId===id&&['contacted','won','lost'].includes(c.status)).length;
+    won=isAll?Object.values(CRM).filter(c=>c.status==='won').length:Object.values(CRM).filter(c=>c.assigneeId===id&&c.status==='won').length;
+  }else{
+    // Count unique companies that had a meaningful outcome in the filtered call log
+    const contactedCompanies=new Set(allCalls.filter(l=>['interested','won','not-interested','proposal','callback'].includes(l.outcome)).map(l=>l.company));
+    const wonCompanies=new Set(allCalls.filter(l=>l.outcome==='won').map(l=>l.company));
+    contacted=contactedCompanies.size;
+    won=wonCompanies.size;
+  }
   const rate=assigned>0?Math.round((contacted/assigned)*100):0;
   document.getElementById('p-assigned').textContent=assigned;
   document.getElementById('p-calls').textContent=allCalls.length;
