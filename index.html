@@ -380,6 +380,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
     <button class="filter-btn f-lapsed" onclick="setOutFilter('lapsed',this)">🔴 Lapsed</button>
     <button class="filter-btn f-dormant" onclick="setOutFilter('dormant',this)">🟡 Gone Quiet</button>
     <button class="filter-btn f-declining" onclick="setOutFilter('declining',this)">🟠 Declining</button>
+    <select class="form-select" style="width:auto;min-width:160px" id="out-member-filter" onchange="applyOutFilter()">
+      <option value="">All team members</option>
+    </select>
     <span id="out-count" style="margin-left:6px;font-size:0.8rem;color:var(--text2)"></span>
   </div>
   <div class="out-table-wrap"><div style="overflow-x:auto"><table class="out-table"><thead><tr>
@@ -744,7 +747,16 @@ function setOutFilter(f,btn){outFilter=f;outPage=0;document.querySelectorAll('.f
 function filterOutreach(){outSearch=document.getElementById('out-search').value.toLowerCase();outPage=0;applyOutFilter();}
 function sortOut(key){if(outSortKey===key)outSortDir*=-1;else{outSortKey=key;outSortDir=-1;}outPage=0;applyOutFilter();}
 function applyOutFilter(){
-  outFiltered=RAW.outreach.filter(o=>{if(outFilter!=='all'&&o.signal!==outFilter)return false;if(outSearch&&!o.n.toLowerCase().includes(outSearch))return false;return true;});
+  // Populate member dropdown
+  const sel=document.getElementById('out-member-filter');
+  if(sel){const cur=sel.value;sel.innerHTML='<option value="">All team members</option>'+TEAM.map(m=>`<option value="${m.id}"${cur==m.id?' selected':''}>${m.name}</option>`).join('');}
+  const mf=sel?sel.value:'';
+  outFiltered=RAW.outreach.filter(o=>{
+    if(outFilter!=='all'&&o.signal!==outFilter)return false;
+    if(outSearch&&!o.n.toLowerCase().includes(outSearch))return false;
+    if(mf){const crm=CRM[o.n]||{};if(crm.assigneeId!=mf)return false;}
+    return true;
+  });
   outFiltered.sort((a,b)=>{let va=a[outSortKey]??0,vb=b[outSortKey]??0;if(typeof va==='string')return outSortDir*va.localeCompare(vb);return outSortDir*(va-vb);});
   document.getElementById('out-count').textContent=`${outFiltered.length} companies`;renderOutreach();
 }
