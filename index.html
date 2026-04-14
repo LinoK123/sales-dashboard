@@ -1152,12 +1152,37 @@ function loadPerfData(id){
     perfCharts['obj']=new Chart(document.getElementById('perfObjChart').getContext('2d'),{type:'doughnut',data:{labels:objKeys.map(k=>OBJECTION_LABELS[k]||k),datasets:[{data:objKeys.map(k=>objCounts[k]),backgroundColor:PASTEL,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'right',labels:{font:{size:10},boxWidth:12}}}}});
   }
 
-  // Activity chart
+  // Activity chart — group by day for short ranges, by week for longer ones
   destroyChart('activity');
-  const weekCounts={};allCalls.forEach(l=>{if(!l.date)return;const d=new Date(l.date+'T12:00:00');const wk=new Date(d);wk.setDate(d.getDate()-d.getDay());const ws=wk.toISOString().slice(0,10);weekCounts[ws]=(weekCounts[ws]||0)+1;});
-  const wkKeys=Object.keys(weekCounts).sort();
-  if(wkKeys.length){
-    perfCharts['activity']=new Chart(document.getElementById('perfActivityChart').getContext('2d'),{type:'bar',data:{labels:wkKeys.map(k=>new Date(k+'T12:00:00').toLocaleDateString('en-AU',{day:'numeric',month:'short'})),datasets:[{data:wkKeys.map(k=>weekCounts[k]),backgroundColor:isAll?'rgba(184,169,222,0.75)':member.colour+'cc',borderRadius:6,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+' calls'}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#6b6b82'}},y:{ticks:{stepSize:1,font:{size:10},color:'#6b6b82'},grid:{color:'rgba(0,0,0,0.04)'},border:{display:false}}}}});
+  const useDaily=['today','week','month'].includes(perfDateFilter);
+  const actCounts={};
+  allCalls.forEach(l=>{
+    if(!l.date)return;
+    let key;
+    if(useDaily){
+      key=l.date; // already YYYY-MM-DD local
+    }else{
+      // Week grouping: find Monday of the call's week using local date arithmetic
+      const d=new Date(l.date+'T12:00:00');
+      const day=d.getDay()||7; // make Sunday=7 so Monday=1
+      const mon=new Date(d);mon.setDate(d.getDate()-(day-1));
+      const pad=n=>String(n).padStart(2,'0');
+      key=`${mon.getFullYear()}-${pad(mon.getMonth()+1)}-${pad(mon.getDate())}`;
+    }
+    actCounts[key]=(actCounts[key]||0)+1;
+  });
+  const actKeys=Object.keys(actCounts).sort();
+  const actLabels=actKeys.map(k=>{
+    const d=new Date(k+'T12:00:00');
+    return useDaily
+      ? d.toLocaleDateString('en-AU',{weekday:'short',day:'numeric',month:'short'})
+      : 'w/c '+d.toLocaleDateString('en-AU',{day:'numeric',month:'short'});
+  });
+  document.querySelector('#perf-content .chart-card:nth-child(2) .chart-subtitle')||null;
+  const actSubEl=document.getElementById('perfActivityChart')?.closest('.chart-card')?.querySelector('.chart-subtitle');
+  if(actSubEl)actSubEl.textContent=useDaily?'Calls logged per day':'Calls logged per week';
+  if(actKeys.length){
+    perfCharts['activity']=new Chart(document.getElementById('perfActivityChart').getContext('2d'),{type:'bar',data:{labels:actLabels,datasets:[{data:actKeys.map(k=>actCounts[k]),backgroundColor:isAll?'rgba(184,169,222,0.75)':member.colour+'cc',borderRadius:6,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+' calls'}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#6b6b82',maxRotation:45}},y:{ticks:{stepSize:1,font:{size:10},color:'#6b6b82'},grid:{color:'rgba(0,0,0,0.04)'},border:{display:false}}}}});
   }
 
   // Top courses of interest
