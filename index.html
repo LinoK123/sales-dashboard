@@ -267,6 +267,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
     <button class="nav-item" onclick="showPage('outreach',this)"><span class="icon">📞</span> Outreach Targets</button>
     <div class="nav-label" style="margin-top:10px">CRM</div>
     <button class="nav-item" onclick="showPage('followups',this)"><span class="icon">📅</span> Follow-Up Review</button>
+    <button class="nav-item" onclick="showPage('coursematch',this)"><span class="icon">🎯</span> Course Match</button>
     <button class="nav-item" onclick="showPage('performance',this)"><span class="icon">📈</span> Performance</button>
     <button class="nav-item" onclick="showPage('team',this)"><span class="icon">👥</span> Sales Team</button>
   </div>
@@ -510,6 +511,50 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 </div>
 
 <!-- PERFORMANCE -->
+<div id="page-coursematch" class="page">
+  <div class="page-header">
+    <div><div class="page-title">Course Match</div><div class="page-subtitle">Find companies to call when you have spaces in an upcoming course</div></div>
+  </div>
+  <div style="background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:18px;margin-bottom:18px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px">
+      <div>
+        <label class="form-label">Course</label>
+        <select class="form-select" id="cm-course"><option value="">Any course</option></select>
+      </div>
+      <div>
+        <label class="form-label">Call Outcome</label>
+        <select class="form-select" id="cm-outcome"><option value="">Any outcome</option></select>
+      </div>
+      <div>
+        <label class="form-label">Objection Raised</label>
+        <select class="form-select" id="cm-objection"><option value="">Any / none</option></select>
+      </div>
+      <div>
+        <label class="form-label">Company Size</label>
+        <select class="form-select" id="cm-size">
+          <option value="">Any size</option>
+          <option value="1-10">1–10 employees</option>
+          <option value="11-25">11–25 employees</option>
+          <option value="26-50">26–50 employees</option>
+          <option value="51-100">51–100 employees</option>
+          <option value="101-250">101–250 employees</option>
+          <option value="251-500">251–500 employees</option>
+          <option value="500+">500+ employees</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Assigned To</label>
+        <select class="form-select" id="cm-member"><option value="">All team members</option></select>
+      </div>
+      <div style="display:flex;align-items:end;gap:8px">
+        <button class="btn-primary" style="flex:1" onclick="runCourseMatch()">🔍  Search</button>
+        <button class="btn-ghost" onclick="resetCourseMatch()">Clear</button>
+      </div>
+    </div>
+    <div style="font-size:0.78rem;color:var(--text2)">Searches all call logs for matches. Latest matching call shown per company.</div>
+  </div>
+  <div id="cm-results"></div>
+</div>
 <div id="page-performance" class="page">
   <div class="page-header"><div><div class="page-title">Performance</div><div class="page-subtitle">Call activity and outcomes by team member</div></div></div>
   <div class="perf-member-selector" id="perf-member-selector"></div>
@@ -605,10 +650,17 @@ async function saveCRM(){
           if(!CRM[key]){
             CRM[key]=serverCRM[key];
           }else{
-            // Merge call logs — local wins (we just edited), server fills in any entries we don't have
+            // Merge call logs — local wins, server fills in missing entries
+            // Special case: followupDone is sticky — once true on either side, stays true
             const localLogs=CRM[key].callLog||[];
             const serverLogs=serverCRM[key].callLog||[];
-            const localIds=new Set(localLogs.map(l=>l.id));
+            const serverById=new Map(serverLogs.map(l=>[l.id,l]));
+            const localIds=new Set();
+            for(const l of localLogs){
+              localIds.add(l.id);
+              const s=serverById.get(l.id);
+              if(s&&s.followupDone)l.followupDone=true; // sticky
+            }
             for(const l of serverLogs){
               if(!localIds.has(l.id))localLogs.push(l);
             }
@@ -639,6 +691,7 @@ function renderPag(id,total,per,cur,fn){const pages=Math.ceil(total/per);const e
 // ── NAV ──
 let prevPage='outreach';
 function showPage(id,btn){
+  if(id==='coursematch')initCourseMatch();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
@@ -1006,6 +1059,69 @@ function markFollowUpDone(company,entryId){
 }
 function closeCRM(){showPage(prevPage,document.querySelector(`.nav-item[onclick*="'${prevPage}'"]`));}
 
+let cmInit=false;
+function initCourseMatch(){
+  if(cmInit)return;cmInit=true;
+  // Populate course dropdown
+  const courseSel=document.getElementById('cm-course');
+  TOP_COURSES.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;courseSel.appendChild(o);});
+  // Populate outcome dropdown
+  const outSel=document.getElementById('cm-outcome');
+  Object.entries(OUTCOME_LABELS).forEach(([k,v])=>{const o=document.createElement('option');o.value=k;o.textContent=v;outSel.appendChild(o);});
+  // Populate objection dropdown
+  const objSel=document.getElementById('cm-objection');
+  Object.entries(OBJECTION_LABELS).forEach(([k,v])=>{const o=document.createElement('option');o.value=k;o.textContent=v;objSel.appendChild(o);});
+  // Populate member dropdown
+  const memSel=document.getElementById('cm-member');
+  TEAM.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=m.name;memSel.appendChild(o);});
+}
+function resetCourseMatch(){
+  ['cm-course','cm-outcome','cm-objection','cm-size','cm-member'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cm-results').innerHTML='';
+}
+function runCourseMatch(){
+  const fCourse=document.getElementById('cm-course').value;
+  const fOutcome=document.getElementById('cm-outcome').value;
+  const fObjection=document.getElementById('cm-objection').value;
+  const fSize=document.getElementById('cm-size').value;
+  const fMember=document.getElementById('cm-member').value;
+  // For each company, find the latest call log that matches all filters
+  const matches=[];
+  Object.entries(CRM).forEach(([company,crm])=>{
+    if(fMember&&String(crm.assigneeId||'')!==fMember)return;
+    const logs=(crm.callLog||[]).slice().sort((a,b)=>(b.id||0)-(a.id||0));
+    for(const l of logs){
+      if(fCourse&&!(l.coursesInterested||[]).includes(fCourse))continue;
+      if(fOutcome&&l.outcome!==fOutcome)continue;
+      if(fObjection&&l.objection!==fObjection)continue;
+      if(fSize&&l.companySize!==fSize)continue;
+      matches.push({company,log:l,assigneeId:crm.assigneeId,status:crm.status||'pending'});
+      break; // Only latest matching call per company
+    }
+  });
+  // Sort by most recent call first
+  matches.sort((a,b)=>(b.log.id||0)-(a.log.id||0));
+  const wrap=document.getElementById('cm-results');
+  if(!matches.length){wrap.innerHTML='<div style="text-align:center;padding:40px;color:var(--text2);background:var(--white);border:1.5px solid var(--border);border-radius:12px">No matching companies found. Try adjusting your filters.</div>';return;}
+  const rows=matches.map(m=>{
+    const member=TEAM.find(t=>t.id===m.assigneeId);
+    const avatarHtml=member?`<div style="display:inline-flex;align-items:center;gap:6px"><div style="width:22px;height:22px;border-radius:50%;background:${member.colour};display:inline-flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#fff">${initials(member.name)}</div><span style="font-size:0.78rem">${member.name}</span></div>`:'<span style="color:var(--text2);font-size:0.78rem">—</span>';
+    const courseChips=(m.log.coursesInterested||[]).map(c=>`<span class="call-log-chip chip-course">${c}</span>`).join('');
+    const objChip=m.log.objection?`<span class="call-log-chip chip-objection">${OBJECTION_LABELS[m.log.objection]||m.log.objection}</span>`:'';
+    const sizeChip=m.log.companySize?`<span class="call-log-chip chip-size">${m.log.companySize}</span>`:'';
+    return `<tr onclick="openCRM('${m.company.replace(/'/g,"\\'")}')" style="cursor:pointer">
+      <td style="font-weight:600;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.company}</td>
+      <td style="font-size:0.8rem">${m.log.contact||'—'}</td>
+      <td style="font-size:0.78rem">${fmtDate(m.log.date)}</td>
+      <td style="font-size:0.76rem;font-weight:600;color:${OUTCOME_COLOURS[m.log.outcome]||'#2d2d3a'}">${OUTCOME_LABELS[m.log.outcome]||m.log.outcome}</td>
+      <td><div class="call-log-chips" style="margin:0">${sizeChip}${objChip}${courseChips}</div></td>
+      <td>${avatarHtml}</td>
+      <td><button class="btn-primary" style="font-size:0.72rem;padding:5px 10px" onclick="event.stopPropagation();openCRM('${m.company.replace(/'/g,"\\'")}')">Open</button></td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML=`<div style="background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:14px"><div style="font-size:0.85rem;font-weight:600;margin-bottom:10px">${matches.length} matching ${matches.length===1?'company':'companies'}</div><div style="overflow-x:auto"><table class="out-table"><thead><tr><th>Company</th><th>Last Contact</th><th>Date</th><th>Outcome</th><th>Tags</th><th>Assigned To</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
 // ── FOLLOW-UP REVIEW ──
 let fuFilter='all';
 function setFuFilter(f,btn){fuFilter=f;document.querySelectorAll('.outreach-filters .filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderFollowUps();}
@@ -1248,13 +1364,24 @@ async function init(){
         if(!CRM[key]){
           CRM[key] = incoming[key];
         } else {
+          // Realtime merge — incoming server data fills gaps; followupDone is sticky in BOTH directions
           const localLogs = CRM[key].callLog || [];
           const serverLogs = incoming[key].callLog || [];
-          const seen = new Set(localLogs.map(l => l.ts+'|'+(l.agentId||'')));
-          for(const l of serverLogs){
-            if(!seen.has(l.ts+'|'+(l.agentId||''))) localLogs.push(l);
+          const serverById = new Map(serverLogs.map(l => [l.id, l]));
+          const localById = new Map(localLogs.map(l => [l.id, l]));
+          for(const l of localLogs){
+            const s = serverById.get(l.id);
+            if(s && s.followupDone) l.followupDone = true;
           }
-          CRM[key].callLog = localLogs.sort((a,b) => (a.ts||'').localeCompare(b.ts||''));
+          for(const s of serverLogs){
+            const local = localById.get(s.id);
+            if(!local){
+              localLogs.push(s);
+            }else if(local.followupDone){
+              s.followupDone = true; // not strictly needed but defensive
+            }
+          }
+          CRM[key].callLog = localLogs.sort((a,b) => (b.id||0) - (a.id||0));
           if(incoming[key].status && !CRM[key]._localEdit) CRM[key].status = incoming[key].status;
           if(incoming[key].assigneeId !== undefined && !CRM[key]._localEdit) CRM[key].assigneeId = incoming[key].assigneeId;
         }
