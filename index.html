@@ -627,6 +627,12 @@ const sumPrior6  = m=>m.slice(_prior6From(),_last6From()).reduce((a,b)=>a+b,0);
 const _nowYearMonth = ()=>{const m0=(RAW.startMonth-1)+(RAW.currentMonthIdx??(RAW.monthCount-1));return{year:RAW.startYear+Math.floor(m0/12),mo:m0%12};};
 const _nowQuarterLabel = ()=>{const n=_nowYearMonth();return`Q${Math.floor(n.mo/3)+1} ${n.year}`;};
 const _nowHalfLabel    = ()=>{const n=_nowYearMonth();return`H${n.mo<6?1:2} ${n.year}`;};
+// Per-year colours for bar charts. Cycles if more years than colours.
+const YEAR_FILL = ['rgba(184,169,222,0.7)','rgba(135,197,239,0.7)','rgba(158,207,158,0.7)','rgba(249,190,124,0.7)','rgba(247,197,224,0.7)'];
+const YEAR_BORDER = ['#b8a9de','#87c5ef','#9ecf9e','#f9be7c','#f7c5e0'];
+function _yearFromLabel(lbl){const p=lbl.split(' ');const y=p[p.length-1];return y.length===2?2000+parseInt(y,10):parseInt(y,10);}
+function _yearFill(lbl){const i=_yearFromLabel(lbl)-RAW.startYear;return YEAR_FILL[((i%YEAR_FILL.length)+YEAR_FILL.length)%YEAR_FILL.length];}
+function _yearBorder(lbl){const i=_yearFromLabel(lbl)-RAW.startYear;return YEAR_BORDER[((i%YEAR_BORDER.length)+YEAR_BORDER.length)%YEAR_BORDER.length];}
 
 // ── HARDCODED TEAM ──
 const TEAM = [{"id": 1, "name": "Ben", "colour": "#b8a9de"}, {"id": 2, "name": "Harry", "colour": "#87c5ef"}, {"id": 3, "name": "Hailey", "colour": "#9ecf9e"}, {"id": 4, "name": "Peter", "colour": "#f2a0b0"}, {"id": 5, "name": "Lino", "colour": "#f9be7c"}, {"id": 6, "name": "Ellyse", "colour": "#a8d8ea"}, {"id": 7, "name": "Billy", "colour": "#f7c5e0"}, {"id": 8, "name": "Elodie", "colour": "#b5ead7"}, {"id": 9, "name": "Renee", "colour": "#c7ceea"}, {"id": 10, "name": "Justin", "colour": "#fddcb5"}, {"id": 11, "name": "Matt", "colour": "#e89ba6"}];
@@ -748,18 +754,15 @@ function initOverview(){
   const total=RAW.clients.reduce((s,c)=>s+c.t,0),last12=RAW.clients.reduce((s,c)=>s+sumLast12(c.m),0),prior12=RAW.clients.reduce((s,c)=>s+sumPrior12(c.m),0);
   document.getElementById('kpi-total').textContent=fmt(total);document.getElementById('kpi-last12').textContent=fmt(last12);document.getElementById('kpi-prior12').textContent=fmt(prior12);document.getElementById('kpi-topcourse').textContent=RAW.courses[0].n;document.getElementById('kpi-topcourse-val').textContent=fmt(RAW.courses[0].t);
   const mt=Array(RAW.monthCount).fill(0);RAW.clients.forEach(c=>c.m.forEach((v,i)=>mt[i]+=v));const ag=aggregatePeriod(mt,'monthly');
-  const splitIdx=_last12From();
-  ovChart=new Chart(document.getElementById('overviewChart').getContext('2d'),{type:'bar',data:{labels:ag.labels,datasets:[{data:ag.values,backgroundColor:ag.labels.map((_,i)=>i<splitIdx?'rgba(184,169,222,0.7)':'rgba(135,197,239,0.7)'),borderColor:ag.labels.map((_,i)=>i<splitIdx?'#b8a9de':'#87c5ef'),borderWidth:1.5,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtFull(c.raw)}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#6b6b82'}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:v=>fmt(v),font:{size:10},color:'#6b6b82'},border:{display:false}}}}});
+  ovChart=new Chart(document.getElementById('overviewChart').getContext('2d'),{type:'bar',data:{labels:ag.labels,datasets:[{data:ag.values,backgroundColor:ag.labels.map(l=>_yearFill(l)),borderColor:ag.labels.map(l=>_yearBorder(l)),borderWidth:1.5,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtFull(c.raw)}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#6b6b82'}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:v=>fmt(v),font:{size:10},color:'#6b6b82'},border:{display:false}}}}});
   const mkD=(id,data)=>new Chart(document.getElementById(id).getContext('2d'),{type:'doughnut',data:{labels:data.map(c=>c.n.length>24?c.n.slice(0,23)+'…':c.n),datasets:[{data:data.map(c=>c.t),backgroundColor:PASTEL,borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'right',labels:{font:{size:9},boxWidth:11}},tooltip:{callbacks:{label:c=>' '+c.label+': '+fmt(c.raw)}}}}});
   clDonut=mkD('clientDonut',RAW.clients.slice(0,10));crDonut=mkD('courseDonut',RAW.courses.slice(0,10));
 }
 function setOvPeriod(p,btn){
   btn.closest('.period-toggle').querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
   const mt=Array(RAW.monthCount).fill(0);RAW.clients.forEach(c=>c.m.forEach((v,i)=>mt[i]+=v));const ag=aggregatePeriod(mt,p);
-  // Split: anything older than the last 12 months gets the prior-period colour
-  // Split anchored at today's calendar period (last 12 months / last 4 quarters / last 2 halves ending now)
-  const splitIdx=p==='monthly'?_last12From():p==='quarterly'?Math.max(0,(ag.labels.indexOf(_nowQuarterLabel())+1)-4):Math.max(0,(ag.labels.indexOf(_nowHalfLabel())+1)-2);
-  ovChart.data.labels=ag.labels;ovChart.data.datasets[0].data=ag.values;ovChart.data.datasets[0].backgroundColor=ag.labels.map((_,i)=>i<splitIdx?'rgba(184,169,222,0.7)':'rgba(135,197,239,0.7)');ovChart.data.datasets[0].borderColor=ovChart.data.datasets[0].backgroundColor.map(c=>c.replace('0.7','1'));ovChart.update();
+  // Colour each bar by its calendar year so each year is visually distinct
+  ovChart.data.labels=ag.labels;ovChart.data.datasets[0].data=ag.values;ovChart.data.datasets[0].backgroundColor=ag.labels.map(l=>_yearFill(l));ovChart.data.datasets[0].borderColor=ag.labels.map(l=>_yearBorder(l));ovChart.update();
   document.getElementById('ov-sub').textContent={monthly:'Monthly sales revenue',quarterly:'Quarterly aggregated revenue',halfyearly:'Half-yearly aggregated revenue'}[p];
 }
 
@@ -851,12 +854,13 @@ function sortOut(key){if(outSortKey===key)outSortDir*=-1;else{outSortKey=key;out
 function applyOutFilter(){
   // Populate member dropdown
   const sel=document.getElementById('out-member-filter');
-  if(sel){const cur=sel.value;sel.innerHTML='<option value="">All team members</option>'+TEAM.map(m=>`<option value="${m.id}"${cur==m.id?' selected':''}>${m.name}</option>`).join('');}
+  if(sel){const cur=sel.value;sel.innerHTML='<option value="">All team members</option><option value="unassigned"'+(cur==='unassigned'?' selected':'')+'>— Unassigned —</option>'+TEAM.map(m=>`<option value="${m.id}"${cur==m.id?' selected':''}>${m.name}</option>`).join('');}
   const mf=sel?sel.value:'';
   outFiltered=RAW.outreach.filter(o=>{
     if(outFilter!=='all'&&o.signal!==outFilter)return false;
     if(outSearch&&!o.n.toLowerCase().includes(outSearch))return false;
-    if(mf){const crm=CRM[o.n]||{};if(crm.assigneeId!=mf)return false;}
+    if(mf==='unassigned'){const crm=CRM[o.n]||{};if(crm.assigneeId)return false;}
+    else if(mf){const crm=CRM[o.n]||{};if(crm.assigneeId!=mf)return false;}
     return true;
   });
   outFiltered.sort((a,b)=>{let va=a[outSortKey]??0,vb=b[outSortKey]??0;if(typeof va==='string')return outSortDir*va.localeCompare(vb);return outSortDir*(va-vb);});
