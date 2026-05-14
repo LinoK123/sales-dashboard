@@ -51,6 +51,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 .kpi-card.kpi-today::before{background:#e6a817 !important;}
 .kpi-card.kpi-upcoming::before{background:#2d7a2d !important;}
 .kpi-card.kpi-declining::before{background:#e67e22 !important;}
+.kpi-card.kpi-new::before{background:#2d7a2d !important;}
+.kpi-card.kpi-returning::before{background:#7B68C8 !important;}
 .kpi-label{font-size:0.73rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;}
 .kpi-value{font-family:'DM Serif Display',serif;font-size:1.7rem;color:var(--text);}
 .kpi-sub{font-size:0.75rem;color:var(--text2);margin-top:3px;}
@@ -102,6 +104,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 .badge-lapsed{background:#fde8e8;color:#c0392b;}
 .badge-dormant{background:#fff3cd;color:#856404;}
 .badge-declining{background:#fddcb5;color:#a05c00;}
+.badge-new{background:#edf7ed;color:#2d7a2d;}
+.badge-returning{background:#ece8f7;color:#5a4a8a;}
 .outreach-kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
 .outreach-filters{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
 .filter-btn{padding:6px 15px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:500;color:var(--text2);cursor:pointer;transition:all 0.14s;}
@@ -110,6 +114,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 .filter-btn.f-lapsed.active{background:#c0392b;border-color:#c0392b;}
 .filter-btn.f-dormant.active{background:#856404;border-color:#856404;}
 .filter-btn.f-declining.active{background:#a05c00;border-color:#a05c00;}
+.filter-btn.f-new.active{background:#2d7a2d;border-color:#2d7a2d;}
+.filter-btn.f-returning.active{background:#7B68C8;border-color:#7B68C8;}
 .out-table-wrap{background:var(--white);border-radius:var(--radius2);border:1.5px solid var(--border);box-shadow:var(--shadow);overflow:hidden;}
 .out-table{width:100%;border-collapse:collapse;font-size:0.81rem;}
 .out-table th{background:var(--lav);padding:11px 14px;text-align:left;font-weight:600;font-size:0.72rem;color:var(--text);letter-spacing:0.04em;text-transform:uppercase;border-bottom:1.5px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;}
@@ -376,12 +382,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
     <div class="kpi-card kpi-overdue" style="border-left:4px solid #c0392b"><div class="kpi-label">🔴 Lapsed</div><div class="kpi-value" id="out-kpi-lapsed">—</div><div class="kpi-sub">$2K+ in prior 12 mo, $0 in last 12</div></div>
     <div class="kpi-card kpi-today" style="border-left:4px solid #e6a817"><div class="kpi-label">🟡 Gone Quiet</div><div class="kpi-value" id="out-kpi-dormant">—</div><div class="kpi-sub">Active in prior 12 mo, silent last 3</div></div>
     <div class="kpi-card kpi-declining" style="border-left:4px solid #e67e22"><div class="kpi-label">🟠 Declining Spend</div><div class="kpi-value" id="out-kpi-declining">—</div><div class="kpi-sub">Last 6 mo down 50%+ vs prior 6</div></div>
+    <div class="kpi-card kpi-new" style="border-left:4px solid #2d7a2d"><div class="kpi-label">🌱 New Client</div><div class="kpi-value" id="out-kpi-new">—</div><div class="kpi-sub">First spend this year, none before</div></div>
+    <div class="kpi-card kpi-returning" style="border-left:4px solid #7B68C8"><div class="kpi-label">🔄 Returning</div><div class="kpi-value" id="out-kpi-returning">—</div><div class="kpi-sub">Active 2yrs ago, silent last yr, back this yr</div></div>
   </div>
   <div class="outreach-filters">
     <button class="filter-btn active" onclick="setOutFilter('all',this)">All Targets</button>
     <button class="filter-btn f-lapsed" onclick="setOutFilter('lapsed',this)">🔴 Lapsed</button>
     <button class="filter-btn f-dormant" onclick="setOutFilter('dormant',this)">🟡 Gone Quiet</button>
     <button class="filter-btn f-declining" onclick="setOutFilter('declining',this)">🟠 Declining</button>
+    <button class="filter-btn f-new" onclick="setOutFilter('new',this)">🌱 New</button>
+    <button class="filter-btn f-returning" onclick="setOutFilter('returning',this)">🔄 Returning</button>
     <select class="form-select" style="width:auto;min-width:160px" id="out-member-filter" onchange="applyOutFilter()">
       <option value="">All team members</option>
     </select>
@@ -847,7 +857,7 @@ function showCourseList(){document.getElementById('courselist-browse').style.dis
 // ── OUTREACH ──
 let outreachInit=false,outFilter='all',outSearch='',outFiltered=[],outPage=0,outSortKey='priority',outSortDir=-1;
 const OUT_PER=50;
-function initOutreach(){outreachInit=true;document.getElementById('out-kpi-lapsed').textContent=RAW.outreach.filter(o=>o.signal==='lapsed').length+' companies';document.getElementById('out-kpi-dormant').textContent=RAW.outreach.filter(o=>o.signal==='dormant').length+' companies';document.getElementById('out-kpi-declining').textContent=RAW.outreach.filter(o=>o.signal==='declining').length+' companies';applyOutFilter();}
+function initOutreach(){outreachInit=true;const cnt=s=>RAW.outreach.filter(o=>o.signal===s).length+' companies';document.getElementById('out-kpi-lapsed').textContent=cnt('lapsed');document.getElementById('out-kpi-dormant').textContent=cnt('dormant');document.getElementById('out-kpi-declining').textContent=cnt('declining');document.getElementById('out-kpi-new').textContent=cnt('new');document.getElementById('out-kpi-returning').textContent=cnt('returning');applyOutFilter();}
 function setOutFilter(f,btn){outFilter=f;outPage=0;document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');applyOutFilter();}
 function filterOutreach(){outSearch=document.getElementById('out-search').value.toLowerCase();outPage=0;applyOutFilter();}
 function sortOut(key){if(outSortKey===key)outSortDir*=-1;else{outSortKey=key;outSortDir=-1;}outPage=0;applyOutFilter();}
@@ -868,8 +878,8 @@ function applyOutFilter(){
 }
 function renderOutreach(){
   const start=outPage*OUT_PER,slice=outFiltered.slice(start,start+OUT_PER);
-  const sLabel={lapsed:'🔴 Lapsed',dormant:'🟡 Gone Quiet',declining:'🟠 Declining'};
-  const sBadge={lapsed:'badge-lapsed',dormant:'badge-dormant',declining:'badge-declining'};
+  const sLabel={lapsed:'🔴 Lapsed',dormant:'🟡 Gone Quiet',declining:'🟠 Declining',new:'🌱 New Client',returning:'🔄 Returning'};
+  const sBadge={lapsed:'badge-lapsed',dormant:'badge-dormant',declining:'badge-declining',new:'badge-new',returning:'badge-returning'};
   document.getElementById('out-tbody').innerHTML=slice.map(o=>{
     const crm=CRM[o.n]||{};const member=TEAM.find(m=>m.id===crm.assigneeId);
     const avatarHtml=member?`<div style="display:inline-flex;align-items:center;gap:6px"><div style="width:22px;height:22px;border-radius:50%;background:${member.colour};display:inline-flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#fff">${initials(member.name)}</div><span style="font-size:0.78rem">${member.name}</span></div>`:'<span style="color:var(--text2);font-size:0.78rem">—</span>';
@@ -946,7 +956,7 @@ function openCRM(name){
   const total=client?.t||outItem?.t||0;
   document.getElementById('crm-name').textContent=name;
   document.getElementById('crm-back-btn').textContent='← Back to '+prevPage.charAt(0).toUpperCase()+prevPage.slice(1);
-  const sLabel={lapsed:'🔴 Lapsed',dormant:'🟡 Gone Quiet',declining:'🟠 Declining Spend'};const sBadge={lapsed:'badge-lapsed',dormant:'badge-dormant',declining:'badge-declining'};
+  const sLabel={lapsed:'🔴 Lapsed',dormant:'🟡 Gone Quiet',declining:'🟠 Declining Spend',new:'🌱 New Client',returning:'🔄 Returning'};const sBadge={lapsed:'badge-lapsed',dormant:'badge-dormant',declining:'badge-declining',new:'badge-new',returning:'badge-returning'};
   document.getElementById('crm-meta').innerHTML=outItem?`<span class="badge ${sBadge[outItem.signal]}">${sLabel[outItem.signal]}</span>`:'';
   document.getElementById('crm-total').textContent=fmt(total);
   document.getElementById('crm-prior12').textContent=prior12>0?fmtFull(prior12):'—';
@@ -1352,10 +1362,11 @@ function loadPerfData(id){
   const topC=Object.entries(courseCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);const maxC2=topC[0]?.[1]||1;
   document.getElementById('perf-top-courses').innerHTML=topC.length?topC.map(([n,cnt])=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><div style="flex:1;font-size:0.8rem;font-weight:500;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</div><div style="width:60px;height:5px;border-radius:3px;background:var(--border);overflow:hidden;flex-shrink:0"><div style="height:100%;border-radius:3px;background:${member.colour};width:${((cnt/maxC2)*100).toFixed(0)}%"></div></div><div style="font-size:0.8rem;font-weight:600;min-width:24px;text-align:right">${cnt}</div></div>`).join(''):'<div style="color:var(--text2);font-size:0.82rem;padding:16px">No course interest data logged yet</div>';
 
-  // Recent calls
+  // Recent calls — sort newest first (by entry id; falls back to date string)
   document.getElementById('perf-log-sub').textContent=`${allCalls.length} total calls — ${member.name}`;
   const agentColour=isAll?null:member.colour;
-  document.getElementById('perf-call-log').innerHTML=allCalls.slice(0,30).map(e=>{
+  const recent=allCalls.slice().sort((a,b)=>(b.id||0)-(a.id||0)||(b.date||'').localeCompare(a.date||''));
+  document.getElementById('perf-call-log').innerHTML=recent.slice(0,30).map(e=>{
     const dd=daysDiff(e.followup);const overdueHtml=e.followup&&dd!==null?(dd<0?`<span class="overdue-flag">Overdue ${Math.abs(dd)}d</span>`:dd===0?`<span class="followup-flag">Today!</span>`:`<span class="followup-flag">Follow up ${fmtDate(e.followup)}</span>`):'';
     const agentBadge=isAll&&e.agentName?`<span style="background:${(TEAM.find(m=>m.id===e.agentId)||{colour:'#ccc'}).colour};color:#fff;padding:2px 7px;border-radius:99px;font-size:0.68rem;font-weight:700">${e.agentName}</span>`:'';
     const safeCompany=(e.company||'').replace(/'/g,"\\'");
