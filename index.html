@@ -168,6 +168,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 .assign-member{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;border:1.5px solid var(--border);cursor:pointer;background:var(--white);transition:all 0.15s;}
 .assign-member:hover{border-color:var(--lav2);background:var(--lav);}
 .assign-member.selected{border-color:var(--lav2);background:var(--lav);box-shadow:0 0 0 2px var(--lav2);}
+.assign-member.left-member{opacity:0.5;filter:grayscale(0.7);cursor:not-allowed;}
+.assign-member.left-member:hover{border-color:var(--border);background:var(--white);}
+.left-member-tag{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#8d8da0;background:#ececf0;border-radius:5px;padding:1px 5px;margin-left:6px;}
 .assign-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.78rem;color:#fff;flex-shrink:0;}
 .assign-info-name{font-size:0.8rem;font-weight:600;color:var(--text);}
 .assign-info-role{font-size:0.68rem;color:var(--text2);}
@@ -234,6 +237,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 .perf-member-selector{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;padding-bottom:18px;border-bottom:1.5px solid var(--border);}
 .perf-member-btn{display:flex;align-items:center;gap:9px;padding:8px 14px;border-radius:12px;border:1.5px solid var(--border);background:var(--white);cursor:pointer;transition:all 0.15s;font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:500;color:var(--text2);}
 .perf-member-btn:hover{border-color:var(--lav2);background:var(--lav);color:var(--text);}
+.perf-member-btn.left-member{opacity:0.55;}
+.perf-member-btn.left-member .perf-avatar{filter:grayscale(0.6);}
 .perf-member-btn.active{border-color:var(--lav2);background:var(--lav);color:var(--text);font-weight:700;box-shadow:0 0 0 2px var(--lav2);}
 .perf-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.72rem;color:#fff;flex-shrink:0;}
 .perf-kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
@@ -244,6 +249,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 /* Team */
 .team-grid-display{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px;}
 .team-card-simple{background:var(--white);border-radius:var(--radius2);padding:16px 18px;box-shadow:var(--shadow);border:1.5px solid var(--border);display:flex;align-items:center;gap:12px;}
+.team-card-simple.left-member{opacity:0.62;background:#fafafb;}
+.team-card-simple.left-member .team-avatar-sm{filter:grayscale(0.75);}
 .team-avatar-sm{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.88rem;color:#fff;flex-shrink:0;}
 .team-card-name{font-weight:600;font-size:0.9rem;color:var(--text);}
 .team-card-stats{font-size:0.72rem;color:var(--text2);margin-top:2px;}
@@ -598,7 +605,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 
 <!-- TEAM -->
 <div id="page-team" class="page">
-  <div class="page-header"><div><div class="page-title">Sales Team</div><div class="page-subtitle">Your 11-person team — click View Stats to see individual performance</div></div></div>
+  <div class="page-header"><div><div class="page-title">Sales Team</div><div class="page-subtitle" id="team-subtitle">click View Stats to see individual performance</div></div></div>
   <div class="team-grid-display" id="team-grid"></div>
   <div class="chart-card"><div class="chart-title">Assignment Summary</div><div class="chart-subtitle">Outreach targets assigned per team member</div><div class="chart-wrap" style="height:220px"><canvas id="assignChart"></canvas></div></div>
 </div>
@@ -645,7 +652,11 @@ function _yearFill(lbl){const i=_yearFromLabel(lbl)-RAW.startYear;return YEAR_FI
 function _yearBorder(lbl){const i=_yearFromLabel(lbl)-RAW.startYear;return YEAR_BORDER[((i%YEAR_BORDER.length)+YEAR_BORDER.length)%YEAR_BORDER.length];}
 
 // ── HARDCODED TEAM ──
-const TEAM = [{"id": 1, "name": "Ben", "colour": "#b8a9de"}, {"id": 2, "name": "Harry", "colour": "#87c5ef"}, {"id": 3, "name": "Hailey", "colour": "#9ecf9e"}, {"id": 4, "name": "Peter", "colour": "#f2a0b0"}, {"id": 5, "name": "Lino", "colour": "#f9be7c"}, {"id": 6, "name": "Ellyse", "colour": "#a8d8ea"}, {"id": 7, "name": "Billy", "colour": "#f7c5e0"}, {"id": 8, "name": "Elodie", "colour": "#b5ead7"}, {"id": 9, "name": "Renee", "colour": "#c7ceea"}, {"id": 10, "name": "Justin", "colour": "#fddcb5"}, {"id": 11, "name": "Matt", "colour": "#e89ba6"}];
+const TEAM = [{"id": 1, "name": "Ben", "colour": "#b8a9de"}, {"id": 2, "name": "Harry", "colour": "#87c5ef", "active": false}, {"id": 3, "name": "Hailey", "colour": "#9ecf9e"}, {"id": 4, "name": "Peter", "colour": "#f2a0b0"}, {"id": 5, "name": "Lino", "colour": "#f9be7c"}, {"id": 6, "name": "Ellyse", "colour": "#a8d8ea"}, {"id": 7, "name": "Billy", "colour": "#f7c5e0"}, {"id": 8, "name": "Elodie", "colour": "#b5ead7"}, {"id": 9, "name": "Renee", "colour": "#c7ceea"}, {"id": 10, "name": "Justin", "colour": "#fddcb5"}, {"id": 11, "name": "Matt", "colour": "#e89ba6"}, {"id": 12, "name": "Paul", "colour": "#cdb4db"}];
+// Active = on the team now. Inactive members (e.g. left the company) keep all their
+// historical data and stay visible for stats/attribution, but can't take new work.
+const tmActive=()=>TEAM.filter(m=>m.active!==false);
+const tmName=m=>m&&m.active===false?m.name+' (left)':(m?m.name:'');
 
 // ── CSQ FUNDED COMPANIES ──
 const CSQ_SET = new Set(["Cash - Individual Participants", "McNab NQ PTY LTD", "Pulse Consortium CBGU JV - Cross River Rail (TSD)", "Brisbane City Council", "John Holland Pty Ltd", "Alder Constructions", "Fulton Hogan Industries Pty Ltd QLD", "McConnell Dowell", "Fulton Hogan Hull McIlwain Joint Venture", "Star Res Pty Ltd", "Acciona Construction Australia Pty Ltd", "See Civil Pty Ltd", "All Brothers Unite", "Impact Plumbing", "Hazell Bros Plant Hire (QLD) Pty Ltd", "Morton Engineering", "Acciona Georgiou Joint Venture", "Redland City Council", "GROUP 4 COMMERCIAL", "Rocktown Pty Ltd", "John Holland Queensland Pty Ltd and Seymour Whyte Constructions Pty Ltd - B2N", "Bielby Hull Joint Venture", "Georgiou BMD JV", "Kent Projects Pty Ltd", "Electro Group Apprentices and Training", "Workcon", "Ventia Australia Pty Ltd", "Allens Asphalt", "GW Commercial Pty Ltd", "Smart Telecommunications", "Niepe Construction Pty Ltd", "Strucbuild", "Hutchinson Builders", "Road Aid", "J&P Richardson Industries Pty Ltd", "Edge Rail Solutions Pty Ltd", "Brandons", "Buildcorp Group Pty Ltd", "Kane Constructions Pty Ltd", "BLD Building Legal and Development Pty Ltd", "Engineering Applications Pty Ltd", "Caporn Piling", "Queensland Glass", "Now Careers QLD PTY LTD", "JRT Group", "North Australian Contracting Pty Ltd", "CPB Contractors Pty Ltd", "Fraser Coast Regional Council", "FULTON HOGAN UTILITIES PTY LTD", "Windowline Pty Ltd", "The Service Trades College Australia Ltd", "Rohrig Qld Pty Ltd", "Mainland Civil Queensland Pty Ltd", "Torre Developments", "Matrix Rail", "Ertech Pty Ltd", "Capstone Electrical Pty Ltd ATF Walker Trust", "Caneland Engineering", "Beavis & Bartels Pty Ltd", "By-Tech Engineering Pty Ltd", "Scope Services Qld", "E2E Communications", "Wagstaff Piling Pty Ltd", "Watkins Steel Pty Ltd", "HVAC Queensland Pty Ltd", "Schindler Lifts Australia Pty Ltd", "FEC Constructions (Qld) Pty Ltd", "Category 5 Labour Management VSA", "NRG Electrical (QLD) Pty Ltd", "BHAGWAN MARINE PTY LTD", "Smart Telecommunication PTY LTD", "Delta Pty Ltd", "Barrett Group Services Pty Ltd", "F.K. Gardner & Sons Pty Ltd", "GL Training", "Osmac Group Training", "Doval Constructions Pty Ltd", "Next Level Consulting Solutions", "Pensar Water Pty Ltd", "Downer EDI Works Pty Ltd", "WRB Construction", "Highline Roofing", "Wiley Group", "Cogent Scaffolding", "Hipwood Group", "M2 Electrical Pty Ltd", "Jemini Landscapes", "Ron Veraa Construction", "Pensar Construction Group Pty Ltd", "Going Up Elevators", "PSF Steel Pty Ltd", "QLD Civil Solutions", "Avideas", "AG Coatings", "Protech Group", "GRAYA", "Blend Projects", "(blank)", "Apprenticeship Queensland", "East Coast Apprenticeships", "Celotti Workforce", "Pensar Structures Pty Ltd", "Paynters PTY LTD", "Electract Energy", "Rochele Painting", "Tomkins Commercial", "Fulton Hogan Infrastructure Services", "BORAL ASPHALT QLD", "Products for Industry Pty Ltd", "E&J Rigging Pty Ltd", "Bielby Hull Joint Venture Northside", "Beenleigh Steel Fabrications Pty Ltd", "Multiplex Constructions (Queen's Wharf)", "Georgiou Group Pty Ltd", "FVS", "C&C Construct Pty Ltd", "FDS Plumbing & Gas", "Contrast Constructions", "All Site Demolition", "Gyppro Plastering", "Bryant Building Contractors", "Carbone Developments Pty Ltd", "The Rix Group Pty Ltd", "Peak Precast", "Lindores Personnel", "Safety Australia Training and Consulting", "Trafflec", "Sparks Alive Electrical", "IMP Group Pty Ltd", "DSE Civil Electrical", "Advanced Deconstruction", "KeyBuild Services Pty Ltd", "BPG Construction", "Action Formwork (Aust) Pty Ltd", "Castletown Construction Pty Ltd", "Greyburn Building Contractors", "BSF MOBILE CRANES PTY LTD", "My Metals Pty Ltd", "JT Solid Plastering", "Fulton Hogan", "Pico Play", "Streamline Architecture Solutions", "TSM Engineering Pty Ltd", "Architectural Facade Cladding Solutions Pty Ltd", "FSI Engineering", "Lendlease Building Pty Ltd", "Infinity Constructions QLD Pty Ltd", "Otis Elevator Company Pty Ltd", "Protech", "Albem Pty Ltd", "Stokes Wheeler Pty ltd", "Qube Ports & Bulk", "Woollam Construction", "Country to Coast Glass and Security", "GR Production Services", "Global Engineering & Construction", "Daly's Construction", "Built Pty Ltd", "Alimak Services", "Bothar Boring", "Phase Electrical & Communications", "Queensland Rail", "Breezewater Pty Ltd", "Finely Tuned Roofing", "Mosaic Construction", "Mi Electric Pty Ltd", "DellaCorda", "CS Development Group Pty Ltd", "Adco Construction Pty Ltd", "CC P&D Pty Ltd", "Dowells Building Services Pty Ltd", "Smart Employment Solutions", "Dean Cameron Painters Pty Ltd", "Williams Cranes & Rigging Pty Ltd", "Amalgamated Group Management Pty Ltd", "Seymour Whyte Constructions", "Dickinson Constructions Pty Ltd", "Mcnab", "CV Services Group Pty Ltd", "Molan Phillips", "GEO Retain Pty Ltd", "Proper Sealing Solutions", "Hazell Bros (QLD) Pty Ltd", "JD Lighting Electrical", "JF Hull Holdings Pty Ltd", "NECA Group Training", "FormPlus Group Pty Ltd", "JWB Constructions", "TAS Fabrications Pty Ltd", "Dundrum Civil", "Modern Fire Protection", "Bob's Irrigation Services", "MC Electrical", "Bielby Holdings Pty Ltd", "Superior Walls & Ceilings QLD", "John Holland Queensland Pty Ltd", "Ozrig Pty Ltd", "Higgins Coatings", "Environ Air Conditioning", "Rail Control Systems Australia", "Slade Industries Pty Ltd", "Cinc Group", "Fleetwood VIC & QLD Pty Ltd", "The Landscape Construction Company Pty Ltd", "Australasian Overhead Cranes", "Corvex", "SBP Australia Pty Ltd", "Mulherin Rigging and Cranes Australia Pty Ltd", "Hawking Electrical Pty Ltd", "Atlas Building Services", "ATF Services", "CGC Recruitment", "SGQ Pty Ltd", "Action Trades and Apprenticeships", "Australian Electronic Maintenance Services", "CPM Group Pty Ltd (C)", "Wilko Painting", "Shed Homes Australia Pty Ltd", "Australian Marine & Civil Pty Ltd", "Fidato Coatings", "Boss Building Maintenance", "Acrow Formwork and Scaffolding", "MTC Future Ready", "VTS Cranes and Hoists", "Steel Structures Australia", "Rosenlund Contractors Pty Ltd", "Mettle Australia", "Inform Construction", "Initial Energy", "Monadelphous Group Limited", "Cava Scaffold Solutions", "WHA Group Pty Ltd", "McHugh Steel", "CPD Pty Ltd", "BSE Services Australia", "Brick Construction", "WorkPac", "Munster Services Group Pty Ltd", "Falcon Cranes Pty Ltd", "MB Electrical Services", "Georgiou", "J F Tyack Contracting Pty LTD", "Universal Cranes", "Brisbane Builders PTY LTD", "Demex", "Heavy Duty Contracting", "IDEC Solutions", "Pro wind", "Cross Cranes", "Meggawind Pty Ltd", "LTE Precast Concrete Structures", "Clad X Pty Ltd", "Pecks Labour Hire", "CGC QLD PTY LTD", "Crane Hotline", "RC Lift and Shift", "5 Point Projects", "Cement Australia", "Breakout Scaffolding", "Brisbane Scaffold Hire", "Nardia Plumbing", "Rhys Brown Electrical", "Multi Span Australia Group PTY LTD", "RJM Plumbing", "Pipe Management Australia Pty Ltd", "NTHA Trainees & Apprentices Pty Ltd", "CVSG Asset Services Pty Ltd", "MarchNet", "Gardel Electrical", "Barnes Construction and Joinery Pty Ltd", "Iron Horse structural services", "Fredon Qld Pty Ltd", "Dave Garrett Constructions", "IPSWICH CITY COUNCIL", "Logan Power Poles", "Q Power (QLD) Pty Ltd", "SIG Construction Group", "All Energy", "Lazzaroni Electrical", "Sensus Electrical", "SBL Solutions Services P/L", "Jackson Trade Services", "Denam", "Alpine Communications", "Hully Foundations", "Stratec Pty Ltd", "Spartan Group", "Maunder Civil Contracting", "Greystone Civil Pty Ltd", "Piled Foundations Pty Ltd", "Rousell Constructions", "Clearcon", "Gemlife Administration Pty Ltd", "Brisbane Pump Action Pty Ltd", "TNT Crane Hire Pty Ltd", "Bridgeman", "Master Hire", "Sumner Steel", "Salt Plumbing Maintenance", "Eagle Alliance Plant Hire", "Hanson Construction Materials P/L (Northgate)", "Heavy Maintenance Australia Pty Ltd", "Magnitude Pipeline and Construction", "Progress Rail", "Mitchell Water Australia", "Cosmic Group", "Access Able Accessible Services Queensland Pty Ltd", "Constructionarium Pty Ltd", "Holcim Australia Pty Ltd", "Labourly", "HSF Aust", "Civwil", "Davis Data and Electrical", "EnProCon Pty Ltd", "Duratec Limited", "Riviere Constructions", "Zico Formwork", "Core Welding", "Vikcon", "Australian Fibre Optic Solutions", "Energize Electrical Safety Management", "Civex", "BMG Constructions", "Fast Energy Pty Ltd", "Total Water Services", "Elemek Electrical", "CDJ Electrical", "Walters Scaffolding", "The Davey Group", "Australian Piping Solutions", "Hornick Constructions PTY Ltd.", "Wittemans Fabrication", "Electrical Proven", "Havenscape", "Kelleher Builders Pty Ltd", "Aurora Landscaping & Fencing Pty Ltd", "Living Gems Administration Pty Ltd", "Electrical Data & Security Services Pty Ltd", "Qube Logistics (SB) Pty Ltd", "Lee Civil Pty Ltd", "Salmon plumbing", "Stowe Australia Pty Ltd", "Ehlerth Electrical", "CSE Electrical", "Rovera Scaffolding", "Mainbrace Constructions (QLD) Pty Ltd", "Total Installation", "Wire-Not Electrical", "CPB BAM GHELLA UGL Joint Venture", "CJ Developments", "Whatalec Pty Ltd", "Superseal Group", "QLD Duct Installers", "RCQ Projects Pty Ltd", "Set Tiling", "United Personnel", "One Stop Joinery", "BD@JA Weier painting contractor", "OGB Services", "Hawthorne Civil", "Hembrows Electrical Service Pty Ltd", "Enever Electrical and Data Pty Ltd", "AMAC Cranes Group", "Brisbane city cranes", "Krave Electrical", "Working Bucket", "Sureflow Plumbig Group", "Smoke and Spark Solutions", "Queensland Formwork Pty Ltd", "Icon Co (QLD) Pty Ltd", "Prowire Electrical (Qld) Pty Ltd", "Ryan Wilks Pty Ltd", "Your Trades Pty Ltd", "Dowells", "K2 Projects", "Origin Cranes", "Dodge Civil Contracting", "Innes Group", "A Cladding Solutions Pty Ltd", "Tilecorp Pty Ltd", "Endfire Engineering", "Cornerstone Construction", "Da Vinci Projects Pty Ltd", "Hoffman Rigging", "Overhead Distribution Services Pty Ltd", "Colligate Industrial", "Marsh Height Safety", "Westiron Roofing", "Nutters Gutters", "GNB Energy", "East Coast Electrical QLD", "Calibre engineering", "Garwood Tree Services", "QLD Water Blasting", "Hanlon Industries", "Fully Wired Electrical Services", "Altus Traffic", "Fine Line Commercial Interior Linings Pty Ltd", "Forensic Disability Service", "APS Plumbing", "Surfside Pools", "Bridgeman Stainless solutions", "Tesselaar Flowers", "Q Electrical Pty Ltd", "Minister and Samson", "Minnis and Samson", "Landsdown Services Pty Ltd", "IPCQ", "Health Security Education", "WW Surveys", "Insight Control", "ATB Metal Fab", "Pensar", "AGC Installations", "Paul Edwards Constructions Pty Ltd", "B&G Enterprises", "Bobs irrigation services", "Imperial Contracting (QLD) Pty Ltd", "BADGE Constructions", "ATG Building Success", "Evolve Constructions", "PHE Pty Ltd", "Electro Industries Pty Ltd", "5th Star Pty Ltd", "Tc welding", "BUILDICO", "Mayfair Fabrications", "Actemium", "Fitzgerald Constructions", "Syfon Systems Pty Ltd", "Concept Tanks", "PCA Ground Engineering", "CBD Landscape Construction", "Nilsen (QLD) Pty Ltd", "Give Industries", "BlackBox Pty Ltd", "Archimedes Engineering Pty Ltd", "Sturdie Electrical", "Heinrich Constructions", "SJC Engineering", "UGL RTS Pty Ltd", "Tri Tech Refrigeration Qld", "Tritech Refrigeration Qld", "Q Electrical", "Universal Sheetmetal", "Dowells Labour Hire", "Abrik Pty Ltd", "Martin Brothers Landscape Construction & Maintenance", "5POINT PROJECTS PTY LTD", "Dynamic Civil & Drainage Pty Ltd", "Amharc Pty Ltd", "Bess Concrete Pty Ltd", "Plumbrite Solutions Pty Ltd", "McKew Constracting", "Placecrete Australia Pty Ltd", "Daxcon Concrete Specialists", "CPM Advisory", "Grange Earthworks", "Quickway Constructions", "Memar Constructions", "Silverstrand Developments Pty Ltd", "McGrath & Frisby", "CPM Civil", "Epoca Constructions", "Tamborine MTN Electrical Services", "Smart Metal Roofing", "Energex Limited", "Groupline Constructions", "Inbilt Projects Pty Ltd", "Mitch Green Electrical", "BJ Sampson", "Aussie Painters Direct Pty Ltd", "Evolution Building Network Pty Ltd", "Plumbers Union", "Konstruct Commercial Projects", "PPD & GAS", "Mantle Pty Ltd", "CMH Electrical Industries", "Connect Resources", "HARRAP MARINE INDUSTRIES PTY LTD", "NRG Industrial Pty Ltd", "Taranaway PTY LTD", "Neca Electrical Apprenticeships", "Latitude Designs Pty Ltd", "Datum Building", "D&E Air Conditioning Pty Limited", "Thermospark electrical", "Thermospark Electrical Pty Ltd", "Voltfix Electrical", "DIALOG Fitzroy Australia Pty Ltd", "Cool Dynamics Refrigeration (Qld) Pty Ltd", "Vae Group", "Gold Coast Roofing", "Commspower Pty Ltd", "T Build Queensland", "Shoreline Civil and Marine", "Solid Contracting", "Gumleaf Gutter Protection", "BGER", "Cree8 Pty Ltd", "Thor Interiors", "Brisbane Tank Manufacturing"]);
@@ -864,7 +875,7 @@ function sortOut(key){if(outSortKey===key)outSortDir*=-1;else{outSortKey=key;out
 function applyOutFilter(){
   // Populate member dropdown
   const sel=document.getElementById('out-member-filter');
-  if(sel){const cur=sel.value;sel.innerHTML='<option value="">All team members</option><option value="unassigned"'+(cur==='unassigned'?' selected':'')+'>— Unassigned —</option>'+TEAM.map(m=>`<option value="${m.id}"${cur==m.id?' selected':''}>${m.name}</option>`).join('');}
+  if(sel){const cur=sel.value;sel.innerHTML='<option value="">All team members</option><option value="unassigned"'+(cur==='unassigned'?' selected':'')+'>— Unassigned —</option>'+TEAM.map(m=>`<option value="${m.id}"${cur==m.id?' selected':''}>${tmName(m)}</option>`).join('');}
   const mf=sel?sel.value:'';
   outFiltered=RAW.outreach.filter(o=>{
     if(outFilter!=='all'&&o.signal!==outFilter)return false;
@@ -1002,7 +1013,14 @@ function renderCRMAssign(crm){
   const member=TEAM.find(m=>m.id===crm.assigneeId);
   document.getElementById('crm-assign-label').textContent=member?`Assigned to ${member.name}`:'No member assigned';
   document.getElementById('crm-unassign-btn').style.display=member?'inline-block':'none';
-  document.getElementById('crm-assign-grid').innerHTML=TEAM.map(m=>`<div class="assign-member ${crm.assigneeId===m.id?'selected':''}" onclick="assignCRM(${m.id})"><div class="assign-avatar" style="background:${m.colour}">${initials(m.name)}</div><div><div class="assign-info-name">${m.name}</div></div></div>`).join('');
+  // Only active members are assignable. If this company is still held by someone
+  // who has left, show them greyed/selected so it's visible (reassign by picking an active member).
+  const grid=tmActive().slice();
+  if(member&&member.active===false)grid.unshift(member);
+  document.getElementById('crm-assign-grid').innerHTML=grid.map(m=>{
+    const left=m.active===false;
+    return `<div class="assign-member ${crm.assigneeId===m.id?'selected':''}${left?' left-member':''}" ${left?'':`onclick="assignCRM(${m.id})"`}><div class="assign-avatar" style="background:${m.colour}">${initials(m.name)}</div><div><div class="assign-info-name">${m.name}${left?'<span class="left-member-tag">left</span>':''}</div></div></div>`;
+  }).join('');
 }
 function assignCRM(id){const crm=getCRM(crmCompany);crm.assigneeId=id;saveCRM();renderCRMAssign(crm);toast('Assigned to '+TEAM.find(m=>m.id===id)?.name);if(outreachInit)renderOutreach();}
 function unassignCRM(){const crm=getCRM(crmCompany);crm.assigneeId=null;saveCRM();renderCRMAssign(crm);toast('Assignment removed');if(outreachInit)renderOutreach();}
@@ -1058,7 +1076,7 @@ function renderCallHistory(crm){
           <div><label class="form-label">Outcome</label><select class="form-select" id="edit-outcome-${idx}">${outcomeOptions}</select></div>
         </div>
         <div class="call-form-grid" style="margin-bottom:10px">
-          <div><label class="form-label">Team Member <span style="color:#c0392b">*</span></label><select class="form-select" id="edit-agent-${idx}">${TEAM.map(m=>`<option value="${m.id}" ${e.agentId===m.id?'selected':''}>${m.name}</option>`).join('')}</select></div>
+          <div><label class="form-label">Team Member <span style="color:#c0392b">*</span></label><select class="form-select" id="edit-agent-${idx}">${TEAM.map(m=>`<option value="${m.id}" ${e.agentId===m.id?'selected':''}>${tmName(m)}</option>`).join('')}</select></div>
           <div></div>
         </div>
         <div class="call-form-grid" style="margin-bottom:10px">
@@ -1128,7 +1146,7 @@ function initCourseMatch(){
   Object.entries(OBJECTION_LABELS).forEach(([k,v])=>{const o=document.createElement('option');o.value=k;o.textContent=v;objSel.appendChild(o);});
   // Populate member dropdown
   const memSel=document.getElementById('cm-member');
-  TEAM.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=m.name;memSel.appendChild(o);});
+  TEAM.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=tmName(m);memSel.appendChild(o);});
 }
 function resetCourseMatch(){
   ['cm-course','cm-outcome','cm-objection','cm-size','cm-member'].forEach(id=>document.getElementById(id).value='');
@@ -1190,7 +1208,7 @@ function renderFollowUps(){
   });
   // Populate member filter
   const sel=document.getElementById('fu-member-filter');const curVal=sel.value;
-  sel.innerHTML='<option value="">All team members</option>'+TEAM.map(m=>`<option value="${m.id}"${curVal==m.id?' selected':''}>${m.name}</option>`).join('');
+  sel.innerHTML='<option value="">All team members</option>'+TEAM.map(m=>`<option value="${m.id}"${curVal==m.id?' selected':''}>${tmName(m)}</option>`).join('');
   const mf=sel.value;const search=document.getElementById('fu-search').value.toLowerCase();
   let filtered=allFu.filter(f=>{
     if(fuFilter==='overdue'&&(f.days===null||f.days>=0))return false;
@@ -1224,7 +1242,7 @@ function renderPerformancePage(){
   // Build member selector
   document.getElementById('perf-member-selector').innerHTML=
     `<button class="perf-member-btn ${perfMemberId===0?'active':''}" onclick="selectPerfMember(0)"><div class="perf-avatar" style="background:linear-gradient(135deg,#b8a9de,#87c5ef)">ALL</div>All Team</button>`+
-    TEAM.map(m=>`<button class="perf-member-btn ${perfMemberId===m.id?'active':''}" onclick="selectPerfMember(${m.id})"><div class="perf-avatar" style="background:${m.colour}">${initials(m.name)}</div>${m.name}</button>`).join('');
+    TEAM.map(m=>`<button class="perf-member-btn ${perfMemberId===m.id?'active':''}${m.active===false?' left-member':''}" onclick="selectPerfMember(${m.id})"><div class="perf-avatar" style="background:${m.colour}">${initials(m.name)}</div>${tmName(m)}</button>`).join('');
   if(perfMemberId===null)selectPerfMember(0);
   else loadPerfData(perfMemberId);
 }
@@ -1389,14 +1407,17 @@ function loadPerfData(id){
 // ── TEAM PAGE ──
 let assignChart=null;
 function renderTeamPage(){
+  const activeCount=tmActive().length,leftCount=TEAM.length-activeCount;
+  document.getElementById('team-subtitle').textContent=`Your ${activeCount}-person team${leftCount?` (+${leftCount} former)`:''} — click View Stats to see individual performance`;
   document.getElementById('team-grid').innerHTML=TEAM.map(m=>{
     const assigned=Object.values(CRM).filter(c=>c.assigneeId===m.id).length;
     const calls=Object.values(CRM).reduce((s,c)=>s+(c.callLog||[]).filter(l=>l.agentId===m.id).length,0);
     const won=Object.values(CRM).filter(c=>c.assigneeId===m.id&&c.status==='won').length;
-    return `<div class="team-card-simple">
+    const left=m.active===false;
+    return `<div class="team-card-simple${left?' left-member':''}">
       <div class="team-avatar-sm" style="background:${m.colour}">${initials(m.name)}</div>
       <div style="flex:1;min-width:0">
-        <div class="team-card-name">${m.name}</div>
+        <div class="team-card-name">${m.name}${left?'<span class="left-member-tag">left</span>':''}</div>
         <div class="team-card-stats">${assigned} assigned · ${calls} calls · ${won} won</div>
       </div>
       <button class="btn-primary" style="font-size:0.72rem;padding:5px 10px;flex-shrink:0" onclick="selectPerfMember(${m.id});showPage('performance',document.querySelector('.nav-item[onclick*=performance]'))">Stats</button>
