@@ -193,6 +193,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 .outcome-chip.selected{font-weight:700;border-width:2px;}
 .outcome-chip.o-no-answer.selected{background:#f0f0f5;border-color:#6b6b82;color:#3d3d4a;}
 .outcome-chip.o-left-message.selected{background:#e8f0fb;border-color:#1565a8;color:#1565a8;}
+.outcome-chip.o-email-sent.selected{background:#e2f4f6;border-color:#0f7b8a;color:#0d6b78;}
 .outcome-chip.o-callback.selected{background:#fff8ee;border-color:#a05c00;color:#a05c00;}
 .outcome-chip.o-interested.selected{background:#edf7ed;border-color:#2d7a2d;color:#2d7a2d;}
 .outcome-chip.o-not-interested.selected{background:#fde8e8;border-color:#c0392b;color:#c0392b;}
@@ -462,6 +463,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
           <div class="outcome-chips">
             <button class="outcome-chip o-no-answer" onclick="selectOutcome('no-answer',this)">📵 No Answer</button>
             <button class="outcome-chip o-left-message" onclick="selectOutcome('left-message',this)">📬 Left Message / VM</button>
+            <button class="outcome-chip o-email-sent" onclick="selectOutcome('email-sent',this)">✉️ Email Sent</button>
             <button class="outcome-chip o-callback" onclick="selectOutcome('callback',this)">🔁 Callback Requested</button>
             <button class="outcome-chip o-interested" onclick="selectOutcome('interested',this)">✅ Interested — Follow Up</button>
             <button class="outcome-chip o-not-interested" onclick="selectOutcome('not-interested',this)">❌ Not Interested</button>
@@ -666,8 +668,8 @@ const TOP_COURSES = ["DOGGING - DG LICENCE", "RIGGING BASIC - RB LICENCE", "FORK
 
 const PASTEL=["#f2a0b0","#9ecf9e","#87c5ef","#b8a9de","#f9be7c","#a8d8ea","#f7c5e0","#b5ead7","#ffdac1","#c7ceea","#ffb7b2","#a2c4c9"];
 const OBJECTION_LABELS={'budget':'Budget','timing':'Bad timing','competitor':'Using competitor','no-need':'No current need','decision-maker':'Need decision maker','price':'Price too high','quality':'Quality concerns','location':'Location concerns','other':'Other'};
-const OUTCOME_LABELS={'no-answer':'No Answer','left-message':'Left Message/VM','callback':'Callback Requested','interested':'Interested','not-interested':'Not Interested','proposal':'Proposal Sent','won':'Booking Confirmed'};
-const OUTCOME_COLOURS={'no-answer':'#8d99ae','left-message':'#1565a8','callback':'#a05c00','interested':'#2d7a2d','not-interested':'#c0392b','proposal':'#b8a9de','won':'#2d7a2d'};
+const OUTCOME_LABELS={'no-answer':'No Answer','left-message':'Left Message/VM','email-sent':'Email Sent','callback':'Callback Requested','interested':'Interested','not-interested':'Not Interested','proposal':'Proposal Sent','won':'Booking Confirmed'};
+const OUTCOME_COLOURS={'no-answer':'#8d99ae','left-message':'#1565a8','email-sent':'#0f7b8a','callback':'#a05c00','interested':'#2d7a2d','not-interested':'#c0392b','proposal':'#b8a9de','won':'#2d7a2d'};
 
 const fmt=v=>v>=1e6?'$'+(v/1e6).toFixed(2)+'M':v>=1e3?'$'+(v/1e3).toFixed(1)+'K':'$'+v.toFixed(0);
 const fmtFull=v=>'$'+v.toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2});
