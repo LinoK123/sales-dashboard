@@ -134,7 +134,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 .crm-company-name{font-family:'DM Serif Display',serif;font-size:2rem;color:var(--text);line-height:1.2;}
 .crm-meta{display:flex;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap;}
 .crm-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:22px;}
-.crm-grid-wide{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;margin-bottom:22px;}
+.crm-grid-wide{display:grid;grid-template-columns:1.15fr 1fr;gap:18px;margin-bottom:22px;align-items:stretch;}
 .crm-section{background:var(--white);border-radius:var(--radius2);padding:22px 24px;box-shadow:var(--shadow);border:1.5px solid var(--border);}
 .crm-section-title{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text2);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
 .crm-section-title::after{content:'';flex:1;height:1px;background:var(--border);}
@@ -149,16 +149,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 .course-row-bar-wrap{width:70px;height:5px;border-radius:3px;background:var(--border);overflow:hidden;flex-shrink:0;}
 .course-row-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--lav2),var(--sky2));}
 .course-row-val{font-size:0.8rem;font-weight:600;width:68px;text-align:right;flex-shrink:0;}
-/* Script */
-.script-line{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;border-radius:10px;margin-bottom:6px;background:var(--cream);border:1px solid var(--border);}
-.script-bullet{width:22px;height:22px;border-radius:50%;background:var(--lav2);color:#fff;font-size:0.68rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
-.script-text{font-size:0.84rem;color:var(--text);line-height:1.5;}
-.script-tag{display:inline-block;padding:1px 7px;border-radius:99px;font-size:0.65rem;font-weight:600;margin-right:6px;}
-.script-tag.opener{background:var(--sky);color:#1565a8;}
-.script-tag.hook{background:var(--sage);color:#2d7a2d;}
-.script-tag.value{background:var(--lav);color:#5a4a8a;}
-.script-tag.close{background:var(--peach);color:#a05c00;}
-.script-tag.handle{background:var(--rose);color:#b33050;}
 /* Status */
 .status-strip{display:flex;gap:8px;}
 .status-btn{flex:1;padding:8px 10px;border-radius:9px;border:1.5px solid var(--border);background:var(--white);font-family:'DM Sans',sans-serif;font-size:0.76rem;font-weight:500;cursor:pointer;color:var(--text2);transition:all 0.14s;text-align:center;}
@@ -457,8 +447,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
     </div>
   </div>
   <div class="crm-grid-wide">
-    <div class="crm-section"><div class="crm-section-title">💬 Sales Script</div><div id="crm-script"></div></div>
-    <div style="display:flex;flex-direction:column;gap:18px">
       <div class="crm-section">
         <div class="crm-section-title">📋 Log a Call</div>
         <div class="form-group"><div class="form-label">Call Attempt</div>
@@ -506,8 +494,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
         <div class="form-group"><label class="form-label">Call Notes</label><textarea class="form-textarea" id="crm-notes" placeholder="Key points, objections, next steps…"></textarea></div>
         <button class="btn-primary" style="width:100%;margin-top:4px" onclick="saveCallLog()">Save Call Log</button>
       </div>
-      <div class="crm-section"><div class="crm-section-title">📅 Call History</div><div id="crm-call-history" style="max-height:340px;overflow-y:auto"><div style="font-size:0.82rem;color:var(--text2);text-align:center;padding:20px">No calls logged yet</div></div></div>
-    </div>
+      <div class="crm-section" style="display:flex;flex-direction:column;min-height:0"><div class="crm-section-title" style="flex-shrink:0">📅 Call History</div><div id="crm-call-history" style="flex:1;overflow-y:auto;min-height:0"><div style="font-size:0.82rem;color:var(--text2);text-align:center;padding:20px">No calls logged yet</div></div></div>
   </div>
 </div>
 
@@ -934,57 +921,6 @@ function renderOutreach(){
 }
 function goOP(p){outPage=p;renderOutreach();}
 
-// ── SCRIPT ──
-function buildScript(name,outItem,courses){
-  const signal=outItem?.signal||'dormant';
-  const topCourse=courses[0]?.[0]||'high risk work training';
-  const topCourse2=courses[1]?.[0]||null;
-  const prior12=outItem?.prior12||0;
-  const n=courses.length;
-  const isCsq=CSQ_SET.has(name);
-  const lines=[];
-
-  lines.push({tag:'opener',text:`"Hi, could I please speak with your training coordinator, WHS manager or site supervisor? My name is [Name] from [Your Company] — we deliver nationally accredited high risk work licences and safety training."`});
-
-  if(signal==='lapsed'){
-    lines.push({tag:'hook',text:`"I can see your team has done ${n>1?n+' different high risk work courses including':''} ${topCourse} with us — but we haven't had any bookings from you in the last 12 months. I wanted to reach out personally, because whether it's new hires who need their licences or existing crew you want to upskill, we'd love to stay your go-to."`});
-    lines.push({tag:'hook',text:`"Your team invested ${fmt(prior12)} in high risk work training in the year before that. The people who have those licences are genuinely more versatile on site — I wanted to make sure we're front of mind when the next round of hiring or upskilling comes up."`});
-  } else if(signal==='dormant'){
-    lines.push({tag:'hook',text:`"Your team was booking regularly until recently, but we haven't seen anything come through in the last few months. I just wanted to check in — has the pace of hiring slowed down, or are there upskilling opportunities we might be able to help with? Sometimes when bookings stop it's just a matter of timing, and I'd rather stay in touch than lose you to a competitor."`});
-  } else {
-    lines.push({tag:'hook',text:`"I've noticed your bookings have slowed down significantly in the last six months. Often when things go quiet it just means projects have wrapped up — but as you ramp back up, new hires will need their high risk work licences, and any crew you want to move into more specialised roles will need upskilling. I wanted to make sure we're in the conversation when that happens."`});
-  }
-
-  if(isCsq){
-    lines.push({tag:'value',text:`"One thing worth flagging — your organisation has previously accessed CSQ funding to offset training costs. That funding is still available for eligible high risk work training, and we handle the paperwork. It can reduce your out-of-pocket training cost significantly — sometimes by half or more."`});
-  }
-
-  lines.push({tag:'value',text:`"We're a registered training organisation that specialises in high risk work — dogging, rigging, cranes, EWP, confined space, working at heights. All our assessors are industry-experienced and our courses meet Queensland's regulatory requirements under the Work Health and Safety Act."`});
-  lines.push({tag:'value',text:`"We design our courses around your operational schedule — no week-long shutdowns. For groups of six or more we'll come to site, which means your crew stays productive and you avoid the cost of sending people off-site."`});
-
-  if(topCourse2){
-    lines.push({tag:'value',text:`"You've previously booked ${topCourse} and ${topCourse2} through us — we have upcoming intakes for both, and dates fill quickly heading into project season. I'd rather hold spots for you now."`});
-  } else {
-    lines.push({tag:'value',text:`"You've previously booked ${topCourse} through us — we have upcoming intakes and they're booking out. High risk work courses often have limited assessor availability, so early booking is important."`});
-  }
-
-  lines.push({tag:'handle',text:`[Budget]: "That's where CSQ funding makes a real difference — I can walk your team through the application. We can also stage bookings across quarters to fit your budget cycle. What does that typically look like for you?"`});
-  lines.push({tag:'handle',text:`[Using another provider]: "That's fine — I'd just ask: are they coming to site, or are your guys losing full days travelling? And are they giving you the turnaround on scheduling you need when a project mobilises quickly? That's where most clients come back to us."`});
-  lines.push({tag:'handle',text:`[No upcoming work / quiet period]: "That actually makes it a good time to think about upskilling your existing crew — there's no project pressure, and having people licence-ready before the next contract starts means you can deploy them straight away. We can hold spots and only confirm when you're ready."`});
-  lines.push({tag:'handle',text:`[Need to speak to decision maker]: "Of course — can you let them know I called? I'll send through a one-page summary of our courses, current dates, and pricing so they have something in front of them. What's the best email? And I'll follow up next week."`});
-
-  lines.push({tag:'close',text:`"Can I send through a training schedule with available dates for ${topCourse}? Whether it's for new hires or upskilling your current crew, it means you've got options ready when the next project kicks off — no scrambling at short notice."`});
-  if(isCsq){
-    lines.push({tag:'close',text:`"I'll include the CSQ funding details as well — your finance team will want to see that. What's the best email address, and is there a direct number for the person who signs off on training?"`});
-  } else {
-    lines.push({tag:'close',text:`"Even a provisional booking holds the spot — we won't invoice until you confirm numbers. Can I lock something tentative in for you? What's the best email address?"`});
-  }
-  return lines;
-}
-
-const tagLabels={opener:'Opener',hook:'Hook',value:'Value',close:'Close',handle:'Objection'};
-function renderScript(lines){return lines.map((l,i)=>`<div class="script-line"><div class="script-bullet">${i+1}</div><div class="script-text"><span class="script-tag ${l.tag}">${tagLabels[l.tag]}</span>${l.text}</div></div>`).join('');}
-
 // ── CRM ──
 let crmCompany=null,selAttempt=null,selOutcome=null,selCourses=[];
 function openCRM(name){
@@ -1028,7 +964,6 @@ function openCRM(name){
   document.getElementById('crm-courses').innerHTML=courses.length?courses.map(([cn,val],i)=>`<div class="course-row"><div class="course-row-num">${i+1}</div><div class="course-row-name" title="${cn}">${cn}</div><div class="course-row-bar-wrap"><div class="course-row-bar-fill" style="width:${((val/maxC)*100).toFixed(1)}%"></div></div><div class="course-row-val">${fmt(val)}</div></div>`).join(''):'<div style="color:var(--text2);font-size:0.82rem">No course data</div>';
   document.querySelectorAll('.status-btn').forEach(b=>b.classList.remove('active-status'));const sb=document.querySelector('.s-'+(crm.status||'pending'));if(sb)sb.classList.add('active-status');
   renderCRMAssign(crm);
-  document.getElementById('crm-script').innerHTML=renderScript(buildScript(name,outItem,courses));
   // Reset form
   selAttempt=null;selOutcome=null;selCourses=[];
   document.querySelectorAll('.attempt-btn,.outcome-chip,.course-chip').forEach(b=>b.classList.remove('selected'));
