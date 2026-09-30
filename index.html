@@ -256,8 +256,66 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 .btn-ghost:hover{background:var(--lav);color:var(--text);}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:10px 18px;border-radius:12px;font-size:0.82rem;font-weight:500;z-index:400;opacity:0;transform:translateY(8px);transition:all 0.22s;pointer-events:none;}
 .toast.show{opacity:1;transform:translateY(0);}
+/* CSQ flag */
+.csq-tag{display:inline-block;background:#edf7ed;border:1px solid #9ecf9e;border-radius:4px;padding:1px 5px;font-size:0.64rem;font-weight:700;color:#2d7a2d;vertical-align:middle;line-height:1.3;margin-left:4px;flex-shrink:0;}
+.name-cell{display:flex;align-items:center;min-width:0;}
+.name-cell>.nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+.badge-csq{background:#edf7ed;color:#2d7a2d;border:1px solid #9ecf9e;}
+.csq-filter{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-size:0.8rem;font-weight:500;color:var(--text2);cursor:pointer;user-select:none;white-space:nowrap;transition:all 0.14s;}
+.csq-filter:hover{border-color:#9ecf9e;}
+.csq-filter:has(input:checked){background:#edf7ed;border-color:#9ecf9e;color:#2d7a2d;font-weight:600;}
+.csq-filter input{accent-color:#2d7a2d;margin:0;cursor:pointer;}
+.csq-toggle{width:100%;padding:8px 10px;border-radius:9px;border:1.5px dashed var(--border);background:var(--white);font-family:'DM Sans',sans-serif;font-size:0.76rem;font-weight:600;color:var(--text2);cursor:pointer;transition:all 0.14s;}
+.csq-toggle:hover{border-color:#9ecf9e;color:#2d7a2d;}
+.csq-toggle.on{border-style:solid;background:#edf7ed;border-color:#9ecf9e;color:#2d7a2d;}
+/* Prospects */
+.badge-prospect{background:#fff4d6;color:#8a6100;}
+.badge-archived{background:#ececf0;color:#6b6b82;}
+.nav-count{margin-left:auto;background:#e6a817;color:#fff;border-radius:99px;font-size:0.64rem;font-weight:700;padding:1px 7px;}
+.crm-origin-note{font-size:0.74rem;color:var(--text2);}
+.crm-prospect-span{grid-column:span 2;}
+.modal-backdrop{position:fixed;inset:0;background:rgba(45,45,58,0.38);display:none;align-items:flex-start;justify-content:center;z-index:300;padding:6vh 16px;overflow-y:auto;}
+.modal-backdrop.open{display:flex;}
+.modal{background:var(--white);border-radius:var(--radius2);box-shadow:var(--shadow2);border:1.5px solid var(--border);width:100%;max-width:640px;padding:24px 26px;}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.modal-x{border:none;background:none;font-size:1rem;color:var(--text2);cursor:pointer;padding:4px 9px;border-radius:8px;}
+.modal-x:hover{background:var(--lav);color:var(--text);}
+.modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:8px;}
+.form-hint{font-size:0.7rem;color:var(--text2);margin-top:5px;}
+.call-form-grid.three{grid-template-columns:1fr 1fr 1fr;}
+.state-pick{display:flex;gap:8px;}
+.state-pick-btn{flex:1;padding:8px 0;border-radius:10px;border:1.5px solid var(--border);background:var(--white);font-family:'DM Sans',sans-serif;font-size:0.8rem;font-weight:700;color:var(--text2);cursor:pointer;transition:all 0.14s;}
+.state-pick-btn:hover{border-color:var(--lav2);}
+.state-pick-btn.sel.s-QLD{background:#f6e0e6;border-color:#9c2a47;color:#9c2a47;}
+.state-pick-btn.sel.s-NSW{background:#e3f0fb;border-color:#1565a8;color:#1565a8;}
+.state-pick-btn.sel.s-VIC{background:#e9e5f6;border-color:#4a3f8a;color:#4a3f8a;}
+.match-box{border-radius:12px;padding:10px 14px;margin:-4px 0 14px;border:1.5px solid;}
+.match-box.m-exact{background:#fdf0f0;border-color:#f0b4b4;}
+.match-box.m-strong{background:#fff8e6;border-color:#f1d28a;}
+.match-box.m-weak{background:var(--cream);border-color:var(--border);}
+.match-head{font-size:0.75rem;font-weight:700;margin-bottom:4px;}
+.m-exact .match-head{color:#c0392b;}.m-strong .match-head{color:#8a6100;}.m-weak .match-head{color:var(--text2);}
+.match-item{display:flex;align-items:center;gap:10px;padding:7px 0;}
+.match-item+.match-item{border-top:1px solid rgba(0,0,0,0.06);}
+.match-name{font-size:0.82rem;font-weight:600;color:var(--text);}
+.match-sub{font-size:0.7rem;color:var(--text2);margin-top:1px;}
+.btn-sm{font-size:0.72rem;padding:5px 11px;white-space:nowrap;flex-shrink:0;}
+.match-item .btn-sm{margin-left:auto;}
+.pr-banner{background:#fff8e6;border:1.5px solid #f1d28a;border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;}
+.pr-banner-title{font-weight:700;font-size:0.86rem;color:#8a6100;}
+.pr-banner-sub{font-size:0.74rem;color:var(--text2);margin:2px 0 6px;}
+.pr-sugg{display:flex;align-items:center;gap:10px;padding:8px 0;flex-wrap:wrap;}
+.pr-sugg+.pr-sugg{border-top:1px solid rgba(0,0,0,0.06);}
+.pr-sugg-text{flex:1;min-width:220px;font-size:0.8rem;}
+.pd-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px;}
+.pd-label{font-size:0.66rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px;}
+.pd-val{font-size:0.86rem;color:var(--text);word-break:break-word;}
+.pd-val a{color:#1565a8;text-decoration:none;}
+.pd-val a:hover{text-decoration:underline;}
+.pd-foot{font-size:0.74rem;color:var(--text2);margin-top:14px;padding-top:12px;border-top:1px solid var(--border);}
+.pd-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
 @media(max-width:1100px){.data-view{grid-template-columns:1fr;}.crm-grid{grid-template-columns:1fr 1fr;}.crm-grid-wide{grid-template-columns:1fr;}.perf-kpi-row{grid-template-columns:repeat(3,1fr);}}
-@media(max-width:900px){.kpi-row,.outreach-kpi-row{grid-template-columns:repeat(2,1fr);}.two-col,.perf-two-col{grid-template-columns:1fr;}.main{padding:18px 14px;}.crm-grid{grid-template-columns:1fr;}.attempt-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:900px){.kpi-row,.outreach-kpi-row{grid-template-columns:repeat(2,1fr);}.two-col,.perf-two-col{grid-template-columns:1fr;}.main{padding:18px 14px;}.crm-grid{grid-template-columns:1fr;}.crm-prospect-span{grid-column:auto;}.attempt-grid{grid-template-columns:repeat(2,1fr);}.call-form-grid.three,.pd-grid{grid-template-columns:1fr;}}
 @media(max-width:600px){.sidebar{display:none;}.main{margin-left:0;}}
 </style>
 </head>
@@ -274,6 +332,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
     <button class="nav-item" onclick="showPage('courselist',this)"><span class="icon">🔍</span> Course Detail</button>
     <button class="nav-item" onclick="showPage('outreach',this)"><span class="icon">📞</span> Outreach Targets</button>
     <div class="nav-label" style="margin-top:10px">CRM</div>
+    <button class="nav-item" onclick="showPage('prospects',this)"><span class="icon">✨</span> Prospects <span class="nav-count" id="nav-pr-count" style="display:none" title="Prospects that look like they've now booked — review on the Prospects page"></span></button>
     <button class="nav-item" onclick="showPage('followups',this)"><span class="icon">📅</span> Follow-Up Review</button>
     <button class="nav-item" onclick="showPage('coursematch',this)"><span class="icon">🎯</span> Course Match</button>
     <button class="nav-item" onclick="showPage('performance',this)"><span class="icon">📈</span> Performance</button>
@@ -309,7 +368,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
     <div><div class="page-title">By Client Organisation</div><div class="page-subtitle">Select a client to view their revenue trend</div></div>
     <div class="period-toggle"><button class="period-btn active" onclick="setClientPeriod('monthly',this)">Monthly</button><button class="period-btn" onclick="setClientPeriod('quarterly',this)">Quarterly</button><button class="period-btn" onclick="setClientPeriod('halfyearly',this)">Half-Yearly</button></div>
   </div>
-  <div class="search-row"><input class="search-input" type="text" id="client-search" placeholder="🔍  Search client name…" oninput="filterClients()"><select class="form-select" style="width:auto;min-width:120px" id="client-state-filter" onchange="filterClients()"><option value="">All states</option><option value="QLD">QLD</option><option value="NSW">NSW</option><option value="VIC">VIC</option></select><span id="client-count" style="font-size:0.8rem;color:var(--text2)"></span></div>
+  <div class="search-row"><input class="search-input" type="text" id="client-search" placeholder="🔍  Search client name…" oninput="filterClients()"><select class="form-select" style="width:auto;min-width:120px" id="client-state-filter" onchange="filterClients()"><option value="">All states</option><option value="QLD">QLD</option><option value="NSW">NSW</option><option value="VIC">VIC</option></select><label class="csq-filter"><input type="checkbox" id="client-csq-filter" onchange="filterClients()">CSQ only</label><span id="client-count" style="font-size:0.8rem;color:var(--text2)"></span></div>
   <div class="data-view">
     <div class="data-list"><div class="data-list-header"><span>Client Organisation</span><span id="cl-count-label"></span></div><div class="data-list-scroll" id="client-list-scroll"></div><div class="list-pagination" id="client-pagination"></div></div>
     <div class="chart-panel">
@@ -364,7 +423,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
     <div class="course-hero" id="detail-hero"></div>
     <div class="two-col">
       <div class="chart-card" style="margin-bottom:0"><div class="chart-title">Revenue Trend</div><div class="chart-subtitle">Monthly</div><div class="chart-wrap"><canvas id="detailChart"></canvas></div></div>
-      <div class="chart-card" style="margin-bottom:0"><div class="chart-title">Top Clients</div><div class="chart-subtitle">By revenue (up to top 100)</div><div style="max-height:500px;overflow-y:auto" id="detail-client-list"></div></div>
+      <div class="chart-card" style="margin-bottom:0"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div class="chart-title">Top Clients</div><div class="chart-subtitle">By revenue (up to top 100)</div></div><label class="csq-filter"><input type="checkbox" id="detail-csq-filter" onchange="renderDetailClients()">CSQ only</label></div><div style="max-height:500px;overflow-y:auto" id="detail-client-list"></div></div>
     </div>
     <div style="margin-top:18px" class="chart-card">
       <div class="chart-title">Period Breakdown</div><div class="chart-subtitle" id="detail-period-subtitle"></div>
@@ -403,6 +462,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
       <option value="NSW">NSW</option>
       <option value="VIC">VIC</option>
     </select>
+    <label class="csq-filter"><input type="checkbox" id="out-csq-filter" onchange="outPage=0;applyOutFilter()">CSQ only</label>
     <span id="out-count" style="margin-left:6px;font-size:0.8rem;color:var(--text2)"></span>
   </div>
   <div class="out-table-wrap"><div style="overflow-x:auto"><table class="out-table"><thead><tr>
@@ -428,16 +488,20 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
         <button class="status-btn s-won" onclick="setStatus('won',this)">Won</button>
         <button class="status-btn s-lost" onclick="setStatus('lost',this)">Lost</button>
       </div>
+      <div class="kpi-label" style="margin:12px 0 4px">CSQ Funding</div>
+      <button class="csq-toggle" id="crm-csq-toggle" onclick="toggleCSQ()"></button>
+      <div class="form-hint" id="crm-csq-note" style="text-align:right"></div>
     </div>
   </div>
+  <div id="crm-prospect-banner"></div>
   <div class="crm-grid">
-    <div class="crm-section"><div class="crm-section-title">Spend Summary</div>
+    <div class="crm-section crm-prospect-span" id="crm-prospect-section" style="display:none"><div class="crm-section-title">✨ Prospect Details</div><div id="crm-prospect-body"></div></div>
+    <div class="crm-section" id="crm-spend-section"><div class="crm-section-title">Spend Summary</div>
       <div class="stat-trio"><div class="stat-box"><div class="stat-box-label">All-Time</div><div class="stat-box-value" id="crm-total">—</div></div><div class="stat-box"><div class="stat-box-label">Prior 12</div><div class="stat-box-value" id="crm-prior12">—</div></div><div class="stat-box"><div class="stat-box-label">Last 12</div><div class="stat-box-value" id="crm-last12">—</div></div></div>
-      <div id="crm-csq-badge" style="margin-top:10px;min-height:20px"></div>
-      <div style="margin-top:10px;position:relative;height:130px"><canvas id="crm-spend-chart"></canvas></div>
+      <div style="margin-top:14px;position:relative;height:130px"><canvas id="crm-spend-chart"></canvas></div>
       <div style="margin-top:8px;font-size:0.72rem;color:var(--text2);line-height:1.5" id="crm-signal-reason"></div>
     </div>
-    <div class="crm-section" style="display:flex;flex-direction:column"><div class="crm-section-title" style="flex-shrink:0">Courses Purchased</div><div id="crm-courses" style="flex:1;overflow-y:auto;min-height:0"></div></div>
+    <div class="crm-section" id="crm-courses-section" style="display:flex;flex-direction:column"><div class="crm-section-title" style="flex-shrink:0">Courses Purchased</div><div id="crm-courses" style="flex:1;overflow-y:auto;min-height:0"></div></div>
     <div class="crm-section"><div class="crm-section-title">Assigned To</div>
       <div class="assign-grid" id="crm-assign-grid"></div>
       <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">
@@ -498,6 +562,31 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
   </div>
 </div>
 
+<!-- PROSPECTS -->
+<div id="page-prospects" class="page">
+  <div class="page-header">
+    <div><div class="page-title">Prospects</div><div class="page-subtitle">Companies we're talking to that aren't in the booking data yet — click a row to open the CRM record</div></div>
+    <button class="btn-primary" onclick="openAddProspect()">+ Add Prospect</button>
+  </div>
+  <div id="pr-match-banner"></div>
+  <div class="outreach-filters">
+    <span id="pr-views" style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="filter-btn active" data-pv="active" onclick="setProspectView('active')">Active</button>
+      <button class="filter-btn" data-pv="converted" onclick="setProspectView('converted')">Converted</button>
+      <button class="filter-btn" data-pv="archived" onclick="setProspectView('archived')">Archived</button>
+    </span>
+    <select class="form-select" style="width:auto;min-width:160px" id="pr-member" onchange="renderProspects()"><option value="">All team members</option></select>
+    <select class="form-select" style="width:auto;min-width:120px" id="pr-state" onchange="renderProspects()"><option value="">All states</option><option value="QLD">QLD</option><option value="NSW">NSW</option><option value="VIC">VIC</option></select>
+    <select class="form-select" style="width:auto;min-width:150px" id="pr-industry-filter" onchange="renderProspects()"><option value="">All industries</option></select>
+    <label class="csq-filter"><input type="checkbox" id="pr-csq-filter" onchange="renderProspects()">CSQ only</label>
+    <input class="search-input" style="max-width:220px" type="text" id="pr-search" placeholder="🔍  Search…" oninput="renderProspects()">
+    <span id="pr-count" style="font-size:0.8rem;color:var(--text2)"></span>
+  </div>
+  <div class="out-table-wrap"><div style="overflow-x:auto"><table class="out-table"><thead><tr>
+    <th onclick="sortProspects('n')">Company</th><th>State</th><th onclick="sortProspects('industry')">Industry</th><th>Main Contact</th><th onclick="sortProspects('addedAt')">Added</th><th>Assigned To</th><th>Last Outcome</th><th onclick="sortProspects('fu')">Follow-up</th><th>Status</th>
+  </tr></thead><tbody id="pr-tbody"></tbody></table></div></div>
+</div>
+
 <!-- FOLLOW-UP REVIEW -->
 <div id="page-followups" class="page">
   <div class="page-header">
@@ -506,6 +595,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
       <select class="form-select" style="width:auto;min-width:160px" id="fu-member-filter" onchange="renderFollowUps()">
         <option value="">All team members</option>
       </select>
+      <label class="csq-filter"><input type="checkbox" id="fu-csq-filter" onchange="renderFollowUps()">CSQ only</label>
       <input class="search-input" style="max-width:200px" type="text" id="fu-search" placeholder="🔍  Search…" oninput="renderFollowUps()">
     </div>
   </div>
@@ -562,6 +652,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
         <label class="form-label">Assigned To</label>
         <select class="form-select" id="cm-member"><option value="">All team members</option></select>
       </div>
+      <div>
+        <label class="form-label">CSQ Funding</label>
+        <select class="form-select" id="cm-csq"><option value="">Any company</option><option value="yes">CSQ only</option><option value="no">Non-CSQ only</option></select>
+      </div>
       <div style="display:flex;align-items:end;gap:8px">
         <button class="btn-primary" style="flex:1" onclick="runCourseMatch()">🔍  Search</button>
         <button class="btn-ghost" onclick="resetCourseMatch()">Clear</button>
@@ -612,6 +706,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 </main>
 <div class="toast" id="toast"></div>
 
+<!-- ADD PROSPECT MODAL -->
+<div class="modal-backdrop" id="pr-modal" onclick="if(event.target===this)closeAddProspect()">
+  <div class="modal" role="dialog" aria-labelledby="pr-modal-title">
+    <div class="modal-head"><div class="chart-title" id="pr-modal-title" style="margin:0">Add a Prospect</div><button class="modal-x" onclick="closeAddProspect()" aria-label="Close">✕</button></div>
+    <div class="form-group"><label class="form-label" for="pr-name">Company Name <span style="color:#c0392b">*</span></label><input class="form-input" id="pr-name" autocomplete="off" placeholder="Start typing — we'll check it's not already in the dashboard" oninput="onProspectNameInput()"></div>
+    <div id="pr-matches"></div>
+    <div class="call-form-grid">
+      <div class="form-group"><div class="form-label">State <span style="color:#c0392b">*</span></div><div class="state-pick" id="pr-states"></div></div>
+      <div class="form-group"><label class="form-label" for="pr-industry">Industry</label><select class="form-select" id="pr-industry"></select></div>
+    </div>
+    <div class="form-label">Main Contact</div>
+    <div class="call-form-grid three" style="margin-bottom:14px">
+      <input class="form-input" id="pr-cname" placeholder="Name" aria-label="Contact name">
+      <input class="form-input" id="pr-cphone" placeholder="Phone" aria-label="Contact phone">
+      <input class="form-input" id="pr-cemail" placeholder="Email" aria-label="Contact email">
+    </div>
+    <div class="form-group"><label class="csq-filter"><input type="checkbox" id="pr-csq">Has CSQ funding history</label></div>
+    <div class="form-group"><label class="form-label" for="pr-addedby">Added By <span style="color:#c0392b">*</span></label><select class="form-select" id="pr-addedby"></select><div class="form-hint">They'll be assigned to this prospect (can be changed later).</div></div>
+    <div class="modal-foot"><button class="btn-ghost" onclick="closeAddProspect()">Cancel</button><button class="btn-primary" id="pr-submit" onclick="submitProspect()">Add Prospect</button></div>
+  </div>
+</div>
+
 <script>
 let RAW = null;
 let MONTHS = [];
@@ -631,14 +747,16 @@ async function loadAnalyticsData(){
 }
 // State tag helpers
 const STATE_LIST = ['QLD','NSW','VIC'];
-const stateTagsFor = name => STATE_TAGS[name] || [];
+// Prospects (and companies that started as prospects) carry rep-picked states with no % split
+const stateTagsFor = name => STATE_TAGS[name] || _prospectStateTags(name);
+function _prospectStateTags(name){const r=CRM[name];const s=r?.prospect?.states||r?.convertedFrom?.states;return s&&s.length?s.map(x=>[x,null]):[];}
 const companyInState = (name,state) => stateTagsFor(name).some(t=>t[0]===state);
 // Render state badge(s): single tag shows just the state; multiple show the rounded %
 function stateBadgesHTML(name){
   const tags=stateTagsFor(name);
   if(!tags.length) return '';
   const multi=tags.length>1;
-  return tags.map(t=>`<span class="state-badge s-${t[0]}">${t[0]}${multi?' '+t[1]+'%':''}</span>`).join('');
+  return tags.map(t=>`<span class="state-badge s-${t[0]}">${t[0]}${multi&&t[1]!=null?' '+t[1]+'%':''}</span>`).join('');
 }
 // Rolling window helpers — anchored at RAW.currentMonthIdx ("today's month" set
 // at build time). Pre-bookings beyond today don't deflate Last-12 KPIs. Falls
@@ -674,6 +792,12 @@ const tmName=m=>m&&m.active===false?m.name+' (left)':(m?m.name:'');
 
 // ── CSQ FUNDED COMPANIES ──
 const CSQ_SET = new Set(["Cash - Individual Participants", "McNab NQ PTY LTD", "Pulse Consortium CBGU JV - Cross River Rail (TSD)", "Brisbane City Council", "John Holland Pty Ltd", "Alder Constructions", "Fulton Hogan Industries Pty Ltd QLD", "McConnell Dowell", "Fulton Hogan Hull McIlwain Joint Venture", "Star Res Pty Ltd", "Acciona Construction Australia Pty Ltd", "See Civil Pty Ltd", "All Brothers Unite", "Impact Plumbing", "Hazell Bros Plant Hire (QLD) Pty Ltd", "Morton Engineering", "Acciona Georgiou Joint Venture", "Redland City Council", "GROUP 4 COMMERCIAL", "Rocktown Pty Ltd", "John Holland Queensland Pty Ltd and Seymour Whyte Constructions Pty Ltd - B2N", "Bielby Hull Joint Venture", "Georgiou BMD JV", "Kent Projects Pty Ltd", "Electro Group Apprentices and Training", "Workcon", "Ventia Australia Pty Ltd", "Allens Asphalt", "GW Commercial Pty Ltd", "Smart Telecommunications", "Niepe Construction Pty Ltd", "Strucbuild", "Hutchinson Builders", "Road Aid", "J&P Richardson Industries Pty Ltd", "Edge Rail Solutions Pty Ltd", "Brandons", "Buildcorp Group Pty Ltd", "Kane Constructions Pty Ltd", "BLD Building Legal and Development Pty Ltd", "Engineering Applications Pty Ltd", "Caporn Piling", "Queensland Glass", "Now Careers QLD PTY LTD", "JRT Group", "North Australian Contracting Pty Ltd", "CPB Contractors Pty Ltd", "Fraser Coast Regional Council", "FULTON HOGAN UTILITIES PTY LTD", "Windowline Pty Ltd", "The Service Trades College Australia Ltd", "Rohrig Qld Pty Ltd", "Mainland Civil Queensland Pty Ltd", "Torre Developments", "Matrix Rail", "Ertech Pty Ltd", "Capstone Electrical Pty Ltd ATF Walker Trust", "Caneland Engineering", "Beavis & Bartels Pty Ltd", "By-Tech Engineering Pty Ltd", "Scope Services Qld", "E2E Communications", "Wagstaff Piling Pty Ltd", "Watkins Steel Pty Ltd", "HVAC Queensland Pty Ltd", "Schindler Lifts Australia Pty Ltd", "FEC Constructions (Qld) Pty Ltd", "Category 5 Labour Management VSA", "NRG Electrical (QLD) Pty Ltd", "BHAGWAN MARINE PTY LTD", "Smart Telecommunication PTY LTD", "Delta Pty Ltd", "Barrett Group Services Pty Ltd", "F.K. Gardner & Sons Pty Ltd", "GL Training", "Osmac Group Training", "Doval Constructions Pty Ltd", "Next Level Consulting Solutions", "Pensar Water Pty Ltd", "Downer EDI Works Pty Ltd", "WRB Construction", "Highline Roofing", "Wiley Group", "Cogent Scaffolding", "Hipwood Group", "M2 Electrical Pty Ltd", "Jemini Landscapes", "Ron Veraa Construction", "Pensar Construction Group Pty Ltd", "Going Up Elevators", "PSF Steel Pty Ltd", "QLD Civil Solutions", "Avideas", "AG Coatings", "Protech Group", "GRAYA", "Blend Projects", "(blank)", "Apprenticeship Queensland", "East Coast Apprenticeships", "Celotti Workforce", "Pensar Structures Pty Ltd", "Paynters PTY LTD", "Electract Energy", "Rochele Painting", "Tomkins Commercial", "Fulton Hogan Infrastructure Services", "BORAL ASPHALT QLD", "Products for Industry Pty Ltd", "E&J Rigging Pty Ltd", "Bielby Hull Joint Venture Northside", "Beenleigh Steel Fabrications Pty Ltd", "Multiplex Constructions (Queen's Wharf)", "Georgiou Group Pty Ltd", "FVS", "C&C Construct Pty Ltd", "FDS Plumbing & Gas", "Contrast Constructions", "All Site Demolition", "Gyppro Plastering", "Bryant Building Contractors", "Carbone Developments Pty Ltd", "The Rix Group Pty Ltd", "Peak Precast", "Lindores Personnel", "Safety Australia Training and Consulting", "Trafflec", "Sparks Alive Electrical", "IMP Group Pty Ltd", "DSE Civil Electrical", "Advanced Deconstruction", "KeyBuild Services Pty Ltd", "BPG Construction", "Action Formwork (Aust) Pty Ltd", "Castletown Construction Pty Ltd", "Greyburn Building Contractors", "BSF MOBILE CRANES PTY LTD", "My Metals Pty Ltd", "JT Solid Plastering", "Fulton Hogan", "Pico Play", "Streamline Architecture Solutions", "TSM Engineering Pty Ltd", "Architectural Facade Cladding Solutions Pty Ltd", "FSI Engineering", "Lendlease Building Pty Ltd", "Infinity Constructions QLD Pty Ltd", "Otis Elevator Company Pty Ltd", "Protech", "Albem Pty Ltd", "Stokes Wheeler Pty ltd", "Qube Ports & Bulk", "Woollam Construction", "Country to Coast Glass and Security", "GR Production Services", "Global Engineering & Construction", "Daly's Construction", "Built Pty Ltd", "Alimak Services", "Bothar Boring", "Phase Electrical & Communications", "Queensland Rail", "Breezewater Pty Ltd", "Finely Tuned Roofing", "Mosaic Construction", "Mi Electric Pty Ltd", "DellaCorda", "CS Development Group Pty Ltd", "Adco Construction Pty Ltd", "CC P&D Pty Ltd", "Dowells Building Services Pty Ltd", "Smart Employment Solutions", "Dean Cameron Painters Pty Ltd", "Williams Cranes & Rigging Pty Ltd", "Amalgamated Group Management Pty Ltd", "Seymour Whyte Constructions", "Dickinson Constructions Pty Ltd", "Mcnab", "CV Services Group Pty Ltd", "Molan Phillips", "GEO Retain Pty Ltd", "Proper Sealing Solutions", "Hazell Bros (QLD) Pty Ltd", "JD Lighting Electrical", "JF Hull Holdings Pty Ltd", "NECA Group Training", "FormPlus Group Pty Ltd", "JWB Constructions", "TAS Fabrications Pty Ltd", "Dundrum Civil", "Modern Fire Protection", "Bob's Irrigation Services", "MC Electrical", "Bielby Holdings Pty Ltd", "Superior Walls & Ceilings QLD", "John Holland Queensland Pty Ltd", "Ozrig Pty Ltd", "Higgins Coatings", "Environ Air Conditioning", "Rail Control Systems Australia", "Slade Industries Pty Ltd", "Cinc Group", "Fleetwood VIC & QLD Pty Ltd", "The Landscape Construction Company Pty Ltd", "Australasian Overhead Cranes", "Corvex", "SBP Australia Pty Ltd", "Mulherin Rigging and Cranes Australia Pty Ltd", "Hawking Electrical Pty Ltd", "Atlas Building Services", "ATF Services", "CGC Recruitment", "SGQ Pty Ltd", "Action Trades and Apprenticeships", "Australian Electronic Maintenance Services", "CPM Group Pty Ltd (C)", "Wilko Painting", "Shed Homes Australia Pty Ltd", "Australian Marine & Civil Pty Ltd", "Fidato Coatings", "Boss Building Maintenance", "Acrow Formwork and Scaffolding", "MTC Future Ready", "VTS Cranes and Hoists", "Steel Structures Australia", "Rosenlund Contractors Pty Ltd", "Mettle Australia", "Inform Construction", "Initial Energy", "Monadelphous Group Limited", "Cava Scaffold Solutions", "WHA Group Pty Ltd", "McHugh Steel", "CPD Pty Ltd", "BSE Services Australia", "Brick Construction", "WorkPac", "Munster Services Group Pty Ltd", "Falcon Cranes Pty Ltd", "MB Electrical Services", "Georgiou", "J F Tyack Contracting Pty LTD", "Universal Cranes", "Brisbane Builders PTY LTD", "Demex", "Heavy Duty Contracting", "IDEC Solutions", "Pro wind", "Cross Cranes", "Meggawind Pty Ltd", "LTE Precast Concrete Structures", "Clad X Pty Ltd", "Pecks Labour Hire", "CGC QLD PTY LTD", "Crane Hotline", "RC Lift and Shift", "5 Point Projects", "Cement Australia", "Breakout Scaffolding", "Brisbane Scaffold Hire", "Nardia Plumbing", "Rhys Brown Electrical", "Multi Span Australia Group PTY LTD", "RJM Plumbing", "Pipe Management Australia Pty Ltd", "NTHA Trainees & Apprentices Pty Ltd", "CVSG Asset Services Pty Ltd", "MarchNet", "Gardel Electrical", "Barnes Construction and Joinery Pty Ltd", "Iron Horse structural services", "Fredon Qld Pty Ltd", "Dave Garrett Constructions", "IPSWICH CITY COUNCIL", "Logan Power Poles", "Q Power (QLD) Pty Ltd", "SIG Construction Group", "All Energy", "Lazzaroni Electrical", "Sensus Electrical", "SBL Solutions Services P/L", "Jackson Trade Services", "Denam", "Alpine Communications", "Hully Foundations", "Stratec Pty Ltd", "Spartan Group", "Maunder Civil Contracting", "Greystone Civil Pty Ltd", "Piled Foundations Pty Ltd", "Rousell Constructions", "Clearcon", "Gemlife Administration Pty Ltd", "Brisbane Pump Action Pty Ltd", "TNT Crane Hire Pty Ltd", "Bridgeman", "Master Hire", "Sumner Steel", "Salt Plumbing Maintenance", "Eagle Alliance Plant Hire", "Hanson Construction Materials P/L (Northgate)", "Heavy Maintenance Australia Pty Ltd", "Magnitude Pipeline and Construction", "Progress Rail", "Mitchell Water Australia", "Cosmic Group", "Access Able Accessible Services Queensland Pty Ltd", "Constructionarium Pty Ltd", "Holcim Australia Pty Ltd", "Labourly", "HSF Aust", "Civwil", "Davis Data and Electrical", "EnProCon Pty Ltd", "Duratec Limited", "Riviere Constructions", "Zico Formwork", "Core Welding", "Vikcon", "Australian Fibre Optic Solutions", "Energize Electrical Safety Management", "Civex", "BMG Constructions", "Fast Energy Pty Ltd", "Total Water Services", "Elemek Electrical", "CDJ Electrical", "Walters Scaffolding", "The Davey Group", "Australian Piping Solutions", "Hornick Constructions PTY Ltd.", "Wittemans Fabrication", "Electrical Proven", "Havenscape", "Kelleher Builders Pty Ltd", "Aurora Landscaping & Fencing Pty Ltd", "Living Gems Administration Pty Ltd", "Electrical Data & Security Services Pty Ltd", "Qube Logistics (SB) Pty Ltd", "Lee Civil Pty Ltd", "Salmon plumbing", "Stowe Australia Pty Ltd", "Ehlerth Electrical", "CSE Electrical", "Rovera Scaffolding", "Mainbrace Constructions (QLD) Pty Ltd", "Total Installation", "Wire-Not Electrical", "CPB BAM GHELLA UGL Joint Venture", "CJ Developments", "Whatalec Pty Ltd", "Superseal Group", "QLD Duct Installers", "RCQ Projects Pty Ltd", "Set Tiling", "United Personnel", "One Stop Joinery", "BD@JA Weier painting contractor", "OGB Services", "Hawthorne Civil", "Hembrows Electrical Service Pty Ltd", "Enever Electrical and Data Pty Ltd", "AMAC Cranes Group", "Brisbane city cranes", "Krave Electrical", "Working Bucket", "Sureflow Plumbig Group", "Smoke and Spark Solutions", "Queensland Formwork Pty Ltd", "Icon Co (QLD) Pty Ltd", "Prowire Electrical (Qld) Pty Ltd", "Ryan Wilks Pty Ltd", "Your Trades Pty Ltd", "Dowells", "K2 Projects", "Origin Cranes", "Dodge Civil Contracting", "Innes Group", "A Cladding Solutions Pty Ltd", "Tilecorp Pty Ltd", "Endfire Engineering", "Cornerstone Construction", "Da Vinci Projects Pty Ltd", "Hoffman Rigging", "Overhead Distribution Services Pty Ltd", "Colligate Industrial", "Marsh Height Safety", "Westiron Roofing", "Nutters Gutters", "GNB Energy", "East Coast Electrical QLD", "Calibre engineering", "Garwood Tree Services", "QLD Water Blasting", "Hanlon Industries", "Fully Wired Electrical Services", "Altus Traffic", "Fine Line Commercial Interior Linings Pty Ltd", "Forensic Disability Service", "APS Plumbing", "Surfside Pools", "Bridgeman Stainless solutions", "Tesselaar Flowers", "Q Electrical Pty Ltd", "Minister and Samson", "Minnis and Samson", "Landsdown Services Pty Ltd", "IPCQ", "Health Security Education", "WW Surveys", "Insight Control", "ATB Metal Fab", "Pensar", "AGC Installations", "Paul Edwards Constructions Pty Ltd", "B&G Enterprises", "Bobs irrigation services", "Imperial Contracting (QLD) Pty Ltd", "BADGE Constructions", "ATG Building Success", "Evolve Constructions", "PHE Pty Ltd", "Electro Industries Pty Ltd", "5th Star Pty Ltd", "Tc welding", "BUILDICO", "Mayfair Fabrications", "Actemium", "Fitzgerald Constructions", "Syfon Systems Pty Ltd", "Concept Tanks", "PCA Ground Engineering", "CBD Landscape Construction", "Nilsen (QLD) Pty Ltd", "Give Industries", "BlackBox Pty Ltd", "Archimedes Engineering Pty Ltd", "Sturdie Electrical", "Heinrich Constructions", "SJC Engineering", "UGL RTS Pty Ltd", "Tri Tech Refrigeration Qld", "Tritech Refrigeration Qld", "Q Electrical", "Universal Sheetmetal", "Dowells Labour Hire", "Abrik Pty Ltd", "Martin Brothers Landscape Construction & Maintenance", "5POINT PROJECTS PTY LTD", "Dynamic Civil & Drainage Pty Ltd", "Amharc Pty Ltd", "Bess Concrete Pty Ltd", "Plumbrite Solutions Pty Ltd", "McKew Constracting", "Placecrete Australia Pty Ltd", "Daxcon Concrete Specialists", "CPM Advisory", "Grange Earthworks", "Quickway Constructions", "Memar Constructions", "Silverstrand Developments Pty Ltd", "McGrath & Frisby", "CPM Civil", "Epoca Constructions", "Tamborine MTN Electrical Services", "Smart Metal Roofing", "Energex Limited", "Groupline Constructions", "Inbilt Projects Pty Ltd", "Mitch Green Electrical", "BJ Sampson", "Aussie Painters Direct Pty Ltd", "Evolution Building Network Pty Ltd", "Plumbers Union", "Konstruct Commercial Projects", "PPD & GAS", "Mantle Pty Ltd", "CMH Electrical Industries", "Connect Resources", "HARRAP MARINE INDUSTRIES PTY LTD", "NRG Industrial Pty Ltd", "Taranaway PTY LTD", "Neca Electrical Apprenticeships", "Latitude Designs Pty Ltd", "Datum Building", "D&E Air Conditioning Pty Limited", "Thermospark electrical", "Thermospark Electrical Pty Ltd", "Voltfix Electrical", "DIALOG Fitzroy Australia Pty Ltd", "Cool Dynamics Refrigeration (Qld) Pty Ltd", "Vae Group", "Gold Coast Roofing", "Commspower Pty Ltd", "T Build Queensland", "Shoreline Civil and Marine", "Solid Contracting", "Gumleaf Gutter Protection", "BGER", "Cree8 Pty Ltd", "Thor Interiors", "Brisbane Tank Manufacturing"]);
+
+// CSQ flag = the list above, overridable per company from the CRM profile. Overrides live
+// in Supabase (CRM[name].csq true/false + csqAt timestamp) so they survive data refreshes.
+function isCSQ(name){const c=CRM[name];return c&&typeof c.csq==='boolean'?c.csq:CSQ_SET.has(name);}
+const csqTag=name=>isCSQ(name)?'<span class="csq-tag">CSQ</span>':'';
+const csqOnly=id=>!!document.getElementById(id)?.checked;
 
 // ── TOP 10 COURSES + OTHER ──
 const TOP_COURSES = ["DOGGING - DG LICENCE", "RIGGING BASIC - RB LICENCE", "FORKLIFT - LF LICENCE", "BOOM TYPE EWP OVER 11M - WP LICENCE", "EARTHMOVING OPERATOR - MULTI-PLANT", "GANTRY OR OVERHEAD CRANE & CONDUCT LIFTING OPERATIONS", "MOBILE CRANE - C6 LICENCE", "WORK SAFELY AT HEIGHTS", "CONFINED SPACE WITH GAS TEST (1 Day)", "VERIFICATION OF COMPETENCY", "Other"];
@@ -719,6 +843,8 @@ async function saveCRM(){
           if(!CRM[key]){
             CRM[key]=serverCRM[key];
           }else{
+            _mergeCSQ(CRM[key],serverCRM[key]);
+            if(_mergeProspectFields(key,serverCRM))continue;
             // Merge call logs — local wins, server fills in missing entries
             // Special case: followupDone is sticky — once true on either side, stays true
             const localLogs=CRM[key].callLog||[];
@@ -777,6 +903,7 @@ function showPage(id,btn){
   if(id==='courses'&&!coursesInit)initCourses();
   if(id==='courselist'&&!courseListInit)initCourseList();
   if(id==='outreach'&&!outreachInit)initOutreach();
+  if(id==='prospects')renderProspects();
   if(id==='followups')renderFollowUps();
   if(id==='performance')renderPerformancePage();
   if(id==='team')renderTeamPage();
@@ -806,10 +933,10 @@ let clientsInit=false,clientPeriod='monthly',clientFiltered=[],clientPage=0,clie
 const CL_PER=40;
 function initClients(){clientsInit=true;clientFiltered=[...RAW.clients];renderClientList();}
 function setClientPeriod(p,btn){clientPeriod=p;btn.closest('.period-toggle').querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(clientSelected)selectClient(clientSelected,true);}
-function filterClients(){const q=document.getElementById('client-search').value.toLowerCase();const sf=document.getElementById('client-state-filter').value;clientFiltered=RAW.clients.filter(c=>c.n.toLowerCase().includes(q)&&(!sf||companyInState(c.n,sf)));clientPage=0;renderClientList();}
+function filterClients(){const q=document.getElementById('client-search').value.toLowerCase();const sf=document.getElementById('client-state-filter').value;const csq=csqOnly('client-csq-filter');clientFiltered=RAW.clients.filter(c=>c.n.toLowerCase().includes(q)&&(!sf||companyInState(c.n,sf))&&(!csq||isCSQ(c.n)));clientPage=0;renderClientList();}
 function renderClientList(){
   const start=clientPage*CL_PER,slice=clientFiltered.slice(start,start+CL_PER),maxT=clientFiltered[0]?.t||1;
-  document.getElementById('client-list-scroll').innerHTML=slice.map(c=>`<div class="data-list-item ${clientSelected===c.n?'selected':''}" onclick="selectClient('${c.n.replace(/'/g,"\\'")}')"><div class="item-info"><div class="item-name">${c.n}</div><div class="item-sub">${fmt(sumPrior12(c.m))} prior · ${fmt(sumLast12(c.m))} last 12</div></div><div class="mini-bar-bg"><div class="mini-bar" style="width:${Math.min(100,(c.t/maxT)*100).toFixed(1)}%"></div></div><div class="item-val">${fmt(c.t)}</div></div>`).join('');
+  document.getElementById('client-list-scroll').innerHTML=slice.map(c=>`<div class="data-list-item ${clientSelected===c.n?'selected':''}" onclick="selectClient('${c.n.replace(/'/g,"\\'")}')"><div class="item-info"><div class="item-name name-cell"><span class="nm">${c.n}</span>${csqTag(c.n)}</div><div class="item-sub">${fmt(sumPrior12(c.m))} prior · ${fmt(sumLast12(c.m))} last 12</div></div><div class="mini-bar-bg"><div class="mini-bar" style="width:${Math.min(100,(c.t/maxT)*100).toFixed(1)}%"></div></div><div class="item-val">${fmt(c.t)}</div></div>`).join('');
   document.getElementById('client-count').textContent=`${clientFiltered.length.toLocaleString()} clients`;
   document.getElementById('cl-count-label').textContent=`${start+1}–${Math.min(start+CL_PER,clientFiltered.length)} of ${clientFiltered.length}`;
   renderPag('client-pagination',clientFiltered.length,CL_PER,clientPage,'goCP');
@@ -871,9 +998,15 @@ function openCourseDetail(name){
   document.getElementById('detail-hero').innerHTML=`<h2>${course.n}</h2><div class="course-hero-stats"><div><div class="course-stat-label">Total Revenue</div><div class="course-stat-value">${fmtFull(course.t)}</div></div><div><div class="course-stat-label">Prior 12</div><div class="course-stat-value">${fmt(prior12)}</div></div><div><div class="course-stat-label">Last 12</div><div class="course-stat-value">${fmt(last12)}</div></div><div><div class="course-stat-label">YoY Growth</div><div class="course-stat-value">${growth!=='N/A'?(growth>0?'+':'')+growth+'%':'N/A'}</div></div><div><div class="course-stat-label">Top Clients</div><div class="course-stat-value">${course.tc.length}</div></div></div>`;
   if(detailChart)detailChart.destroy();
   detailChart=new Chart(document.getElementById('detailChart').getContext('2d'),{type:'line',data:{labels:MONTHS,datasets:[{data:course.m,borderColor:'#b8a9de',backgroundColor:'rgba(184,169,222,0.12)',borderWidth:2.5,pointBackgroundColor:'#b8a9de',pointRadius:3,fill:true,tension:0.4}]},options:lineOpts()});
-  const maxC=course.tc[0]?.[1]||1;
-  document.getElementById('detail-client-list').innerHTML=course.tc.map(([n,val],i)=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)"><div style="font-size:0.72rem;font-weight:600;color:var(--text2);min-width:28px;text-align:right;font-variant-numeric:tabular-nums">#${i+1}</div><div style="flex:1;min-width:0"><div style="font-size:0.8rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${n}</div><div style="height:4px;border-radius:4px;background:var(--border);margin-top:4px;overflow:hidden"><div style="height:100%;border-radius:4px;background:linear-gradient(90deg,var(--lav2),var(--sky2));width:${((val/maxC)*100).toFixed(1)}%"></div></div></div><div style="font-size:0.8rem;font-weight:600;min-width:68px;text-align:right">${fmt(val)}</div></div>`).join('');
+  renderDetailClients();
   renderDetailPeriodChart();
+}
+// Top-clients list; the CSQ filter keeps each client's overall rank number
+function renderDetailClients(){
+  const course=currentCourseData;if(!course)return;
+  const maxC=course.tc[0]?.[1]||1,csq=csqOnly('detail-csq-filter');
+  const rows=course.tc.map((r,i)=>[...r,i]).filter(([n])=>!csq||isCSQ(n));
+  document.getElementById('detail-client-list').innerHTML=!rows.length?'<div style="color:var(--text2);font-size:0.82rem;padding:16px 0">No CSQ clients in this course\'s top 100</div>':rows.map(([n,val,i])=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)"><div style="font-size:0.72rem;font-weight:600;color:var(--text2);min-width:28px;text-align:right;font-variant-numeric:tabular-nums">#${i+1}</div><div style="flex:1;min-width:0"><div class="name-cell" style="font-size:0.8rem;font-weight:500"><span class="nm">${n}</span>${csqTag(n)}</div><div style="height:4px;border-radius:4px;background:var(--border);margin-top:4px;overflow:hidden"><div style="height:100%;border-radius:4px;background:linear-gradient(90deg,var(--lav2),var(--sky2));width:${((val/maxC)*100).toFixed(1)}%"></div></div></div><div style="font-size:0.8rem;font-weight:600;min-width:68px;text-align:right">${fmt(val)}</div></div>`).join('');
 }
 function renderDetailPeriodChart(){const ag=aggregatePeriod(currentCourseData.m,detailPeriod);document.getElementById('detail-period-subtitle').textContent={monthly:'Monthly',quarterly:'Quarterly',halfyearly:'Half-yearly'}[detailPeriod]+' breakdown';if(detailPeriodChart)detailPeriodChart.destroy();const splitIdx=detailPeriod==='monthly'?_last12From():detailPeriod==='quarterly'?Math.max(0,(ag.labels.indexOf(_nowQuarterLabel())+1)-4):Math.max(0,(ag.labels.indexOf(_nowHalfLabel())+1)-2);detailPeriodChart=new Chart(document.getElementById('detailPeriodChart').getContext('2d'),{type:'bar',data:{labels:ag.labels,datasets:[{data:ag.values,backgroundColor:ag.labels.map((_,i)=>i<splitIdx?'rgba(184,169,222,0.75)':'rgba(135,197,239,0.75)'),borderRadius:6,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtFull(c.raw)}}},scales:{x:{grid:{display:false},ticks:{font:{size:10},color:'#6b6b82'}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:v=>fmt(v),font:{size:10},color:'#6b6b82'},border:{display:false}}}}});}
 function setDetailPeriod(p,btn){detailPeriod=p;btn.closest('.period-toggle').querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderDetailPeriodChart();}
@@ -892,8 +1025,10 @@ function applyOutFilter(){
   if(sel){const cur=sel.value;sel.innerHTML='<option value="">All team members</option><option value="unassigned"'+(cur==='unassigned'?' selected':'')+'>— Unassigned —</option>'+TEAM.map(m=>`<option value="${m.id}"${cur==m.id?' selected':''}>${tmName(m)}</option>`).join('');}
   const mf=sel?sel.value:'';
   const stateSel=document.getElementById('out-state-filter');const sf=stateSel?stateSel.value:'';
+  const csq=csqOnly('out-csq-filter');
   outFiltered=RAW.outreach.filter(o=>{
     if(outFilter!=='all'&&o.signal!==outFilter)return false;
+    if(csq&&!isCSQ(o.n))return false;
     if(outSearch&&!o.n.toLowerCase().includes(outSearch))return false;
     if(sf&&!companyInState(o.n,sf))return false;
     if(mf==='unassigned'){const crm=CRM[o.n]||{};if(crm.assigneeId)return false;}
@@ -912,10 +1047,10 @@ function renderOutreach(){
     const avatarHtml=member?`<div style="display:inline-flex;align-items:center;gap:6px"><div style="width:22px;height:22px;border-radius:50%;background:${member.colour};display:inline-flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#fff">${initials(member.name)}</div><span style="font-size:0.78rem">${member.name}</span></div>`:'<span style="color:var(--text2);font-size:0.78rem">—</span>';
     const st=crm.status||'pending';const scol={contacted:'#1565a8',won:'#2d7a2d',lost:'#b33050'};
     const statusHtml=st!=='pending'?`<span style="font-size:0.72rem;font-weight:600;color:${scol[st]};background:${scol[st]}18;padding:2px 8px;border-radius:99px;text-transform:capitalize">${st}</span>`:'—';
-    const csqBadge=CSQ_SET.has(o.n)?` <span style="background:#edf7ed;border:1px solid #9ecf9e;border-radius:4px;padding:1px 5px;font-size:0.64rem;font-weight:700;color:#2d7a2d;vertical-align:middle">CSQ</span>`:'';
+    const csqBadge=csqTag(o.n);
     const lastLog=(crm.callLog||[]).filter(l=>l.outcome)[0];
     const lastOutcomeHtml=lastLog?`<span style="font-size:0.72rem;font-weight:600;color:${OUTCOME_COLOURS[lastLog.outcome]||'#2d2d3a'}">${OUTCOME_LABELS[lastLog.outcome]||lastLog.outcome}</span>`:`<span style="color:var(--text2);font-size:0.78rem">—</span>`;
-    return `<tr onclick="openCRM('${o.n.replace(/'/g,"\\'")}')"><td style="font-weight:600;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${o.n}${csqBadge}</td><td><span class="badge ${sBadge[o.signal]}">${sLabel[o.signal]}</span></td><td>${stateBadgesHTML(o.n)||'<span style="color:var(--text2);font-size:0.78rem">—</span>'}</td><td class="num" style="font-size:0.78rem">${o.prior12>0?fmt(o.prior12):'—'}</td><td class="num" style="font-size:0.78rem;${o.last12===0?'color:#c0392b;font-weight:700':''}">${o.last12>0?fmt(o.last12):'$0'}</td><td class="num" style="font-size:0.78rem">${fmt(o.t)}</td><td style="font-size:0.76rem;color:var(--text2);max-width:200px">${o.reason}</td><td>${avatarHtml}</td><td>${lastOutcomeHtml}</td><td>${statusHtml}</td></tr>`;
+    return `<tr onclick="openCRM('${o.n.replace(/'/g,"\\'")}')"><td style="font-weight:600;max-width:220px"><div class="name-cell" title="${esc(o.n)}"><span class="nm">${o.n}</span>${csqBadge}</div></td><td><span class="badge ${sBadge[o.signal]}">${sLabel[o.signal]}</span></td><td>${stateBadgesHTML(o.n)||'<span style="color:var(--text2);font-size:0.78rem">—</span>'}</td><td class="num" style="font-size:0.78rem">${o.prior12>0?fmt(o.prior12):'—'}</td><td class="num" style="font-size:0.78rem;${o.last12===0?'color:#c0392b;font-weight:700':''}">${o.last12>0?fmt(o.last12):'$0'}</td><td class="num" style="font-size:0.78rem">${fmt(o.t)}</td><td style="font-size:0.76rem;color:var(--text2);max-width:200px">${o.reason}</td><td>${avatarHtml}</td><td>${lastOutcomeHtml}</td><td>${statusHtml}</td></tr>`;
   }).join('');
   renderPag('out-pagination',outFiltered.length,OUT_PER,outPage,'goOP');
 }
@@ -924,6 +1059,8 @@ function goOP(p){outPage=p;renderOutreach();}
 // ── CRM ──
 let crmCompany=null,selAttempt=null,selOutcome=null,selCourses=[];
 function openCRM(name){
+  // A prospect that was merged/renamed forwards to its new record
+  const fwd=CRM[name]?.prospect?.mergedInto;if(fwd&&fwd!==name)return openCRM(fwd);
   crmCompany=name;const crm=getCRM(name);
   const client=RAW.clients.find(c=>c.n===name);const outItem=RAW.outreach.find(o=>o.n===name);
   const courses=RAW.clientCourses[name]||[];
@@ -933,15 +1070,23 @@ function openCRM(name){
   document.getElementById('crm-name').textContent=name;
   document.getElementById('crm-back-btn').textContent='← Back to '+prevPage.charAt(0).toUpperCase()+prevPage.slice(1);
   const sLabel={lapsed:'🔴 Lapsed',dormant:'🟡 Gone Quiet',declining:'🟠 Declining Spend',new:'🌱 New Client',returning:'🔄 Returning'};const sBadge={lapsed:'badge-lapsed',dormant:'badge-dormant',declining:'badge-declining',new:'badge-new',returning:'badge-returning'};
-  document.getElementById('crm-meta').innerHTML=(outItem?`<span class="badge ${sBadge[outItem.signal]}">${sLabel[outItem.signal]}</span>`:'')+stateBadgesHTML(name);
+  const pst=prospectState(name),isPros=pst==='active'||pst==='archived';
+  const origin=crm.convertedFrom||(pst==='converted'?crm.prospect:null);
+  const originBy=origin&&TEAM.find(m=>m.id===origin.addedBy);
+  document.getElementById('crm-meta').innerHTML=(isPros?`<span class="badge badge-prospect">✨ Prospect</span>${pst==='archived'?'<span class="badge badge-archived">Archived</span>':''}`:'')
+    +(outItem?`<span class="badge ${sBadge[outItem.signal]}">${sLabel[outItem.signal]}</span>`:'')+'<span id="crm-csq-meta"></span>'+stateBadgesHTML(name)
+    +(origin?`<span class="crm-origin-note">Originally added as a prospect${origin.name&&origin.name!==name?` ("${esc(origin.name)}")`:''}${originBy?' by '+esc(originBy.name):''}${origin.addedAt?' on '+fmtDate(origin.addedAt):''}</span>`:'');
+  // Prospects have no booking data — swap Spend + Courses for the prospect details panel
+  document.getElementById('crm-spend-section').style.display=isPros?'none':'';
+  document.getElementById('crm-courses-section').style.display=isPros?'none':'flex';
+  document.getElementById('crm-prospect-section').style.display=isPros?'':'none';
+  if(isPros)renderProspectDetails(name,false);
+  renderProspectBanner(name);
   document.getElementById('crm-total').textContent=fmt(total);
   document.getElementById('crm-prior12').textContent=prior12>0?fmtFull(prior12):'—';
   const last12el=document.getElementById('crm-last12');last12el.textContent=last12>0?fmtFull(last12):'$0.00';last12el.style.color=last12===0?'#c0392b':'var(--text)';
   document.getElementById('crm-signal-reason').textContent=outItem?outItem.reason:'Active client';
-  // CSQ badge
-  document.getElementById('crm-csq-badge').innerHTML=CSQ_SET.has(name)
-    ?'<span style="display:inline-flex;align-items:center;gap:6px;background:#edf7ed;border:1.5px solid #9ecf9e;border-radius:8px;padding:4px 10px;font-size:0.72rem;font-weight:700;color:#2d7a2d">&#10003; CSQ Funding History</span>'
-    :'';
+  renderCSQ(name);
   // Mini sparkline (last 18 months — or all available if dataset is shorter)
   if(window._crmSpendChart){window._crmSpendChart.destroy();window._crmSpendChart=null;}
   if(client){
@@ -1096,6 +1241,362 @@ function markFollowUpDone(company,entryId){
 }
 function closeCRM(){showPage(prevPage,document.querySelector(`.nav-item[onclick*="'${prevPage}'"]`));}
 
+// ── CSQ flag (manual) ──
+// Newest change wins when reconciling with a teammate's copy
+function _mergeCSQ(local,server){if((server.csqAt||0)>(local.csqAt||0)){local.csq=server.csq;local.csqAt=server.csqAt;}}
+function renderCSQ(name){
+  const on=isCSQ(name),c=CRM[name],manual=c&&typeof c.csq==='boolean'&&c.csq!==CSQ_SET.has(name);
+  const btn=document.getElementById('crm-csq-toggle');
+  btn.classList.toggle('on',on);
+  btn.textContent=on?'✓ CSQ Funding History':'+ Flag as CSQ';
+  btn.title=on?'Click to remove the CSQ flag':'Click to flag this company as having CSQ funding';
+  document.getElementById('crm-csq-note').textContent=manual?(on?'Flagged manually':'Flag removed manually'):'';
+  const meta=document.getElementById('crm-csq-meta');if(meta)meta.innerHTML=on?'<span class="badge badge-csq">✓ CSQ</span>':'';
+}
+function toggleCSQ(){
+  const name=crmCompany,on=!isCSQ(name),crm=getCRM(name);
+  if(!on&&CSQ_SET.has(name)&&!confirm(`Remove the CSQ flag from "${name}"?\n\nIt's on the original CSQ funding list — only remove it if that's wrong.`))return;
+  crm.csq=on;crm.csqAt=Date.now();
+  saveCRM();renderCSQ(name);
+  if(outreachInit)renderOutreach();
+  toast(on?'Flagged as CSQ ✓':'CSQ flag removed');
+}
+
+// ── PROSPECTS ──
+// Companies reps are talking to that aren't in the booking data yet. They live in the
+// Supabase CRM blob as CRM[name].prospect, so monthly data.json uploads never touch them.
+// Lifecycle: active → converted (merged into a booked company, or booked under the same
+// name) or archived. Records are never deleted — saveCRM's merge would resurrect them.
+const INDUSTRIES=['Construction','Civil & Infrastructure','Electrical','Plumbing & Gas','HVAC & Refrigeration','Mining & Resources','Manufacturing','Transport & Logistics','Utilities & Energy','Government & Council','Labour Hire & Recruitment','Training & Education','Health & Community','Other'];
+const MATCH_STRONG=0.78,MATCH_SHOW=0.5;
+const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// Safe JS string literal for inline onclick handlers (names can contain quotes/apostrophes)
+const jsq=s=>"decodeURIComponent('"+encodeURIComponent(s).replace(/'/g,'%27')+"')";
+const cleanCompanyName=s=>String(s||'').replace(/[<>"`\\]/g,'').replace(/\s+/g,' ').trim();
+let _bookedSet=null;
+function inBookingData(name){if(!_bookedSet)_bookedSet=new Set([...RAW.clients.map(c=>c.n),...RAW.outreach.map(o=>o.n)]);return _bookedSet.has(name);}
+function prospectState(name){
+  const p=CRM[name]?.prospect;if(!p)return null;
+  if(p.mergedInto)return p.renamed?'renamed':'converted';
+  if(inBookingData(name))return 'converted';
+  return p.archived?'archived':'active';
+}
+
+// Reconcile prospect fields for one company between the local and server copies (used by
+// saveCRM and the realtime listener). Newest prospect.updatedAt wins. Returns true when the
+// record is fully resolved and the caller should skip its normal call-log merge.
+function _mergeProspectFields(key,serverMap){
+  const local=CRM[key],server=serverMap[key];
+  if(server.convertedFrom&&!local.convertedFrom)local.convertedFrom=server.convertedFrom;
+  const sp=server.prospect,lp=local.prospect;
+  if(sp&&(!lp||(sp.updatedAt||0)>(lp.updatedAt||0)))local.prospect=sp;
+  const into=local.prospect?.mergedInto;
+  if(!into)return false;
+  // Merged: any calls still sitting on the old record (either copy) follow it to the new one
+  if(!CRM[into])CRM[into]=JSON.parse(JSON.stringify(serverMap[into]||{assigneeId:null,status:'pending',callLog:[]}));
+  const dst=CRM[into];if(!dst.callLog)dst.callLog=[];
+  const have=new Set(dst.callLog.map(l=>l.id));
+  [...(local.callLog||[]),...(server.callLog||[])].forEach(l=>{if(!have.has(l.id)){have.add(l.id);dst.callLog.push({...l,company:into});}});
+  dst.callLog.sort((a,b)=>(b.id||0)-(a.id||0));
+  local.callLog=[];local.assigneeId=null;
+  return true;
+}
+
+// ── Fuzzy company matching ──
+// Names are reduced to "core" tokens: lowercase, & → and, punctuation and legal suffixes
+// removed. Same core = same company ("Orora Pty Ltd" = "ORORA"). Otherwise the score blends
+// token overlap weighted by rarity (a shared "Hutchinson" counts far more than a shared
+// "Constructions") with character trigrams to catch typos and spacing differences.
+const _LEGAL=new Set(['pty','ltd','limited','proprietary','pl','inc','incorporated','co','corp','corporation','the','llc','plc']);
+const _coreTokens=name=>String(name).toLowerCase().replace(/p\/l/g,' ').replace(/&/g,' and ').replace(/[^a-z0-9]+/g,' ').trim().split(' ').filter(t=>t&&!_LEGAL.has(t));
+function _grams(s){const g=new Set(),p=' '+s+' ';for(let i=0;i<p.length-2;i++)g.add(p.slice(i,i+3));return g;}
+function _dice(a,b){if(!a.size||!b.size)return 0;let n=0;for(const x of a)if(b.has(x))n++;return 2*n/(a.size+b.size);}
+function _lev(a,b){let prev=Array.from({length:b.length+1},(_,i)=>i);for(let i=1;i<=a.length;i++){const cur=[i];for(let j=1;j<=b.length;j++)cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));prev=cur;}return prev[b.length];}
+function _tokSim(a,b){
+  if(a===b)return 1;
+  if(a.length>=4&&b.length>=4&&(a.startsWith(b)||b.startsWith(a)))return 0.85;
+  if(a.length>=5&&b.length>=5&&Math.abs(a.length-b.length)<=2){const r=1-_lev(a,b)/Math.max(a.length,b.length);if(r>=0.8)return r;}
+  return 0;
+}
+let _matchIdx=null,_prSuggest=null;
+function invalidateMatchIndex(){_matchIdx=null;_prSuggest=null;}
+function _buildMatchIndex(){
+  const items=[],seen=new Set();
+  const add=(name,kind)=>{if(seen.has(name))return;seen.add(name);const toks=_coreTokens(name),key=toks.join('');items.push({name,kind,toks,key,grams:_grams(key)});};
+  RAW.clients.forEach(c=>add(c.n,'booked'));RAW.outreach.forEach(o=>add(o.n,'booked'));
+  Object.keys(CRM).forEach(k=>{const s=prospectState(k);if(s==='active'||s==='archived')add(k,'prospect');});
+  const df=new Map();items.forEach(it=>new Set(it.toks).forEach(t=>df.set(t,(df.get(t)||0)+1)));
+  const N=items.length,idf=t=>Math.log((N+1)/((df.get(t)||0)+0.5));
+  // Bucket items by the first 3 letters of each token so a search only scores plausible names
+  const buckets=new Map();
+  items.forEach((it,i)=>{it.w=it.toks.reduce((s,t)=>s+idf(t),0);new Set(it.toks.map(t=>t.slice(0,3))).forEach(b=>{if(!buckets.has(b))buckets.set(b,[]);buckets.get(b).push(i);});});
+  _matchIdx={items,idf,buckets};
+}
+// Returns up to opts.limit matches for `name`, best first: [{name,kind,score,exact}]
+function findCompanyMatches(name,opts={}){
+  if(!_matchIdx)_buildMatchIndex();
+  const toks=_coreTokens(name),key=toks.join('');
+  if(key.length<3)return[];
+  const {items,idf,buckets}=_matchIdx,grams=_grams(key);
+  const qw=toks.map(idf),wq=qw.reduce((a,b)=>a+b,0);
+  const cand=new Set();toks.forEach(t=>(buckets.get(t.slice(0,3))||[]).forEach(i=>cand.add(i)));
+  const out=[],min=opts.min??MATCH_SHOW,excl=new Set(opts.exclude||[]);
+  for(const i of cand){
+    const it=items[i];
+    if(opts.kind&&it.kind!==opts.kind)continue;
+    if(excl.has(it.name))continue;
+    let score;
+    if(it.key===key)score=1;
+    else{
+      let matched=0;
+      toks.forEach((t,ti)=>{let best=0;for(const u of it.toks){const s=_tokSim(t,u);if(s>best)best=s;if(best===1)break;}matched+=best*qw[ti];});
+      const tok=wq&&it.w?Math.min(0.99,matched/(0.7*Math.min(wq,it.w)+0.3*Math.max(wq,it.w))):0;
+      // Trigrams can only lift a score modestly above the token overlap, so shared
+      // generic endings ("…inson Constructions") don't outrank a shared distinctive word
+      score=Math.max(tok,Math.min(_dice(grams,it.grams)*0.95,tok+0.2));
+    }
+    if(score>=min)out.push({name:it.name,kind:it.kind,score,exact:it.key===key});
+  }
+  return out.sort((a,b)=>b.score-a.score).slice(0,opts.limit||8);
+}
+// One-line description of an existing company, shown under each fuzzy match
+function matchSubHTML(name){
+  const ps=prospectState(name);
+  if(ps==='active'||ps==='archived'){
+    const p=CRM[name].prospect,by=TEAM.find(m=>m.id===p.addedBy);
+    return `Prospect${ps==='archived'?' (archived)':''} · added by ${by?esc(by.name):'—'} ${fmtDate(p.addedAt)}`;
+  }
+  const c=RAW.clients.find(x=>x.n===name),o=RAW.outreach.find(x=>x.n===name);
+  const tot=c?.t||o?.t||0,l12=c?sumLast12(c.m):(o?.last12||0);
+  const a=TEAM.find(m=>m.id===CRM[name]?.assigneeId);
+  return `Booked client · ${fmt(tot)} total · ${fmt(l12)} last 12${a?' · assigned to '+esc(a.name):''}`;
+}
+// Active prospects whose name now closely matches a company in the booking data
+function prospectSuggestions(){
+  if(_prSuggest)return _prSuggest;
+  _prSuggest={};
+  Object.keys(CRM).forEach(k=>{
+    if(prospectState(k)!=='active')return;
+    const m=findCompanyMatches(k,{kind:'booked',exclude:CRM[k].prospect.notMatch,limit:1,min:MATCH_STRONG})[0];
+    if(m)_prSuggest[k]=m.name;
+  });
+  return _prSuggest;
+}
+function updateProspectNav(){
+  if(!RAW)return;
+  const n=Object.keys(prospectSuggestions()).length,el=document.getElementById('nav-pr-count');
+  el.textContent=n;el.style.display=n?'':'none';
+}
+
+// Move a prospect's record onto another company name. keepProspect=true is a rename (the new
+// record is still a prospect); false is a conversion onto a booked company.
+function mergeProspect(from,to,keepProspect){
+  const src=CRM[from];if(!src||!src.prospect)return;
+  const dst=getCRM(to),have=new Set(dst.callLog.map(l=>l.id));
+  (src.callLog||[]).forEach(l=>{if(!have.has(l.id))dst.callLog.push({...l,company:to});});
+  dst.callLog.sort((a,b)=>(b.id||0)-(a.id||0));
+  if(!dst.assigneeId&&src.assigneeId)dst.assigneeId=src.assigneeId;
+  if((!dst.status||dst.status==='pending')&&src.status)dst.status=src.status;
+  const now=Date.now();
+  if(src.csq===true&&!isCSQ(to)){dst.csq=true;dst.csqAt=now;}
+  if(keepProspect)dst.prospect={...src.prospect,mergedInto:undefined,renamed:undefined,updatedAt:now};
+  else{const p=src.prospect;dst.convertedFrom={name:from,addedBy:p.addedBy,addedAt:p.addedAt,states:p.states,industry:p.industry,contact:p.contact,convertedAt:today()};}
+  src.prospect={...src.prospect,mergedInto:to,renamed:!!keepProspect,updatedAt:now};
+  src.callLog=[];src.assigneeId=null;
+  invalidateMatchIndex();saveCRM();updateProspectNav();
+  if(outreachInit)renderOutreach();
+}
+function confirmMerge(from,to){
+  const n=(CRM[from]?.callLog||[]).length;
+  if(!confirm(`Merge prospect "${from}" into "${to}"?\n\n${n} call log${n===1?'':'s'} will move onto ${to}, and the prospect will be marked as converted.`))return;
+  mergeProspect(from,to,false);
+  toast('Merged into '+to+' ✓');
+  if(document.getElementById('page-crm').classList.contains('active'))openCRM(to);
+  if(document.getElementById('page-prospects').classList.contains('active'))renderProspects();
+}
+function notSameCompany(from,to){
+  const p=CRM[from]?.prospect;if(!p)return;
+  p.notMatch=[...(p.notMatch||[]),to];p.updatedAt=Date.now();
+  _prSuggest=null;saveCRM();updateProspectNav();
+  if(document.getElementById('page-crm').classList.contains('active')&&crmCompany===from)renderProspectBanner(from);
+  if(document.getElementById('page-prospects').classList.contains('active'))renderProspects();
+  toast('Got it — won\'t suggest that match again');
+}
+function _suggestionRowHTML(from,to,showFrom){
+  return `<div class="pr-sugg"><div class="pr-sugg-text">${showFrom?`<b>${esc(from)}</b> looks like it's now booked as `:'Looks like this company is now booked as '}<b>${esc(to)}</b><div class="match-sub">${matchSubHTML(to)}</div></div>
+    <button class="btn-primary btn-sm" onclick="confirmMerge(${jsq(from)},${jsq(to)})">Merge</button>
+    <button class="btn-ghost btn-sm" onclick="notSameCompany(${jsq(from)},${jsq(to)})">Not the same</button></div>`;
+}
+function renderProspectBanner(name){
+  const to=prospectState(name)==='active'?prospectSuggestions()[name]:null;
+  document.getElementById('crm-prospect-banner').innerHTML=to?`<div class="pr-banner"><div class="pr-banner-title">🔗 This prospect may now be in the booking data</div><div class="pr-banner-sub">Merging moves this call history onto the booked company so everything is in one place.</div>${_suggestionRowHTML(name,to,false)}</div>`:'';
+}
+
+// ── Add-prospect modal ──
+let _prStates=[],_prConfirmNear=false,_prTimer=null;
+function _statePickHTML(sel,fn){return STATE_LIST.map(s=>`<button type="button" class="state-pick-btn s-${s}${sel.includes(s)?' sel':''}" onclick="${fn}('${s}')">${s}</button>`).join('');}
+function togglePrState(s){_prStates=_prStates.includes(s)?_prStates.filter(x=>x!==s):[..._prStates,s];document.getElementById('pr-states').innerHTML=_statePickHTML(_prStates,'togglePrState');}
+function openAddProspect(){
+  ['pr-name','pr-cname','pr-cphone','pr-cemail'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pr-csq').checked=false;
+  document.getElementById('pr-industry').innerHTML='<option value="">Select industry…</option>'+INDUSTRIES.map(i=>`<option>${i}</option>`).join('');
+  let me='';try{me=localStorage.getItem('kallibr_me')||'';}catch(e){}
+  document.getElementById('pr-addedby').innerHTML='<option value="">Select team member…</option>'+tmActive().map(m=>`<option value="${m.id}"${String(m.id)===me?' selected':''}>${esc(m.name)}</option>`).join('');
+  _prStates=[];document.getElementById('pr-states').innerHTML=_statePickHTML(_prStates,'togglePrState');
+  document.getElementById('pr-matches').innerHTML='';_prConfirmNear=false;_setPrSubmit(null);
+  document.getElementById('pr-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('pr-name').focus(),50);
+}
+function closeAddProspect(){document.getElementById('pr-modal').classList.remove('open');}
+function onProspectNameInput(){clearTimeout(_prTimer);_prTimer=setTimeout(renderProspectMatches,120);}
+function _setPrSubmit(level){
+  const b=document.getElementById('pr-submit');
+  b.disabled=level==='exact';b.style.opacity=level==='exact'?'0.45':'';
+  b.textContent=level==='exact'?'Already exists':(level==='strong'&&_prConfirmNear)?'None of these — add anyway':'Add Prospect';
+}
+function renderProspectMatches(){
+  const name=cleanCompanyName(document.getElementById('pr-name').value);
+  _prConfirmNear=false;
+  let ms=findCompanyMatches(name,{limit:6});const box=document.getElementById('pr-matches');
+  const level=!ms.length?null:ms[0].exact?'exact':ms[0].score>=MATCH_STRONG?'strong':'weak';
+  if(level==='weak')ms=ms.slice(0,3); // loose matches are just a nudge — keep the list short
+  _setPrSubmit(level);
+  if(!level){box.innerHTML='';return;}
+  const head={exact:'⛔ This company is already in the dashboard — open it instead of adding a duplicate',strong:'⚠️ Possible duplicate — check these before adding',weak:'Similar names already in the dashboard'}[level];
+  box.innerHTML=`<div class="match-box m-${level}"><div class="match-head">${head}</div>${ms.map(m=>`<div class="match-item"><div style="min-width:0"><div class="match-name">${esc(m.name)}</div><div class="match-sub">${matchSubHTML(m.name)}</div></div><button class="btn-ghost btn-sm" onclick="closeAddProspect();openCRM(${jsq(m.name)})">Open →</button></div>`).join('')}</div>`;
+}
+function submitProspect(){
+  const name=cleanCompanyName(document.getElementById('pr-name').value);
+  if(name.length<2){toast('Enter a company name');return;}
+  const top=findCompanyMatches(name,{limit:1})[0];
+  const ps=prospectState(name); // a name previously renamed away from is free to reuse
+  if(top?.exact||inBookingData(name)||(ps&&ps!=='renamed')){toast('That company already exists — open it instead');return;}
+  if(!_prStates.length){toast('Pick at least one state');return;}
+  const addedBy=parseInt(document.getElementById('pr-addedby').value);
+  if(!addedBy){toast('Select who is adding this prospect');return;}
+  const contact={name:document.getElementById('pr-cname').value.trim(),phone:document.getElementById('pr-cphone').value.trim(),email:document.getElementById('pr-cemail').value.trim()};
+  if(contact.email&&!/^\S+@\S+\.\S+$/.test(contact.email)){toast('That email address doesn\'t look right');return;}
+  if(top&&top.score>=MATCH_STRONG&&!_prConfirmNear){_prConfirmNear=true;_setPrSubmit('strong');toast('Check the possible duplicates first');return;}
+  const crm=getCRM(name);
+  crm.assigneeId=addedBy;if(!crm.status)crm.status='pending';
+  crm.prospect={addedBy,addedAt:today(),states:[..._prStates],industry:document.getElementById('pr-industry').value,contact,updatedAt:Date.now()};
+  if(document.getElementById('pr-csq').checked){crm.csq=true;crm.csqAt=Date.now();}
+  try{localStorage.setItem('kallibr_me',String(addedBy));}catch(e){}
+  invalidateMatchIndex();saveCRM();closeAddProspect();
+  toast('Prospect added ✓');
+  openCRM(name);
+}
+
+// ── Prospect details panel (CRM page) ──
+let _pdStates=[];
+function togglePdState(s){_pdStates=_pdStates.includes(s)?_pdStates.filter(x=>x!==s):[..._pdStates,s];document.getElementById('pd-states').innerHTML=_statePickHTML(_pdStates,'togglePdState');}
+function renderProspectDetails(name,editing){
+  const p=CRM[name].prospect,c=p.contact||{},el=document.getElementById('crm-prospect-body');
+  const by=TEAM.find(m=>m.id===p.addedBy);
+  if(editing){
+    _pdStates=[...(p.states||[])];
+    el.innerHTML=`<div class="form-group"><label class="form-label" for="pd-name">Company Name</label><input class="form-input" id="pd-name" value="${esc(name)}"><div class="form-hint">Fixing a typo? Call history moves with the new name.</div></div>
+      <div class="call-form-grid"><div class="form-group"><div class="form-label">State</div><div class="state-pick" id="pd-states">${_statePickHTML(_pdStates,'togglePdState')}</div></div>
+      <div class="form-group"><label class="form-label" for="pd-industry">Industry</label><select class="form-select" id="pd-industry"><option value="">Select industry…</option>${INDUSTRIES.map(i=>`<option${p.industry===i?' selected':''}>${i}</option>`).join('')}</select></div></div>
+      <div class="form-label">Main Contact</div>
+      <div class="call-form-grid three" style="margin-bottom:14px"><input class="form-input" id="pd-cname" placeholder="Name" value="${esc(c.name)}" aria-label="Contact name"><input class="form-input" id="pd-cphone" placeholder="Phone" value="${esc(c.phone)}" aria-label="Contact phone"><input class="form-input" id="pd-cemail" placeholder="Email" value="${esc(c.email)}" aria-label="Contact email"></div>
+      <div style="display:flex;gap:8px"><button class="btn-primary btn-sm" onclick="saveProspectEdit()">Save</button><button class="btn-ghost btn-sm" onclick="renderProspectDetails(crmCompany,false)">Cancel</button></div>`;
+    return;
+  }
+  const tel=c.phone?`<a href="tel:${esc(c.phone.replace(/[^\d+]/g,''))}">${esc(c.phone)}</a>`:'—';
+  const mail=c.email?`<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>`:'—';
+  el.innerHTML=`<div class="pd-grid">
+      <div><div class="pd-label">State</div><div class="pd-val">${stateBadgesHTML(name)||'—'}</div></div>
+      <div><div class="pd-label">Industry</div><div class="pd-val">${esc(p.industry)||'—'}</div></div>
+      <div><div class="pd-label">Main Contact</div><div class="pd-val">${esc(c.name)||'—'}</div></div>
+      <div><div class="pd-label">Phone</div><div class="pd-val">${tel}</div></div>
+      <div style="grid-column:1/-1"><div class="pd-label">Email</div><div class="pd-val">${mail}</div></div>
+    </div>
+    <div class="pd-foot">Added by <b>${by?esc(by.name):'—'}</b> on ${fmtDate(p.addedAt)}${p.archived?' · <span style="color:#b33050;font-weight:600">Archived</span>':''}</div>
+    <div class="pd-actions">
+      <button class="btn-ghost btn-sm" onclick="renderProspectDetails(crmCompany,true)">✏️ Edit details</button>
+      <button class="btn-ghost btn-sm" onclick="toggleProspectLink()">🔗 Now booking? Link to booked company</button>
+      <button class="btn-ghost btn-sm" onclick="archiveProspect(${!p.archived})">${p.archived?'↩ Restore prospect':'🗄 Archive'}</button>
+    </div>
+    <div id="pd-link" style="display:none;margin-top:12px"><input class="search-input" style="width:100%" id="pd-link-q" placeholder="🔍  Search the booking data…" oninput="renderProspectLink()"><div id="pd-link-results" style="margin-top:8px"></div></div>`;
+}
+function saveProspectEdit(){
+  const name=crmCompany,crm=CRM[name],p=crm.prospect;
+  const newName=cleanCompanyName(document.getElementById('pd-name').value);
+  if(newName.length<2){toast('Enter a company name');return;}
+  if(!_pdStates.length){toast('Pick at least one state');return;}
+  const contact={name:document.getElementById('pd-cname').value.trim(),phone:document.getElementById('pd-cphone').value.trim(),email:document.getElementById('pd-cemail').value.trim()};
+  if(contact.email&&!/^\S+@\S+\.\S+$/.test(contact.email)){toast('That email address doesn\'t look right');return;}
+  if(newName!==name){
+    // Only allow a name nobody else has (a record this prospect was previously renamed away from is fine)
+    const clash=findCompanyMatches(newName,{limit:1,exclude:[name]})[0];
+    if(inBookingData(newName)||(CRM[newName]&&!CRM[newName].prospect?.mergedInto)||clash?.exact){toast('Another company already has that name');return;}
+  }
+  p.states=[..._pdStates];p.industry=document.getElementById('pd-industry').value;p.contact=contact;p.updatedAt=Date.now();
+  if(newName!==name){mergeProspect(name,newName,true);toast('Prospect renamed ✓');openCRM(newName);return;}
+  saveCRM();toast('Prospect details saved ✓');openCRM(name);
+}
+function archiveProspect(flag){
+  const p=CRM[crmCompany]?.prospect;if(!p)return;
+  if(flag&&!confirm(`Archive "${crmCompany}"?\n\nIt will be hidden from the active Prospects list and Follow-Up Review. Call history is kept and you can restore it any time.`))return;
+  p.archived=flag;p.updatedAt=Date.now();invalidateMatchIndex();saveCRM();updateProspectNav();
+  toast(flag?'Prospect archived':'Prospect restored');openCRM(crmCompany);
+}
+function toggleProspectLink(){
+  const box=document.getElementById('pd-link');const show=box.style.display==='none';box.style.display=show?'':'none';
+  if(show){const q=document.getElementById('pd-link-q');q.value=crmCompany;renderProspectLink();q.focus();q.select();}
+}
+function renderProspectLink(){
+  const q=document.getElementById('pd-link-q').value;
+  const ms=findCompanyMatches(q,{kind:'booked',limit:6,min:0.35});
+  document.getElementById('pd-link-results').innerHTML=ms.length?ms.map(m=>`<div class="match-item"><div style="min-width:0"><div class="match-name">${esc(m.name)}</div><div class="match-sub">${matchSubHTML(m.name)}</div></div><button class="btn-primary btn-sm" onclick="confirmMerge(crmCompany,${jsq(m.name)})">Merge into this</button></div>`).join(''):'<div class="match-sub" style="padding:6px 0">No booked companies match — try a different spelling.</div>';
+}
+
+// ── Prospects page ──
+let prView='active',prSortKey='addedAt',prSortDir=-1;
+function setProspectView(v){prView=v;renderProspects();}
+function sortProspects(k){if(prSortKey===k)prSortDir*=-1;else{prSortKey=k;prSortDir=(k==='n'||k==='industry'||k==='fu')?1:-1;}renderProspects();}
+function renderProspects(){
+  const rows=Object.keys(CRM).filter(k=>CRM[k].prospect).map(k=>{
+    const st=prospectState(k),p=CRM[k].prospect,target=p.mergedInto||k,tc=CRM[target]||CRM[k];
+    const logs=tc.callLog||[];
+    return{n:k,target,st,p,crm:tc,industry:p.industry||'',addedAt:p.addedAt||'',last:logs.filter(l=>l.outcome)[0],fu:logs.filter(l=>l.followup&&!l.followupDone)[0]?.followup||''};
+  }).filter(r=>r.st!=='renamed');
+  const counts={active:0,converted:0,archived:0};rows.forEach(r=>counts[r.st]++);
+  document.querySelectorAll('#pr-views .filter-btn').forEach(b=>{const v=b.dataset.pv;b.classList.toggle('active',v===prView);b.textContent=v.charAt(0).toUpperCase()+v.slice(1)+` (${counts[v]})`;});
+  const msel=document.getElementById('pr-member'),mcur=msel.value;
+  msel.innerHTML='<option value="">All team members</option><option value="unassigned"'+(mcur==='unassigned'?' selected':'')+'>— Unassigned —</option>'+TEAM.map(m=>`<option value="${m.id}"${mcur==m.id?' selected':''}>${tmName(m)}</option>`).join('');
+  const isel=document.getElementById('pr-industry-filter'),icur=isel.value;
+  isel.innerHTML='<option value="">All industries</option>'+INDUSTRIES.map(i=>`<option${icur===i?' selected':''}>${i}</option>`).join('');
+  const mf=msel.value,sf=document.getElementById('pr-state').value,inf=isel.value,q=document.getElementById('pr-search').value.toLowerCase(),csq=csqOnly('pr-csq-filter');
+  const list=rows.filter(r=>{
+    if(r.st!==prView)return false;
+    if(mf==='unassigned'?r.crm.assigneeId:mf&&r.crm.assigneeId!=mf)return false;
+    if(sf&&!(r.p.states||[]).includes(sf))return false;
+    if(inf&&r.industry!==inf)return false;
+    if(csq&&!isCSQ(r.target))return false;
+    if(q&&!(r.n+' '+r.target+' '+(r.p.contact?.name||'')).toLowerCase().includes(q))return false;
+    return true;
+  });
+  list.sort((a,b)=>{let va=a[prSortKey]||'',vb=b[prSortKey]||'';if(prSortKey==='fu'){if(!va)return 1;if(!vb)return -1;}return prSortDir*String(va).localeCompare(String(vb));});
+  document.getElementById('pr-count').textContent=`${list.length} prospect${list.length===1?'':'s'}`;
+  const scol={contacted:'#1565a8',won:'#2d7a2d',lost:'#b33050'},dash='<span style="color:var(--text2);font-size:0.78rem">—</span>';
+  document.getElementById('pr-tbody').innerHTML=list.length?list.map(r=>{
+    const member=TEAM.find(m=>m.id===r.crm.assigneeId),by=TEAM.find(m=>m.id===r.p.addedBy),c=r.p.contact||{};
+    const avatar=member?`<div style="display:inline-flex;align-items:center;gap:6px"><div style="width:22px;height:22px;border-radius:50%;background:${member.colour};display:inline-flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#fff">${initials(member.name)}</div><span style="font-size:0.78rem">${esc(member.name)}</span></div>`:dash;
+    const st=r.crm.status||'pending';
+    const status=st!=='pending'?`<span style="font-size:0.72rem;font-weight:600;color:${scol[st]};background:${scol[st]}18;padding:2px 8px;border-radius:99px;text-transform:capitalize">${st}</span>`:'—';
+    const last=r.last?`<span style="font-size:0.72rem;font-weight:600;color:${OUTCOME_COLOURS[r.last.outcome]||'#2d2d3a'}">${OUTCOME_LABELS[r.last.outcome]||r.last.outcome}</span>`:dash;
+    const d=daysDiff(r.fu);const fu=!r.fu?dash:d<0?`<span class="days-badge days-overdue">${Math.abs(d)}d overdue</span>`:d===0?'<span class="days-badge days-today">Today</span>':d<=7?`<span class="days-badge days-soon">In ${d}d</span>`:`<span class="days-badge days-later">${fmtDate(r.fu)}</span>`;
+    const contact=c.name||c.phone||c.email?`<div style="font-size:0.8rem">${esc(c.name)||'—'}</div><div style="font-size:0.7rem;color:var(--text2)">${esc(c.phone||c.email||'')}</div>`:dash;
+    const title=(r.target!==r.n?`${esc(r.n)}<div style="font-size:0.7rem;color:var(--text2);font-weight:500">→ now ${esc(r.target)}</div>`:esc(r.n))+csqTag(r.target);
+    return `<tr onclick="openCRM(${jsq(r.target)})"><td style="font-weight:600;max-width:240px">${title}</td><td>${stateBadgesHTML(r.n)||dash}</td><td style="font-size:0.78rem">${esc(r.industry)||dash}</td><td>${contact}</td><td style="font-size:0.78rem;white-space:nowrap">${fmtDate(r.addedAt)}<div style="font-size:0.7rem;color:var(--text2)">${by?'by '+esc(by.name):''}</div></td><td>${avatar}</td><td>${last}</td><td>${fu}</td><td>${status}</td></tr>`;
+  }).join(''):`<tr><td colspan="9" style="text-align:center;padding:34px;color:var(--text2);cursor:default">${prView==='active'&&!counts.active?'No prospects yet — click <b>+ Add Prospect</b> to add a company you\'re talking to.':'No prospects match the current filters'}</td></tr>`;
+  const sugg=Object.entries(prospectSuggestions());
+  document.getElementById('pr-match-banner').innerHTML=sugg.length?`<div class="pr-banner"><div class="pr-banner-title">🔗 ${sugg.length} prospect${sugg.length===1?' looks':'s look'} like ${sugg.length===1?'it has':'they have'} now booked</div><div class="pr-banner-sub">Merging moves the call history onto the booked company so everything is in one place.</div>${sugg.map(([f,t])=>_suggestionRowHTML(f,t,true)).join('')}</div>`:'';
+  updateProspectNav();
+}
+
 let cmInit=false;
 function initCourseMatch(){
   if(cmInit)return;cmInit=true;
@@ -1113,7 +1614,7 @@ function initCourseMatch(){
   TEAM.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=tmName(m);memSel.appendChild(o);});
 }
 function resetCourseMatch(){
-  ['cm-course','cm-outcome','cm-objection','cm-size','cm-member'].forEach(id=>document.getElementById(id).value='');
+  ['cm-course','cm-outcome','cm-objection','cm-size','cm-member','cm-csq'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('cm-results').innerHTML='';
 }
 function runCourseMatch(){
@@ -1122,10 +1623,12 @@ function runCourseMatch(){
   const fObjection=document.getElementById('cm-objection').value;
   const fSize=document.getElementById('cm-size').value;
   const fMember=document.getElementById('cm-member').value;
+  const fCsq=document.getElementById('cm-csq').value;
   // For each company, find the latest call log that matches all filters
   const matches=[];
   Object.entries(CRM).forEach(([company,crm])=>{
     if(fMember&&String(crm.assigneeId||'')!==fMember)return;
+    if(fCsq&&isCSQ(company)!==(fCsq==='yes'))return;
     const logs=(crm.callLog||[]).slice().sort((a,b)=>(b.id||0)-(a.id||0));
     for(const l of logs){
       if(fCourse&&!(l.coursesInterested||[]).includes(fCourse))continue;
@@ -1147,7 +1650,7 @@ function runCourseMatch(){
     const objChip=m.log.objection?`<span class="call-log-chip chip-objection">${OBJECTION_LABELS[m.log.objection]||m.log.objection}</span>`:'';
     const sizeChip=m.log.companySize?`<span class="call-log-chip chip-size">${m.log.companySize}</span>`:'';
     return `<tr onclick="openCRM('${m.company.replace(/'/g,"\\'")}')" style="cursor:pointer">
-      <td style="font-weight:600;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.company}</td>
+      <td style="font-weight:600;max-width:220px"><div class="name-cell" title="${esc(m.company)}"><span class="nm">${m.company}</span>${csqTag(m.company)}</div></td>
       <td style="font-size:0.8rem">${m.log.contact||'—'}</td>
       <td style="font-size:0.78rem">${fmtDate(m.log.date)}</td>
       <td style="font-size:0.76rem;font-weight:600;color:${OUTCOME_COLOURS[m.log.outcome]||'#2d2d3a'}">${OUTCOME_LABELS[m.log.outcome]||m.log.outcome}</td>
@@ -1165,6 +1668,7 @@ function setFuFilter(f,btn){fuFilter=f;document.querySelectorAll('.outreach-filt
 function renderFollowUps(){
   const allFu=[];
   Object.entries(CRM).forEach(([company,crm])=>{
+    if(prospectState(company)==='archived')return;
     const logsWithFu=(crm.callLog||[]).filter(l=>l.followup&&!l.followupDone);
     if(!logsWithFu.length)return;
     const latest=logsWithFu[0];
@@ -1173,8 +1677,9 @@ function renderFollowUps(){
   // Populate member filter
   const sel=document.getElementById('fu-member-filter');const curVal=sel.value;
   sel.innerHTML='<option value="">All team members</option>'+TEAM.map(m=>`<option value="${m.id}"${curVal==m.id?' selected':''}>${tmName(m)}</option>`).join('');
-  const mf=sel.value;const search=document.getElementById('fu-search').value.toLowerCase();
+  const mf=sel.value;const search=document.getElementById('fu-search').value.toLowerCase();const csq=csqOnly('fu-csq-filter');
   let filtered=allFu.filter(f=>{
+    if(csq&&!isCSQ(f.company))return false;
     if(fuFilter==='overdue'&&(f.days===null||f.days>=0))return false;
     if(fuFilter==='today'&&f.days!==0)return false;
     if(fuFilter==='upcoming'&&(f.days===null||f.days<0||f.days>7))return false;
@@ -1190,7 +1695,7 @@ function renderFollowUps(){
   document.getElementById('fu-tbody').innerHTML=filtered.length?filtered.map(f=>{
     const d=f.days;const db=d===null?'':(d<0?`<span class="days-badge days-overdue">${Math.abs(d)}d overdue</span>`:d===0?`<span class="days-badge days-today">Today</span>`:d<=7?`<span class="days-badge days-soon">In ${d}d</span>`:`<span class="days-badge days-later">In ${d}d</span>`);
     const mHtml=f.member?`<div style="display:inline-flex;align-items:center;gap:6px"><div style="width:20px;height:20px;border-radius:50%;background:${f.member.colour};display:inline-flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#fff">${initials(f.member.name)}</div>${f.member.name}</div>`:'<span style="color:var(--text2)">—</span>';
-    return `<tr onclick="openCRM('${f.company.replace(/'/g,"\\'")}')"><td style="font-weight:600;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.company}</td><td style="font-size:0.8rem">${f.log.contact||'—'}</td><td style="font-size:0.8rem">${fmtDate(f.log.followup)}</td><td>${db}</td><td style="font-size:0.76rem;font-weight:600;color:${OUTCOME_COLOURS[f.log.outcome]||'#2d2d3a'}">${OUTCOME_LABELS[f.log.outcome]||f.log.outcome}</td><td style="font-size:0.76rem;color:var(--text2)">${(f.log.coursesInterested||[]).slice(0,2).join(', ')||'—'}</td><td>${mHtml}</td><td style="display:flex;gap:6px"><button class="btn-primary" style="font-size:0.72rem;padding:5px 10px" onclick="event.stopPropagation();openCRM('${f.company.replace(/'/g,"\\'")}')">Open</button><button style="font-size:0.72rem;padding:5px 10px;border-radius:10px;border:1.5px solid #2d7a2d;background:#edf7ed;color:#2d7a2d;cursor:pointer;font-weight:600;white-space:nowrap" onclick="event.stopPropagation();markFollowUpDone('${f.company.replace(/'/g,"\\'")}',${ f.log.id})">✓ Done</button></td></tr>`;
+    return `<tr onclick="openCRM('${f.company.replace(/'/g,"\\'")}')"><td style="font-weight:600;max-width:200px"><div class="name-cell" title="${esc(f.company)}"><span class="nm">${f.company}</span>${csqTag(f.company)}</div></td><td style="font-size:0.8rem">${f.log.contact||'—'}</td><td style="font-size:0.8rem">${fmtDate(f.log.followup)}</td><td>${db}</td><td style="font-size:0.76rem;font-weight:600;color:${OUTCOME_COLOURS[f.log.outcome]||'#2d2d3a'}">${OUTCOME_LABELS[f.log.outcome]||f.log.outcome}</td><td style="font-size:0.76rem;color:var(--text2)">${(f.log.coursesInterested||[]).slice(0,2).join(', ')||'—'}</td><td>${mHtml}</td><td style="display:flex;gap:6px"><button class="btn-primary" style="font-size:0.72rem;padding:5px 10px" onclick="event.stopPropagation();openCRM('${f.company.replace(/'/g,"\\'")}')">Open</button><button style="font-size:0.72rem;padding:5px 10px;border-radius:10px;border:1.5px solid #2d7a2d;background:#edf7ed;color:#2d7a2d;cursor:pointer;font-weight:600;white-space:nowrap" onclick="event.stopPropagation();markFollowUpDone('${f.company.replace(/'/g,"\\'")}',${ f.log.id})">✓ Done</button></td></tr>`;
   }).join(''):'<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text2)">No follow-ups match the current filter</td></tr>';
 }
 
@@ -1401,6 +1906,7 @@ async function init(){
   }
   await loadStorage();
   initOverview();
+  setTimeout(updateProspectNav,300); // flags prospects that now appear in the booking data
   // ── REALTIME subscription ──
   const sbClient = supabase.createClient(SB_URL, SB_KEY);
   sbClient.channel('crm_changes')
@@ -1412,6 +1918,8 @@ async function init(){
         if(!CRM[key]){
           CRM[key] = incoming[key];
         } else {
+          _mergeCSQ(CRM[key], incoming[key]);
+          if(_mergeProspectFields(key, incoming)) continue;
           // Realtime merge — incoming server data fills gaps; followupDone is sticky in BOTH directions
           const localLogs = CRM[key].callLog || [];
           const serverLogs = incoming[key].callLog || [];
@@ -1435,6 +1943,8 @@ async function init(){
         }
       }
       // Refresh visible pages
+      invalidateMatchIndex(); updateProspectNav();
+      if(document.getElementById('page-prospects').classList.contains('active')) renderProspects();
       if(document.getElementById('page-followups').classList.contains('active')) renderFollowUps();
       if(document.getElementById('page-performance').classList.contains('active')) renderPerformancePage();
       if(document.getElementById('page-team').classList.contains('active')) renderTeamPage();
