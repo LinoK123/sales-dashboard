@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kallibr Quotes</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Price list data, generated from the Excel price list by rebuild_price_list.ps1 -->
+<script src="price_list.js"></script>
+<style>
+:root{
+  --lav:#ddd4f0;--lav2:#b8a9de;--lav3:#7b68c8;--sky:#bde0f7;--cream:#fdf8f2;--white:#fff;
+  --text:#2d2d3a;--text2:#6b6b82;--border:#ece8f4;
+  --shadow:0 2px 16px rgba(100,80,160,0.08);--radius:16px;--radius2:22px;
+  --ok:#2d7a2d;--ok-bg:#edf7ed;--warn:#8a6100;--warn-bg:#fff4d6;--bad:#c0392b;--bad-bg:#fdf0f0;--na:#8d8da0;--na-bg:#f1f1f4;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
+body.embed .brand{display:none;}   /* inside the CRM the dashboard already frames this page */
+button{font-family:inherit;}
+header{background:var(--white);border-bottom:1.5px solid var(--border);padding:12px 28px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;position:sticky;top:0;z-index:20;}
+.brand{font-family:'DM Serif Display',serif;font-size:1.25rem;}
+.brand span{display:block;font-family:'DM Sans',sans-serif;font-size:0.66rem;color:var(--text2);letter-spacing:0.06em;text-transform:uppercase;margin-top:1px;}
+nav{display:flex;gap:4px;}
+.tab{padding:8px 14px;border-radius:10px;border:none;background:none;font-size:0.86rem;font-weight:500;color:var(--text2);cursor:pointer;}
+.tab:hover{background:var(--lav);color:var(--text);}
+.tab.active{background:var(--lav);color:var(--text);font-weight:600;}
+.data-status{margin-left:auto;font-size:0.72rem;color:var(--text2);text-align:right;line-height:1.4;}
+.data-status b{color:var(--text);}
+.view{display:none;}.view.active{display:block;}
+main{max-width:1180px;margin:0 auto;padding:26px 28px 60px;}
+.page-title{font-family:'DM Serif Display',serif;font-size:1.8rem;}
+.page-sub{font-size:0.82rem;color:var(--text2);margin-top:3px;}
+.search{flex:1;min-width:200px;padding:9px 14px;border:1.5px solid var(--border);border-radius:12px;font:inherit;font-size:0.86rem;background:var(--white);outline:none;}
+.search:focus{border-color:var(--lav2);}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:0.8rem;color:var(--text2);cursor:pointer;user-select:none;}
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:0.66rem;font-weight:700;white-space:nowrap;}
+.b-free{background:var(--ok-bg);color:var(--ok);}
+.b-incl{background:var(--lav);color:#5a4a8a;}
+.b-tbc{background:var(--warn-bg);color:var(--warn);}
+.b-na{background:var(--na-bg);color:var(--na);}
+.state-badge{display:inline-block;padding:1px 7px;border-radius:6px;font-size:0.64rem;font-weight:700;margin-left:4px;}
+.s-QLD{background:#f6e0e6;color:#9c2a47;}.s-NSW{background:#e3f0fb;color:#1565a8;}.s-VIC{background:#e9e5f6;color:#4a3f8a;}
+.csq{display:inline-block;margin-top:4px;padding:2px 7px;border-radius:6px;background:var(--ok-bg);border:1px solid #9ecf9e;color:var(--ok);font-size:0.68rem;font-weight:700;white-space:nowrap;}
+.btn{padding:8px 16px;border-radius:10px;border:1.5px solid var(--border);background:var(--white);color:var(--text);font-size:0.82rem;font-weight:600;cursor:pointer;white-space:nowrap;}
+.btn:hover{background:var(--lav);}
+.btn-primary{background:var(--lav3);border-color:var(--lav3);color:#fff;}
+.btn-primary:hover{background:#6a58b5;}
+.btn-sm{padding:4px 10px;font-size:0.72rem;border-radius:8px;}
+.btn-danger{color:var(--bad);border-color:#f0c4c4;}
+.btn-danger:hover{background:var(--bad-bg);}
+.icon-btn{border:none;background:none;color:var(--text2);cursor:pointer;font-size:0.9rem;padding:3px 6px;border-radius:6px;}
+.icon-btn:hover{background:var(--lav);color:var(--text);}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:10px 18px;border-radius:12px;font-size:0.82rem;font-weight:500;z-index:400;opacity:0;transform:translateY(8px);transition:all 0.22s;pointer-events:none;max-width:420px;}
+.toast.show{opacity:1;transform:translateY(0);}
+
+/* ── Quote editor ── */
+.q-layout{display:grid;grid-template-columns:minmax(440px,1fr) minmax(0,1.05fr);gap:22px;align-items:start;max-width:1500px;margin:0 auto;padding:22px 24px 90px;}
+.card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius2);box-shadow:var(--shadow);padding:18px 20px;margin-bottom:16px;}
+.card-title{font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.card-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.fld{display:flex;flex-direction:column;gap:4px;min-width:0;}
+.fld.full{grid-column:1/-1;}
+.lbl{font-size:0.66rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.05em;}
+.inp,.sel,.ta{width:100%;padding:8px 11px;border:1.5px solid var(--border);border-radius:9px;font:inherit;font-size:0.84rem;color:var(--text);background:var(--white);outline:none;}
+.inp:focus,.sel:focus,.ta:focus{border-color:var(--lav2);}
+.inp.bad{border-color:#e9a1a1;background:var(--bad-bg);}
+.ta{resize:vertical;min-height:64px;}
+.hint{font-size:0.7rem;color:var(--text2);}
+.hint.warn{color:var(--warn);}
+.hint.bad{color:var(--bad);}
+.seg{display:flex;gap:3px;background:var(--white);border:1.5px solid var(--border);border-radius:11px;padding:3px;width:fit-content;}
+.seg button{padding:6px 14px;border-radius:8px;border:none;background:none;font-size:0.8rem;font-weight:600;color:var(--text2);cursor:pointer;}
+.seg button.active{background:var(--lav3);color:#fff;}
+.ac-wrap{position:relative;}
+.ac-list{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--white);border:1.5px solid var(--lav2);border-radius:12px;box-shadow:0 8px 28px rgba(60,40,120,0.16);z-index:30;max-height:320px;overflow-y:auto;display:none;}
+.ac-list.open{display:block;}
+.ac-item{padding:8px 12px;cursor:pointer;border-top:1px solid var(--border);}
+.ac-item:first-child{border-top:none;}
+.ac-item:hover,.ac-item.hl{background:#f3efff;}
+.ac-name{font-size:0.84rem;font-weight:600;}
+.ac-sub{font-size:0.7rem;color:var(--text2);margin-top:1px;}
+.co-info{font-size:0.74rem;color:var(--text2);margin-top:6px;min-height:16px;}
+.line{border:1.5px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:10px;background:#fdfcff;}
+.line-head{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+.line-head .inp{font-weight:600;}
+.line-num{font-size:0.7rem;font-weight:700;color:var(--text2);width:18px;flex-shrink:0;}
+.line-row{display:grid;grid-template-columns:1.5fr 0.8fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+.line-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:0.76rem;color:var(--text2);}
+.line-total{font-weight:700;color:var(--text);font-size:0.84rem;}
+.opts{display:flex;flex-wrap:wrap;gap:6px 14px;margin:2px 0 8px;}
+.opts .chk{font-size:0.76rem;}
+.machines{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+.mach{padding:5px 10px;border-radius:16px;border:1.5px solid var(--border);background:var(--white);font-size:0.74rem;cursor:pointer;}
+.mach.sel{background:var(--lav);border-color:var(--lav2);font-weight:600;}
+.csq-box{border:1.5px dashed #9ecf9e;border-radius:10px;padding:8px 10px;margin-bottom:8px;background:#f7fcf7;}
+.csq-box.on{border-style:solid;}
+.csq-row{display:grid;grid-template-columns:auto 110px 120px 1fr;gap:8px;align-items:center;margin-top:6px;}
+.details{font-size:0.74rem;}
+.details summary{cursor:pointer;color:var(--lav3);font-weight:600;margin-bottom:4px;}
+.add-row{display:flex;gap:8px;align-items:flex-start;}
+.add-row .ac-wrap{flex:1;}
+.totals{display:grid;grid-template-columns:1fr auto;gap:4px 16px;font-size:0.84rem;margin-top:6px;}
+.totals .grand{font-weight:700;font-size:1rem;}
+.actionbar{position:fixed;left:0;right:0;bottom:0;background:var(--white);border-top:1.5px solid var(--border);padding:10px 24px;display:flex;gap:10px;align-items:center;z-index:25;box-shadow:0 -4px 18px rgba(100,80,160,0.08);}
+.actionbar .status{font-size:0.76rem;color:var(--text2);margin-right:auto;}
+.editor-top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 2px 14px;}
+.preview-col{position:sticky;top:78px;}
+.preview-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:0.72rem;color:var(--text2);font-weight:600;letter-spacing:0.05em;text-transform:uppercase;}
+.preview-box{background:#e4e8ec;border-radius:16px;padding:14px;overflow:hidden;max-height:calc(100vh - 170px);overflow-y:auto;}
+.preview-scale{transform-origin:top left;}
+/* ── My quotes ── */
+.mq-table{width:100%;border-collapse:collapse;font-size:0.82rem;}
+.mq-table th{background:var(--lav);text-align:left;padding:9px 12px;font-size:0.66rem;letter-spacing:0.06em;text-transform:uppercase;}
+.mq-table td{padding:10px 12px;border-top:1px solid var(--border);vertical-align:middle;}
+.mq-table tr:hover td{background:#faf8ff;}
+.mq-actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;}
+.num{text-align:right;font-variant-numeric:tabular-nums;}
+.mono{font-family:ui-monospace,Consolas,monospace;font-weight:600;font-size:0.8rem;color:var(--lav3);}
+/* ── Price list ── */
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:20px 0 12px;}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.chip{padding:5px 13px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);font-size:0.76rem;font-weight:500;color:var(--text2);cursor:pointer;}
+.chip:hover{border-color:var(--lav2);color:var(--text);}
+.chip.active{background:var(--lav);border-color:var(--lav2);color:var(--text);font-weight:600;}
+.meta{font-size:0.76rem;color:var(--text2);margin-bottom:10px;}
+.section-h{font-size:0.7rem;font-weight:700;letter-spacing:0.09em;text-transform:uppercase;color:var(--text2);margin:22px 0 8px;display:flex;align-items:center;gap:10px;}
+.section-h::after{content:'';flex:1;height:1px;background:var(--border);}
+.list{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius2);box-shadow:var(--shadow);overflow:hidden;}
+.row{display:grid;grid-template-columns:minmax(0,2.4fr) 0.8fr 1fr minmax(0,1.6fr) 92px;gap:14px;align-items:center;padding:12px 18px;border-top:1px solid var(--border);cursor:pointer;}
+.row:first-child{border-top:none;}
+.row:hover{background:#faf8ff;}
+.row.open{background:#f6f3ff;}
+.row.na{opacity:0.55;}
+.row-head{display:grid;grid-template-columns:minmax(0,2.4fr) 0.8fr 1fr minmax(0,1.6fr) 92px;gap:14px;padding:9px 18px;background:var(--lav);font-size:0.66rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--text);}
+.c-name{font-weight:600;font-size:0.86rem;line-height:1.35;}
+.c-sub{font-size:0.72rem;color:var(--text2);margin-top:2px;font-weight:400;}
+.c-dur{font-size:0.78rem;color:var(--text2);}
+.price{font-family:'DM Serif Display',serif;font-size:1.08rem;}
+.price small{font-family:'DM Sans',sans-serif;font-size:0.68rem;color:var(--text2);margin-left:2px;}
+.grp{font-size:0.76rem;line-height:1.5;}
+.grp b{font-weight:600;}
+.detail{padding:4px 18px 18px;background:#f6f3ff;display:grid;grid-template-columns:1.3fr 1fr;gap:22px;}
+.d-label{font-size:0.64rem;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--text2);margin:10px 0 6px;}
+.units{list-style:none;}
+.units li{font-size:0.8rem;padding:5px 0;border-bottom:1px solid var(--border);}
+.units li:last-child{border-bottom:none;}
+.code{font-family:ui-monospace,Consolas,monospace;font-size:0.74rem;font-weight:600;color:var(--lav3);margin-right:6px;}
+.notes{font-size:0.78rem;line-height:1.55;color:var(--text);}
+.cmp{width:100%;border-collapse:collapse;font-size:0.78rem;background:var(--white);border-radius:12px;overflow:hidden;}
+.cmp th{background:var(--lav);text-align:left;padding:6px 10px;font-size:0.64rem;letter-spacing:0.06em;text-transform:uppercase;}
+.cmp td{padding:6px 10px;border-top:1px solid var(--border);vertical-align:top;}
+.cmp tr.cur td{background:#fbfaff;font-weight:600;}
+a{color:var(--lav3);}
+.empty{padding:40px;text-align:center;color:var(--text2);font-size:0.86rem;}
+@media(max-width:1100px){.q-layout{grid-template-columns:1fr;}.preview-col{position:static;}}
+@media(max-width:860px){
+  header{padding:10px 16px;}main{padding:18px 16px 40px;}.q-layout{padding:16px 16px 90px;}
+  .row-head{display:none;}
+  .row{grid-template-columns:1fr auto;gap:6px 12px;}
+  .row .c-dur,.row .grp{grid-column:1/-1;}
+  .detail{grid-template-columns:1fr;}
+  .grid2,.grid4,.line-row{grid-template-columns:1fr 1fr;}
+  .q-layout{grid-template-columns:minmax(0,1fr);}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Kallibr Quotes<span>Local test version</span></div>
+  <nav>
+    <button class="tab active" data-view="new" onclick="showView('new')">New Quote</button>
+    <button class="tab" data-view="mine" onclick="showView('mine')">My Quotes</button>
+    <button class="tab" data-view="prices" onclick="showView('prices')">Price List</button>
+  </nav>
+  <div class="data-status" id="data-status">Loading company list…</div>
+</header>
+
+<!-- ═════════════ NEW QUOTE ═════════════ -->
+<section class="view active" id="view-new">
+  <div class="q-layout">
+    <div>
+      <div class="editor-top">
+        <div><div class="page-title" style="font-size:1.4rem">Quote <span id="q-top-number" class="mono" style="font-size:1rem"></span></div><div class="hint" id="q-top-sub"></div></div>
+        <button class="btn btn-danger" onclick="clearAll()" title="Clear every field and start a fresh quote">Clear all</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Quote contact</div>
+        <div class="fld">
+          <span class="lbl">Customer organisation <span style="color:var(--bad)">*</span></span>
+          <div class="ac-wrap">
+            <input class="inp" id="q-company" autocomplete="off" placeholder="Start typing a company or prospect…">
+            <div class="ac-list" id="q-company-list"></div>
+          </div>
+          <div class="co-info" id="q-company-info"></div>
+        </div>
+        <div class="grid2" style="margin-top:10px">
+          <div class="fld"><span class="lbl">Contact name</span><input class="inp" id="q-c-name"></div>
+          <div class="fld"><span class="lbl">Email</span><input class="inp" id="q-c-email" type="email"></div>
+          <div class="fld"><span class="lbl">Phone</span><input class="inp" id="q-c-phone"></div>
+          <div class="fld"><span class="lbl">Mobile</span><input class="inp" id="q-c-mobile"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Training location</div>
+        <div class="grid2">
+          <div class="fld"><span class="lbl">Location</span><select class="sel" id="q-loc-type"></select></div>
+          <div class="fld" id="q-loc-addr-wrap"><span class="lbl">Site address</span>
+            <textarea class="ta" id="q-loc-addr" rows="4" style="min-height:92px" placeholder="Site / building name&#10;Street address&#10;Suburb  STATE  Postcode"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Quote details</div>
+        <div class="grid2">
+          <div class="fld"><span class="lbl">Quote no</span>
+            <div style="display:flex;gap:6px"><input class="inp" id="q-number" readonly style="font-family:ui-monospace,Consolas,monospace;font-weight:600"><button class="btn btn-sm" onclick="regenNumber()" title="New random number">↻</button></div>
+          </div>
+          <div class="fld"><span class="lbl">Quote date</span><input class="inp" id="q-date" type="date"></div>
+          <div class="fld"><span class="lbl">Prepared by <span style="color:var(--bad)">*</span></span><select class="sel" id="q-by"></select></div>
+          <div class="fld"><span class="lbl">Pricing state</span><div class="seg" id="q-state"></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Courses &amp; items</div>
+        <div id="q-lines"></div>
+        <div class="add-row">
+          <div class="ac-wrap">
+            <input class="inp" id="q-add-course" autocomplete="off" placeholder="➕  Add a course — type to search the price list…">
+            <div class="ac-list" id="q-add-list"></div>
+          </div>
+          <button class="btn" onclick="addCustomLine()">+ Custom item</button>
+        </div>
+        <div class="totals" id="q-totals"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Comments</div>
+        <textarea class="ta" id="q-comments" placeholder="Shown in the Comments box on the quote (e.g. proposed dates, inclusions)"></textarea>
+      </div>
+    </div>
+
+    <div class="preview-col">
+      <div class="preview-head"><span>Live preview</span><span id="q-preview-warn"></span></div>
+      <div class="preview-box" id="q-preview-box"><div class="preview-scale" id="q-preview"></div></div>
+    </div>
+  </div>
+  <div class="actionbar">
+    <span class="status" id="q-status"></span>
+    <button class="btn" onclick="downloadPdf(Q)">⬇ Download PDF</button>
+    <button class="btn btn-primary" onclick="saveQuote()">Save quote</button>
+  </div>
+</section>
+
+<!-- ═════════════ MY QUOTES ═════════════ -->
+<section class="view" id="view-mine">
+  <main>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap">
+      <div><div class="page-title">My Quotes</div><div class="page-sub">Saved on this computer and browser only — use Back up regularly</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="exportBackup()">⬇ Back up</button>
+        <button class="btn" onclick="document.getElementById('mq-import').click()">⬆ Restore</button>
+        <input type="file" id="mq-import" accept=".json,application/json" style="display:none" onchange="importBackup(this)">
+      </div>
+    </div>
+    <div class="toolbar"><input class="search" id="mq-search" type="search" placeholder="🔍  Search quote no, company or course…" oninput="renderMyQuotes()"></div>
+    <div class="list" id="mq-list"></div>
+  </main>
+</section>
+
+<!-- ═════════════ PRICE LIST ═════════════ -->
+<section class="view" id="view-prices">
+  <main>
+    <div class="page-title">Price List</div>
+    <div class="page-sub" id="pl-source">—</div>
+    <div class="toolbar">
+      <div class="seg" id="pl-states" role="group" aria-label="State"></div>
+      <input class="search" id="pl-search" type="search" placeholder="🔍  Search course name or unit code…" aria-label="Search courses">
+      <label class="chk"><input type="checkbox" id="pl-show-na"> Show courses not offered in this state</label>
+      <label class="chk" id="pl-csq-wrap"><input type="checkbox" id="pl-csq-only"> CSQ funded only</label>
+    </div>
+    <div class="chips" id="pl-sections"></div>
+    <div class="meta" id="pl-count"></div>
+    <div id="pl-list"></div>
+  </main>
+</section>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// Shared helpers & config
+// ════════════════════════════════════════════════════════════════════════════
+const PL = window.PRICE_LIST;
+const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const money = v => v == null ? '' : '$' + Number(v).toLocaleString('en-AU', {minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2});
+const money2 = v => (v < 0 ? '-' : '') + '$' + Math.abs(v).toLocaleString('en-AU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const r2 = v => Math.round((Number(v) || 0) * 100) / 100;
+const titleCase = s => s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+// The sheet gives most durations as a bare number of days ("3"); spell those out
+const duration = d => /^\d+(\.\d+)?$/.test(d || '') ? `${d} day${d === '1' ? '' : 's'}` : (d || '');
+const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+const fmtDate = iso => { if (!iso) return ''; const d = new Date(iso + 'T12:00:00'); return d.toLocaleDateString('en-AU', {day: '2-digit', month: '2-digit', year: 'numeric'}); };
+const courseById = id => PL.courses.find(c => c.id === id);
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2600); }
+// localStorage can be unavailable (private windows, blocked storage) — never let that break the page
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } },
+};
+const KEY_QUOTES = 'kallibr_quotes_v1', KEY_DRAFT = 'kallibr_quote_draft_v1', KEY_ME = 'kallibr_me';
+
+// Same team list as the dashboard (index.html)
+const TEAM = [{"id":1,"name":"Ben"},{"id":2,"name":"Harry","active":false},{"id":3,"name":"Hailey"},{"id":4,"name":"Peter"},{"id":5,"name":"Lino"},{"id":6,"name":"Ellyse"},{"id":7,"name":"Billy"},{"id":8,"name":"Elodie"},{"id":9,"name":"Renee"},{"id":10,"name":"Justin"},{"id":11,"name":"Matt"},{"id":12,"name":"Paul"},{"id":13,"name":"Varun"},{"id":14,"name":"Tom"},{"id":15,"name":"Leigh-Ann"},{"id":16,"name":"Grace"}];
+const tmActive = () => TEAM.filter(m => m.active !== false);
+const memberName = id => TEAM.find(m => m.id === Number(id))?.name || '';
+
+// Supabase (read-only here, except the company-log note which is switched off for testing)
+const SB_URL = 'https://ihlrozdlznkakxvilmgy.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlobHJvemRsem5rYWt4dmlsbWd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1NzgzOTYsImV4cCI6MjA5MTE1NDM5Nn0.SzD78eDIwAS9CmdYwxkmRR9Txh1rw3tnSKFBwQc2k1o';
+const SB_HEADERS = {'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY};
+// Inside the CRM (the dashboard's Quotes tab) this page uses the dashboard's loaded data and writes
+// the "quote created" note through window.parent.crmBridge (the dashboard's merge-safe save).
+// Opened on its own it still works, but it can't write to the company log.
+const BRIDGE = (() => { try { return window.parent !== window ? window.parent.crmBridge || null : null; } catch (e) { return null; } })();
+// Switch to false to stop writing "quote created" notes to the company log
+const CRM_LOG_ENABLED = true;
+
+// Kallibr venues (from the quote template footer)
+const VENUES = [
+  {id: 'bne', label: 'Kallibr Brisbane', addr: 'Building 2, 492 Beaudesert Road\nSalisbury QLD 4107', state: 'QLD'},
+  {id: 'syd', label: 'Kallibr Sydney', addr: '3A Williamson Road\nIngleburn NSW 2565', state: 'NSW'},
+  {id: 'mel', label: 'Kallibr Melbourne', addr: '20 Industry Boulevard\nCarrum Downs VIC 3201', state: 'VIC'},
+];
+
+// ════════════════════════════════════════════════════════════════════════════
+// Company list (data.json + state tags + CRM prospects/contacts). Needs http(s) —
+// opened straight from disk the browser blocks these, and the company box is free text.
+// ════════════════════════════════════════════════════════════════════════════
+let COMPANIES = [], CO_BY_NAME = new Map(), CRM = {};
+async function loadCompanies() {
+  const status = document.getElementById('data-status');
+  let data = null, tags = {};
+  COMPANIES = []; CO_BY_NAME = new Map();
+  if (BRIDGE) {   // inside the CRM: reuse what the dashboard already has (and its live CRM object)
+    const d = BRIDGE.data(); data = d.RAW; tags = d.STATE_TAGS || {}; CRM = d.CRM || {};
+  } else {
+    try { const r = await fetch('data.json', {cache: 'no-cache'}); if (r.ok) data = await r.json(); } catch (e) {}
+    try { const r = await fetch('state_tags.json', {cache: 'no-cache'}); if (r.ok) tags = await r.json(); } catch (e) {}
+    try {
+      const r = await fetch(`${SB_URL}/rest/v1/crm_data?id=eq.1&select=data`, {headers: SB_HEADERS});
+      if (r.ok) { const rows = await r.json(); CRM = rows?.[0]?.data || {}; }
+    } catch (e) {}
+  }
+  const add = (name, kind, extra) => { if (CO_BY_NAME.has(name)) return; const c = {name, kind, ...extra}; COMPANIES.push(c); CO_BY_NAME.set(name, c); };
+  (data?.clients || []).forEach(c => add(c.n, 'client', {total: c.t, states: (tags[c.n] || []).map(t => t[0])}));
+  Object.keys(CRM).forEach(k => {
+    const p = CRM[k]?.prospect;
+    if (p && !p.mergedInto && !p.archived) add(k, 'prospect', {states: p.states || [], contact: p.contact || null});
+  });
+  const nClients = COMPANIES.filter(c => c.kind === 'client').length, nPros = COMPANIES.length - nClients;
+  status.innerHTML = COMPANIES.length
+    ? `<b>${nClients.toLocaleString()}</b> clients + <b>${nPros}</b> prospects loaded<br>${!CRM_LOG_ENABLED ? 'Company log: <b>off</b>' : BRIDGE ? 'Company log: on' : 'Company log: only inside the CRM'}`
+    : `Company list unavailable — open via <b>serve.ps1</b> for lookups<br>You can still type any company name`;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Quote model
+// ════════════════════════════════════════════════════════════════════════════
+// Random 8-digit quote number. Each computer makes its own, so 8 digits keeps the chance of two
+// reps ever producing the same number very small (6 digits would clash within a few hundred quotes).
+function randomNumber() {
+  const taken = new Set(LS.get(KEY_QUOTES, []).map(q => q.number));
+  let n;
+  do { n = String(10000000 + crypto.getRandomValues(new Uint32Array(1))[0] % 90000000); } while (taken.has(n));
+  return n;
+}
+const uid = () => Math.random().toString(36).slice(2, 10);
+function blankQuote() {
+  const me = Number(LS.get(KEY_ME, null)) || '';
+  return {id: uid(), savedAt: null, number: randomNumber(), date: todayISO(), preparedBy: me, company: '', state: 'QLD',
+          loc: {type: 'client', addr: ''}, contact: {name: '', phone: '', mobile: '', email: ''}, comments: '', lines: [], crmLogged: false};
+}
+let Q = null, DIRTY = false;
+
+// A note is printed by default unless it reads like an internal reminder
+const defaultNoteOn = t => !/\*|check with|min numbers|\batm\b|bundle from the csq/i.test(t);
+function listPrice(l) {
+  const c = courseById(l.courseId), p = c?.pricing[Q.state];
+  if (!p) return null;
+  if (l.mode === 'group') return p.groups?.[l.groupIdx]?.price ?? null;
+  if (l.mode === 'machines') return p.ppByUnits?.[Math.max(1, l.machines.length) - 1] ?? null;
+  return p.pp ?? null;
+}
+function newCourseLine(c) {
+  const l = {uid: uid(), kind: 'course', courseId: c.id, title: c.name, gst: c.gst,
+             showUnits: true, notes: c.notes.map(t => ({text: t, on: defaultNoteOn(t)})),
+             mode: c.earthmoving ? 'machines' : 'pp', groupIdx: 0, machines: [], qty: 1, participants: null,
+             unitPrice: null, disc: {type: 'pct', value: ''}, csq: {on: false, persons: 1, amount: c.csq?.amount ?? 0, custom: false}};
+  l.unitPrice = listPrice(l);
+  return l;
+}
+function newCustomLine() {
+  return {uid: uid(), kind: 'custom', title: '', description: '', gst: 'add', mode: 'pp', qty: 1, unitPrice: 0, notes: [], disc: {type: 'pct', value: ''}, csq: {on: false}};
+}
+const csqAvailable = l => l.kind === 'course' && Q.state === 'QLD' && !!courseById(l.courseId)?.csq;
+const headcount = l => l.mode === 'group' ? (Number(l.participants) || 0) : (Number(l.qty) || 0);
+
+// Money for one line, split into ex GST / GST / inc GST. gst: 'free' | 'incl' (price includes GST) | 'add' (add 10%)
+function split(amount, gst) {
+  if (gst === 'incl') { const inc = r2(amount), ex = r2(amount / 1.1); return {ex, gst: r2(inc - ex), inc}; }
+  if (gst === 'add') { const ex = r2(amount), g = r2(amount * 0.1); return {ex, gst: g, inc: r2(ex + g)}; }
+  const v = r2(amount); return {ex: v, gst: 0, inc: v};
+}
+const exUnit = (unit, gst) => gst === 'incl' ? r2(unit / 1.1) : r2(unit);
+// ── CSQ pricing ──
+// With CSQ ticked, the price per person becomes the CSQ price sheet's Gap Fee + CSQ funded amount,
+// so the client pays exactly the sheet's gap fee. If that's below our list price, the list price
+// stays and the difference goes into the line's Discount (for each eligible person); if it's above,
+// the price per person is raised to it. Group lines do the same against the whole group price.
+// Anything the rep then changes by hand (price or discount) is left alone (autoPrice / disc.auto).
+// Earthmoving is different: CSQ pays its amount per machine, and the client's gap depends on how
+// many machines they do (less per machine for more machines). Group "outcomes" pricing just takes
+// the CSQ amount off per funded outcome — no gap-fee pricing.
+const machinesCount = l => Math.max(1, (l.machines || []).length);
+const csqPerPerson = l => {   // CSQ amount for one eligible person (or one outcome) on this line
+  const a = Math.max(0, Number(l.csq?.amount) || 0);
+  return courseById(l.courseId)?.csq?.perMachine && l.mode === 'machines' ? r2(a * machinesCount(l)) : a;
+};
+function csqGapFor(l) {   // the client's gap fee per person from the CSQ sheet, or null if none applies
+  const cs = courseById(l.courseId)?.csq; if (!cs) return null;
+  if (cs.perMachine) return l.mode === 'machines' ? (cs.gapByMachines?.[machinesCount(l) - 1] ?? null) : null;
+  return cs.gap ?? null;
+}
+const csqTarget = l => { const g = csqGapFor(l); return g == null ? null : r2(csqPerPerson(l) + g); };
+function setAutoDisc(l, v) {
+  if (l.disc && l.disc.auto === false && Number(l.disc.value) > 0) return;   // rep's own discount wins
+  l.disc = v > 0 ? {type: 'amt', value: v, auto: true} : {type: 'pct', value: '', auto: true};
+}
+function clearAutoDisc(l) { if (l.disc?.auto) l.disc = {type: 'pct', value: ''}; }
+function applyCsqPricing(l) {
+  if (!l.csq?.on || !csqAvailable(l)) return;
+  const target = csqTarget(l); if (target == null) return;
+  const list = listPrice(l), byGroup = l.mode === 'group';
+  const want = byGroup ? r2(target * headcount(l)) : target;          // CSQ price for this line's unit
+  const setPrice = v => { if (l.csq.autoPrice !== false) { l.unitPrice = v; l.csq.autoPrice = true; } };
+  if (list == null || want >= list) { setPrice(want); clearAutoDisc(l); }
+  else { setPrice(list); setAutoDisc(l, byGroup ? r2(list - want) : r2((list - want) * (Number(l.csq.persons) || 0))); }
+}
+function revertCsqPricing(l) {
+  if (l.csq?.autoPrice) l.unitPrice = listPrice(l);
+  if (l.csq) delete l.csq.autoPrice;
+  clearAutoDisc(l);
+}
+
+// Discount on a line: { type: 'pct' | 'amt', value }. % of the line, or $ off the whole line.
+const discountLabel = d => !d || !(Number(d.value) > 0) ? '' : d.type === 'pct' ? `${Number(d.value)}%` : '';
+function lineCalc(l) {
+  const unit = Number(l.unitPrice) || 0, qty = l.mode === 'group' ? 1 : Math.max(0, Number(l.qty) || 0);
+  const gross = r2(unit * qty);
+  const main = {qty, unitEx: exUnit(unit, l.gst), ...split(gross, l.gst)};
+  // Order: our price → less discount → less CSQ. Neither can take the line below $0.
+  const dv = Math.max(0, Number(l.disc?.value) || 0);
+  const discAmt = !dv ? 0 : l.disc.type === 'pct' ? r2(gross * Math.min(dv, 100) / 100) : Math.min(r2(dv), gross);
+  let disc = null;
+  if (discAmt > 0) { const s = split(discAmt, l.gst); disc = {label: discountLabel(l.disc), ex: -s.ex, gst: -s.gst, inc: -s.inc}; }
+  let csq = null;
+  if (l.csq?.on && csqAvailable(l)) {
+    // CSQ is a flat amount per eligible person (earthmoving: per machine, per person; outcome groups: per outcome)
+    const persons = Math.max(0, Number(l.csq.persons) || 0), amt = csqPerPerson(l);
+    const full = r2(persons * amt), left = r2(gross - discAmt), capped = full > left;
+    const s = split(Math.min(full, left), l.gst);
+    const cs = courseById(l.courseId)?.csq;
+    const perMachine = cs?.perMachine && l.mode === 'machines' ? {n: machinesCount(l), each: Math.max(0, Number(l.csq.amount) || 0)} : null;
+    // When capped, show the unit amount actually applied so Qty × Unit = Total still reads right
+    csq = {persons, amount: amt, perMachine, outcomes: cs?.perMachine && l.mode === 'group', capped,
+           unitEx: capped ? (persons ? -r2(s.ex / persons) : 0) : -exUnit(amt, l.gst), ex: -s.ex, gst: -s.gst, inc: -s.inc};
+  }
+  const sum = k => r2(main[k] + (disc?.[k] || 0) + (csq?.[k] || 0));
+  return {main, disc, csq, net: {ex: sum('ex'), gst: sum('gst'), inc: sum('inc')}, missingPrice: l.unitPrice === null || l.unitPrice === '' || isNaN(Number(l.unitPrice))};
+}
+function quoteTotals(q) {
+  const prev = Q; Q = q;   // lineCalc reads the quote's state for CSQ availability
+  const t = {ex: 0, gst: 0, inc: 0};
+  q.lines.forEach(l => { const n = lineCalc(l).net; t.ex += n.ex; t.gst += n.gst; t.inc += n.inc; });
+  Q = prev;
+  return {ex: r2(t.ex), gst: r2(t.gst), inc: r2(t.inc)};
+}
+// Training location as lines for the quote: a heading line, then the address one line per row
+function locationLines(q) {
+  const addr = s => String(s || '').split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+  if (q.loc.type === 'client') return ['Client site', ...addr(q.loc.addr)];
+  if (q.loc.type === 'online') return ['Online'];
+  if (q.loc.type === 'tbc') return ['To be confirmed'];
+  const v = VENUES.find(x => x.id === q.loc.type); return v ? [v.label, ...addr(v.addr)] : [];
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Quote document (mirrors Kallibr's Quote Template; used for the preview AND the PDF)
+// ════════════════════════════════════════════════════════════════════════════
+const B = 'border: 1px solid #000000;';
+function lineDescHTML(l) {
+  const small = 'font-size: 10.5px; color: #4a5560; margin-top: 3px;';
+  if (l.kind === 'custom') return `<strong>${esc(l.title) || '&nbsp;'}</strong>${l.description ? `<div style="${small}">${esc(l.description).replace(/\n/g, '<br>')}</div>` : ''}`;
+  const sub = subText(l);
+  return `<strong>${esc(l.title)}</strong>${sub.trim() ? `<div style="${small}">${esc(sub).replace(/\n/g, '<br>')}</div>` : ''}`;
+}
+// The text printed under a course name. Starts as generated text (group size, machines, unit
+// codes, notes) that keeps up with the line; once the rep edits it, their text is used as typed.
+const subText = l => l.subText != null ? l.subText : defaultSubText(l);
+// Course duration for the description. Earthmoving reads "1 machine = 2 days / 1+ machines = 3 days",
+// so pick the right one for the machines selected.
+function durationFor(l) {
+  const c = courseById(l.courseId), d = c?.duration || '';
+  if (c?.earthmoving) {
+    const one = d.match(/1 machine\s*=\s*([^/]+)/i), more = d.match(/1\+ machines\s*=\s*(.+)$/i);
+    if (one && more) return (l.machines.length > 1 ? more[1] : one[1]).trim();
+  }
+  return duration(d);
+}
+function defaultSubText(l) {
+  const c = courseById(l.courseId), p = c?.pricing[Q.state], out = [];
+  if (l.mode === 'group') {
+    const g = p?.groups?.[l.groupIdx], n = headcount(l);
+    out.push(g?.label === 'outcomes' ? `Private group – up to ${g.max} outcomes` : `Private group – ${n} participant${n === 1 ? '' : 's'}${g ? ` (max ${g.max})` : ''}`);
+  }
+  if (l.mode === 'machines' && l.machines.length) {
+    out.push('Machines:', ...l.machines.map(code => { const u = c?.units.find(x => x.code === code); return u ? `${u.code} – ${u.title}` : code; }));
+  } else if (l.showUnits !== false && l.mode !== 'machines' && c?.units.length) {
+    out.push(...c.units.map(u => [u.code, u.title].filter(Boolean).join(' – ')));
+  }
+  out.push(...(l.notes || []).filter(n => n.on).map(n => n.text));
+  const dur = durationFor(l);
+  if (dur) out.push(`Duration: ${dur}`);
+  return out.join('\n');
+}
+function quoteSheetHTML(q) {
+  const prev = Q; Q = q;
+  const cell = (v, align, extra = '') => `<td style="${B} text-align: ${align}; vertical-align: top;${extra}">${v}</td>`;
+  const sub = ' padding-left: 18px;';
+  const rows = q.lines.map(l => {
+    const k = lineCalc(l);
+    let h = `<tr>${cell(lineDescHTML(l), 'left')}${cell(k.main.qty, 'center')}${cell(k.missingPrice ? 'TBC' : money2(k.main.unitEx), 'right')}${cell(money2(k.main.ex), 'right')}${cell(money2(k.main.gst), 'right')}${cell(money2(k.main.inc), 'right')}</tr>`;
+    if (k.disc) h += `<tr>${cell(`Less discount${k.disc.label ? ' – ' + k.disc.label : ''}`, 'left', sub)}${cell('', 'center')}${cell('', 'right')}${cell(money2(k.disc.ex), 'right')}${cell(money2(k.disc.gst), 'right')}${cell(money2(k.disc.inc), 'right')}</tr>`;
+    if (k.csq) {
+      const who = k.csq.outcomes ? `${k.csq.persons} funded outcome${k.csq.persons === 1 ? '' : 's'}` : `${k.csq.persons} eligible participant${k.csq.persons === 1 ? '' : 's'}`;
+      const each = k.csq.perMachine ? `${money2(k.csq.amount)} (${k.csq.perMachine.n} machine${k.csq.perMachine.n === 1 ? '' : 's'} × ${money2(k.csq.perMachine.each)})` : money2(k.csq.amount);
+      k.csq.label = `Less CSQ funding** – ${who} × ${each}${k.csq.capped ? ' (limited to the course fee)' : ''}`;
+    }
+    if (k.csq) h += `<tr>${cell(k.csq.label, 'left', sub)}${cell(k.csq.persons, 'center')}${cell(money2(k.csq.unitEx), 'right')}${cell(money2(k.csq.ex), 'right')}${cell(money2(k.csq.gst), 'right')}${cell(money2(k.csq.inc), 'right')}</tr>`;
+    return h;
+  }).join('') || `<tr>${cell('<span style="color:#6b7885">No items yet</span>', 'left')}${cell('', 'center')}${cell('', 'right')}${cell('', 'right')}${cell('', 'right')}${cell('', 'right')}</tr>`;
+  const t = quoteTotals(q);
+  const lab = 'font-size: 10px; font-weight: bold; letter-spacing: 1px; color: #6b7885; text-transform: uppercase;';
+  const c = q.contact || {};
+  const html = `
+<div class="sheet" style="width: 794px; margin: 0 auto; background: #ffffff; padding: 36px 40px 40px; box-shadow: 0 1px 3px rgba(0,0,0,.12); font-family: arial, helvetica, sans-serif; color: #1a1a1a; font-size: 12px; line-height: 1.45;">
+<table cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse;"><tbody><tr>
+<td style="vertical-align: top; width: 42%;"><img src="https://fs.axcelerate.com.au/images/75762049/Kallibr%20Training%20Logo_Horizontal_for-on-White%20200.png" alt="Kallibr Training" style="width: 200px; height: 68px; display: block;"></td>
+<td style="vertical-align: top; text-align: right;">
+<div style="font-size: 26px; font-weight: bold; letter-spacing: 0.5px; margin-bottom: 6px;">QUOTATION</div>
+<div style="font-size: 13px; font-weight: bold;">WH&amp;S Training &amp; Assessment Services Pty Ltd</div>
+<div>Trading as <strong>Kallibr Training</strong></div>
+<div><strong>RTO ID:</strong> 32365 &nbsp;&nbsp; <strong>ABN</strong> 42 146 976 981 &nbsp;&nbsp; <strong>ACN</strong> 146 976 981</div>
+<div style="margin-top: 4px;"><strong>Email:</strong> customerservice@kallibr.com.au</div>
+<div><strong>Phone:</strong> 1300 668 141</div>
+</td></tr></tbody></table>
+<div style="height: 4px; background: #009f9c; margin: 14px 0 0;"></div>
+<table cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-top: 20px;"><tbody><tr>
+<td style="vertical-align: top; width: 34%; padding-right: 16px;">
+<div style="${lab} margin-bottom: 4px;">Quote Contact</div>
+<div><strong>${esc(q.company) || '&nbsp;'}</strong></div>${c.name ? `<div>${esc(c.name)}</div>` : ''}
+${c.phone ? `<div>Phone: ${esc(c.phone)}</div>` : ''}${c.mobile ? `<div>Mobile: ${esc(c.mobile)}</div>` : ''}${c.email ? `<div>Email: ${esc(c.email)}</div>` : ''}
+</td>
+<td style="vertical-align: top; width: 33%; padding-right: 16px;">
+<div style="${lab} margin-bottom: 4px;">Training Location</div>
+${locationLines(q).map((ln, i) => `<div>${i === 0 && q.loc.type !== 'client' ? `<strong>${esc(ln)}</strong>` : esc(ln)}</div>`).join('') || '<div>&nbsp;</div>'}
+</td>
+<td style="vertical-align: top;"><table cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse;"><tbody>
+<tr><td style="padding: 1px 10px 1px 0; white-space: nowrap;">Quote No:</td><td style="padding: 1px 0; text-align: right;"><strong>${esc(q.number)}</strong></td></tr>
+<tr><td style="padding: 1px 10px 1px 0; white-space: nowrap;">Quote Date:</td><td style="padding: 1px 0; text-align: right;">${fmtDate(q.date)}</td></tr>
+${q.preparedBy ? `<tr><td style="padding: 1px 10px 1px 0; white-space: nowrap;">Prepared by:</td><td style="padding: 1px 0; text-align: right;">${esc(memberName(q.preparedBy))}</td></tr>` : ''}
+</tbody></table></td>
+</tr></tbody></table>
+<table cellpadding="6" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-top: 22px;"><tbody>
+<tr style="background-color: #e2e8f0;">
+<td style="${B} text-align: left; font-weight: bold; width: 40%;">COURSE DESCRIPTION</td>
+<td style="${B} text-align: center; font-weight: bold; width: 8%;">Qty</td>
+<td style="${B} text-align: right; font-weight: bold; width: 12%;">UNIT PRICE<br>(EX GST)</td>
+<td style="${B} text-align: right; font-weight: bold; width: 13%;">TOTAL<br>(EX GST)</td>
+<td style="${B} text-align: right; font-weight: bold; width: 11%;">GST</td>
+<td style="${B} text-align: right; font-weight: bold; width: 16%;">TOTAL<br>(INC GST)</td>
+</tr>
+${rows}
+<tr><td colspan="3" rowspan="3" style="border: none;"></td><td colspan="2" style="${B} text-align: right;">Subtotal (ex GST)</td><td style="${B} text-align: right;">${money2(t.ex)}</td></tr>
+<tr><td colspan="2" style="${B} text-align: right;">GST</td><td style="${B} text-align: right;">${money2(t.gst)}</td></tr>
+<tr><td colspan="2" style="${B} text-align: right; font-weight: bold; font-size: 13px; white-space: nowrap;">TOTAL (INC GST)</td><td style="${B} text-align: right; font-weight: bold; font-size: 13px;">${money2(t.inc)}</td></tr>
+</tbody></table>
+<div style="margin-top: 16px; border: 1px solid #cfd8e0; border-radius: 6px;">
+<div style="background: #f1f4f6; border-bottom: 1px solid #cfd8e0; padding: 8px 14px; font-weight: bold; font-size: 11px; letter-spacing: 1px; text-transform: uppercase;">Comments</div>
+<div style="padding: 12px 14px; min-height: 36px;">${esc(q.comments).replace(/\n/g, '<br>')}</div>
+</div>
+<div style="margin-top: 16px; border: 1px solid #cfd8e0; border-radius: 6px;">
+<div style="background: #f1f4f6; border-bottom: 1px solid #cfd8e0; padding: 8px 14px; font-weight: bold; font-size: 11px; letter-spacing: 1px; text-transform: uppercase;">Terms &amp; Conditions</div>
+<div style="padding: 12px 14px;">
+<div>Kallibr Training Standard Terms and Conditions apply. Please refer to our <a href="https://kallibr.com.au/" style="color: #007370;">website</a> for more details.</div>
+<div style="margin-top: 6px;">**Funding eligibility is subject to provision of required documentation and evidence to satisfy eligibility approval requirements.</div>
+</div></div>
+<table cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-top: 22px; border-top: 1px solid #cfd8e0; font-size: 10.5px; line-height: 1.4; color: #4a5560;"><tbody><tr>
+<td style="vertical-align: top; width: 33%; padding: 12px 12px 0 0;"><div style="font-weight: bold; color: #1a1a1a;">Sydney</div><div>3A Williamson Road</div><div>Ingleburn NSW 2565</div></td>
+<td style="vertical-align: top; width: 34%; padding: 12px 12px 0 0;"><div style="font-weight: bold; color: #1a1a1a;">Brisbane</div><div>Building 2, 492 Beaudesert Road</div><div>Salisbury QLD 4107</div></td>
+<td style="vertical-align: top; width: 33%; padding: 12px 0 0 0;"><div style="font-weight: bold; color: #1a1a1a;">Melbourne</div><div>20 Industry Boulevard</div><div>Carrum Downs VIC 3201</div></td>
+</tr></tbody></table>
+<div style="margin-top: 14px; padding-top: 8px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 10px; color: #6b7885;">Kallibr Training · Real experience is everything · RTO 32365 · kallibr.com.au · 1300 668 141</div>
+</div>`;
+  Q = prev;
+  return html;
+}
+
+// PDF: print the quote on its own in a hidden frame — "Save as PDF" in the print dialog. The
+// file name defaults to "<quote no> <company>.pdf".
+function downloadPdf(q) {
+  if (!q.lines.length) { toast('Add at least one item first'); return; }
+  const prev = Q; Q = q; const missing = q.lines.some(l => lineCalc(l).missingPrice); Q = prev;
+  if (missing && !confirm('Some items have no price yet (shown as TBC). Create the PDF anyway?')) return;
+  const fname = `${q.number} ${q.company || 'Quote'}`.replace(/[\\/:*?"<>|]+/g, '').trim();
+  const f = document.createElement('iframe');
+  f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;';
+  document.body.appendChild(f);
+  const d = f.contentDocument;
+  d.open();
+  d.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(fname)}</title><style>
+    @page { size: A4; margin: 12mm; }
+    html, body { margin: 0; padding: 0; background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sheet { width: auto !important; padding: 0 !important; box-shadow: none !important; margin: 0 !important; }
+    tr { page-break-inside: avoid; }
+  </style></head><body>${quoteSheetHTML(q)}</body></html>`);
+  d.close();
+  const imgs = [...d.images].map(i => i.complete ? Promise.resolve() : new Promise(r => { i.onload = i.onerror = r; }));
+  Promise.race([Promise.all(imgs), new Promise(r => setTimeout(r, 4000))]).then(() => {
+    const oldTitle = document.title; document.title = fname;   // some browsers name the PDF after the top page
+    f.contentWindow.focus(); f.contentWindow.print();
+    setTimeout(() => { document.title = oldTitle; f.remove(); }, 1500);
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Editor
+// ════════════════════════════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+function markDirty() { DIRTY = true; LS.set(KEY_DRAFT, Q); renderStatus(); }
+function renderStatus() {
+  const saved = Q.savedAt ? `Saved ${new Date(Q.savedAt).toLocaleString('en-AU', {dateStyle: 'medium', timeStyle: 'short'})}` : 'Not saved yet';
+  $('q-status').innerHTML = `<b>${esc(Q.number)}</b> · ${DIRTY && Q.savedAt ? 'Unsaved changes' : saved}`;
+  $('q-top-number').textContent = Q.number;
+  $('q-top-sub').textContent = Q.savedAt ? (DIRTY ? 'Saved quote — unsaved changes' : 'Saved quote') : 'New quote — not saved yet';
+}
+function renderPreview() {
+  $('q-preview').innerHTML = quoteSheetHTML(Q);
+  fitPreview();
+  const missing = Q.lines.filter(l => lineCalc(l).missingPrice).length;
+  $('q-preview-warn').innerHTML = missing ? `<span class="hint warn">${missing} item${missing === 1 ? '' : 's'} without a price</span>` : '';
+  const t = quoteTotals(Q);
+  $('q-totals').innerHTML = Q.lines.length ? `<span>Subtotal (ex GST)</span><span class="num">${money2(t.ex)}</span><span>GST</span><span class="num">${money2(t.gst)}</span><span class="grand">Total (inc GST)</span><span class="num grand">${money2(t.inc)}</span>` : '';
+}
+function fitPreview() {
+  const box = $('q-preview-box'), sheetW = 794;
+  const s = Math.min(1, (box.clientWidth - 28) / sheetW);
+  const el = $('q-preview'); el.style.transform = `scale(${s})`; el.style.width = sheetW + 'px';
+  el.style.height = ''; el.style.marginBottom = `-${el.scrollHeight * (1 - s)}px`;
+}
+function renderHeaderFields() {
+  $('q-company').value = Q.company;
+  $('q-loc-type').innerHTML = [{id: 'client', label: 'Client site'}, ...VENUES, {id: 'online', label: 'Online'}, {id: 'tbc', label: 'To be confirmed'}]
+    .map(v => `<option value="${v.id}"${Q.loc.type === v.id ? ' selected' : ''}>${esc(v.label)}</option>`).join('');
+  $('q-loc-addr').value = Q.loc.addr || '';
+  $('q-loc-addr-wrap').style.visibility = Q.loc.type === 'client' ? 'visible' : 'hidden';
+  $('q-c-name').value = Q.contact.name; $('q-c-email').value = Q.contact.email; $('q-c-phone').value = Q.contact.phone; $('q-c-mobile').value = Q.contact.mobile;
+  $('q-number').value = Q.number; $('q-date').value = Q.date; $('q-comments').value = Q.comments;
+  $('q-by').innerHTML = '<option value="">Select…</option>' + tmActive().map(m => `<option value="${m.id}"${Number(Q.preparedBy) === m.id ? ' selected' : ''}>${esc(m.name)}</option>`).join('');
+  renderStateSeg(); renderCompanyInfo();
+}
+function renderStateSeg() {
+  $('q-state').innerHTML = PL.states.map(s => `<button class="${Q.state === s ? 'active' : ''}" onclick="setQuoteState('${s}')">${s}</button>`).join('');
+}
+function renderCompanyInfo() {
+  const c = CO_BY_NAME.get(Q.company);
+  $('q-company-info').innerHTML = !Q.company ? '' : c
+    ? `${c.kind === 'prospect' ? '✨ Prospect' : `Booked client · ${money(Math.round(c.total || 0))} total spend`}${(c.states || []).map(s => `<span class="state-badge s-${s}">${s}</span>`).join('')}`
+    : (COMPANIES.length ? '<span class="hint warn">Not in the company list — it will be quoted as typed</span>' : '');
+}
+function renderAll() { renderHeaderFields(); renderLines(); renderPreview(); renderStatus(); }
+
+// ── Lines ──
+function lineEditorHTML(l, i) {
+  const k = lineCalc(l), n = Q.lines.length;
+  const moveBtns = `<button class="icon-btn" title="Move up" ${i ? '' : 'disabled'} data-act="up">↑</button><button class="icon-btn" title="Move down" ${i < n - 1 ? '' : 'disabled'} data-act="down">↓</button><button class="icon-btn" title="Remove" data-act="remove">✕</button>`;
+  const gstSel = `<select class="sel" data-f="gst"><option value="free"${l.gst === 'free' ? ' selected' : ''}>GST-free</option><option value="incl"${l.gst === 'incl' ? ' selected' : ''}>Price incl. GST</option><option value="add"${l.gst === 'add' ? ' selected' : ''}>Add GST (10%)</option></select>`;
+  const totalTxt = `<span class="line-total" data-total>${money2(k.net.inc)} inc GST</span>`;
+  const d = l.disc || {type: 'pct', value: ''};
+  const discFld = `<div class="fld"><span class="lbl">Discount</span>
+      <div style="display:flex;gap:4px"><input class="inp" type="number" min="0" step="0.01" data-f="discValue" value="${esc(d.value)}" placeholder="0" style="min-width:0">
+      <select class="sel" data-f="discType" style="width:auto;padding-right:6px"><option value="pct"${d.type === 'pct' ? ' selected' : ''}>%</option><option value="amt"${d.type === 'amt' ? ' selected' : ''}>$</option></select></div>
+      <span class="hint" data-dischint>${k.disc ? `− ${money2(-k.disc.inc)}` : ''}</span></div>`;
+  if (l.kind === 'custom') {
+    return `<div class="line" data-line="${l.uid}">
+      <div class="line-head"><span class="line-num">${i + 1}</span><input class="inp" data-f="title" value="${esc(l.title)}" placeholder="Item name (e.g. Travel, Materials)">${moveBtns}</div>
+      <div class="line-row">
+        <div class="fld"><span class="lbl">Description</span><input class="inp" data-f="description" value="${esc(l.description)}" placeholder="Optional"></div>
+        <div class="fld"><span class="lbl">Qty</span><input class="inp" type="number" min="0" data-f="qty" value="${esc(l.qty)}"></div>
+        <div class="fld"><span class="lbl">Unit price</span><input class="inp${k.missingPrice ? ' bad' : ''}" type="number" step="0.01" data-f="unitPrice" value="${esc(l.unitPrice ?? '')}"></div>
+        ${discFld}
+      </div>
+      <div class="line-foot"><div class="fld" style="flex-direction:row;align-items:center;gap:8px"><span class="lbl">GST</span>${gstSel}</div>${totalTxt}</div>
+    </div>`;
+  }
+  const c = courseById(l.courseId), p = c?.pricing[Q.state];
+  const lp = listPrice(l);
+  const modes = [];
+  if (c?.earthmoving) modes.push(['machines', 'Per person (by machines)']); else modes.push(['pp', 'Per person']);
+  (p?.groups || []).forEach((g, gi) => modes.push([`group:${gi}`, g.label === 'outcomes' ? `Private group – ${g.max} outcomes` : `Private group – up to ${g.max}`]));
+  const modeVal = l.mode === 'group' ? `group:${l.groupIdx}` : l.mode;
+  const isGroup = l.mode === 'group';
+  const gap = csqGapFor(l), csqPriced = l.csq?.on && csqAvailable(l) && gap != null && l.csq.autoPrice;
+  const priceHint = !p ? `<span class="hint bad">Not offered in ${Q.state}</span>`
+    : csqPriced ? `<span class="hint" style="color:var(--ok)">CSQ price${lp != null ? ` · list ${money(lp)}` : ''}</span>`
+    : lp == null ? `<span class="hint warn">No list price (TBC) — enter one</span>`
+    : Number(l.unitPrice) !== lp ? `<span class="hint">List ${money(lp)} · <a href="#" data-act="reset">reset</a></span>` : `<span class="hint">List price</span>`;
+  const machines = l.mode === 'machines' ? `<div class="lbl" style="margin-bottom:4px">Machines (pick up to 3)</div><div class="machines">${c.units.map(u => `<button class="mach${l.machines.includes(u.code) ? ' sel' : ''}" data-act="machine" data-code="${esc(u.code)}" title="${esc(u.code)}">${esc(u.title.replace(/^Conduct (civil construction )?/i, '').replace(/ operations$/i, '').replace(/^\w/, ch => ch.toUpperCase()))}</button>`).join('')}</div>` : '';
+  const csq = csqAvailable(l) ? `<div class="csq-box${l.csq.on ? ' on' : ''}">
+      <label class="chk"><input type="checkbox" data-f="csqOn"${l.csq.on ? ' checked' : ''}> <b style="color:var(--ok)">Apply CSQ funding</b> <span class="hint">(${c.csq.perMachine
+        ? (l.mode === 'group' ? `${money(c.csq.amount)} off per funded outcome` : `${money(c.csq.amount)} per machine, per eligible person · gap ${(c.csq.gapByMachines || []).map(money).join(' / ')} for 1 / 2 / 3 machines`)
+        : `${money(c.csq.amount)} per eligible person${gap != null ? ` · gap fee ${money(gap)}` : ''}`})</span></label>
+      ${l.csq.on && gap != null ? `<div class="hint" style="margin-top:4px">Priced to the CSQ sheet: ${money(gap)} gap + ${money(csqPerPerson(l))} CSQ = <b>${money(csqTarget(l))}</b> pp${l.mode === 'group' ? ' × participants — anything below the group price goes in Discount' : lp != null && csqTarget(l) < lp ? ` — the ${money(r2(lp - csqTarget(l)))} pp below list goes in Discount` : ''}${l.csq.autoPrice === false || l.disc?.auto === false ? ' · <span class="hint warn">price/discount edited by hand</span>' : ''}</div>` : ''}
+      ${l.csq.on ? `<div class="csq-row"><span class="lbl">Eligible</span><input class="inp" type="number" min="0" data-f="csqPersons" value="${esc(l.csq.persons)}"><input class="inp" type="number" step="0.01" data-f="csqAmount" value="${esc(l.csq.amount)}" title="CSQ amount per person"><span class="hint" data-csqhint>${k.csq ? `− ${money2(-k.csq.inc)} off` : ''}${l.csq.persons > headcount(l) ? ' · <span class="hint bad">more than attending</span>' : ''}</span></div>` : ''}
+    </div>` : '';
+  const sub = subText(l), subRows = Math.min(12, Math.max(3, sub.split('\n').length + 1));
+  const offNotes = (l.notes || []).filter(n => !n.on).map(n => n.text);   // internal-sounding notes left out of the default
+  return `<div class="line" data-line="${l.uid}">
+      <div class="line-head"><span class="line-num">${i + 1}</span>
+        <div class="ac-wrap" style="flex:1"><input class="inp" data-f="title" value="${esc(l.title)}" autocomplete="off" title="Type to rename, or to search and swap to another course"><div class="ac-list" data-titleac></div></div>
+        ${moveBtns}</div>
+      <div class="line-row">
+        <div class="fld"><span class="lbl">Pricing</span><select class="sel" data-f="mode">${modes.map(([v, t]) => `<option value="${v}"${v === modeVal ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></div>
+        <div class="fld"><span class="lbl">${isGroup ? 'Participants' : 'Qty'}</span><input class="inp" type="number" min="0" data-f="${isGroup ? 'participants' : 'qty'}" value="${esc(isGroup ? l.participants : l.qty)}"></div>
+        <div class="fld"><span class="lbl">${isGroup ? 'Group price' : 'Price pp'}</span><input class="inp${k.missingPrice ? ' bad' : ''}" type="number" step="0.01" data-f="unitPrice" value="${esc(l.unitPrice ?? '')}"><span data-pricehint>${priceHint}</span></div>
+        ${discFld}
+      </div>
+      ${machines}${csq}
+      <div class="line-foot">
+        <details class="details" style="flex:1;min-width:260px"><summary>Description options</summary>
+          <div class="fld" style="margin-top:4px">
+            <span class="lbl">Text under the course name</span>
+            <textarea class="ta" data-f="subText" rows="${subRows}" style="font-size:0.78rem;line-height:1.45">${esc(sub)}</textarea>
+            <span class="hint" data-subhint>${subHintHTML(l)}</span>
+            ${offNotes.length ? `<span class="hint">Not included (internal notes): ${offNotes.map(esc).join(' · ')}</span>` : ''}
+          </div>
+          <div class="fld" style="max-width:220px;margin-top:8px"><span class="lbl">GST</span>${gstSel}</div>
+        </details>
+        ${totalTxt}
+      </div>
+    </div>`;
+}
+const subHintHTML = l => (l.subText != null
+  ? 'Edited — updates to participants or machines won\'t change this text · <a href="#" data-act="resetSub">Reset to default</a>'
+  : 'Updates automatically until you edit it') + ' · <a href="#" data-act="clearSub">Clear</a>';
+function renderLines() {
+  $('q-lines').innerHTML = Q.lines.map(lineEditorHTML).join('') || '<div class="hint" style="padding:6px 2px 12px">No items yet — add a course from the price list below.</div>';
+}
+const lineOf = el => Q.lines.find(l => l.uid === el.closest('[data-line]')?.dataset.line);
+function refreshLineFoot(l) {   // cheap update while typing (keeps focus in the input)
+  const box = document.querySelector(`[data-line="${l.uid}"]`); if (!box) return;
+  const k = lineCalc(l);
+  box.querySelector('[data-total]').textContent = `${money2(k.net.inc)} inc GST`;
+  const dh = box.querySelector('[data-dischint]'); if (dh) dh.textContent = k.disc ? `− ${money2(-k.disc.inc)}` : '';
+  const ch = box.querySelector('[data-csqhint]'); if (ch) ch.innerHTML = `${k.csq ? `− ${money2(-k.csq.inc)} off` : ''}${l.csq.persons > headcount(l) ? ' · <span class="hint bad">more than attending</span>' : ''}`;
+  box.querySelector('[data-f="unitPrice"]')?.classList.toggle('bad', k.missingPrice);
+  // CSQ pricing can move the price and discount while the rep types elsewhere — keep those boxes in step
+  const set = (sel, v) => { const el = box.querySelector(sel); if (el && el !== document.activeElement && String(el.value) !== String(v ?? '')) el.value = v ?? ''; };
+  set('[data-f="unitPrice"]', l.unitPrice);
+  set('[data-f="discValue"]', l.disc?.value);
+  set('[data-f="discType"]', l.disc?.type || 'pct');
+}
+function onLineInput(e) {
+  const el = e.target, l = lineOf(el), f = el.dataset.f; if (!l || !f) return;
+  if (['title', 'description'].includes(f)) { l[f] = el.value; if (f === 'title' && l.kind === 'course') showTitleAc(el, l); }
+  else if (f === 'subText') {
+    l.subText = el.value;
+    const h = el.closest('.fld').querySelector('[data-subhint]');
+    if (h) h.innerHTML = subHintHTML(l);
+  }
+  else if (f === 'discValue') { l.disc = l.disc || {type: 'pct', value: ''}; l.disc.value = el.value === '' ? '' : Number(el.value); l.disc.auto = false; }
+  else if (f === 'qty' || f === 'participants') {
+    l[f] = el.value === '' ? '' : Number(el.value);
+    if (l.csq && !l.csq.custom) {   // eligible count follows attendance until edited
+      l.csq.persons = headcount(l);
+      const pi = el.closest('[data-line]').querySelector('[data-f="csqPersons"]'); if (pi) pi.value = l.csq.persons;
+    }
+    if (l.subText == null) { const ta = el.closest('[data-line]').querySelector('[data-f="subText"]'); if (ta) ta.value = defaultSubText(l); }
+    applyCsqPricing(l);
+  }
+  else if (f === 'unitPrice') { l.unitPrice = el.value === '' ? null : Number(el.value); if (l.csq?.on) l.csq.autoPrice = false; }
+  else if (f === 'csqPersons') { l.csq.persons = el.value === '' ? 0 : Number(el.value); l.csq.custom = true; applyCsqPricing(l); }
+  else if (f === 'csqAmount') { l.csq.amount = el.value === '' ? 0 : Number(el.value); applyCsqPricing(l); }
+  else return;
+  refreshLineFoot(l); renderPreview(); markDirty();
+}
+function onLineChange(e) {
+  const el = e.target, l = lineOf(el), f = el.dataset.f; if (!l || !f) return;
+  if (f === 'mode') {
+    const [m, gi] = el.value.split(':');
+    l.mode = m; l.groupIdx = Number(gi) || 0;
+    if (m === 'group') l.participants = courseById(l.courseId)?.pricing[Q.state]?.groups?.[l.groupIdx]?.max ?? 1;
+    l.unitPrice = listPrice(l);
+    if (!l.csq.custom) l.csq.persons = headcount(l);
+    if (l.csq?.on) { delete l.csq.autoPrice; clearAutoDisc(l); applyCsqPricing(l); }   // new pricing basis — recalc CSQ price
+  } else if (f === 'gst') l.gst = el.value;
+  else if (f === 'discType') { l.disc = l.disc || {type: 'pct', value: ''}; l.disc.type = el.value; l.disc.auto = false; }
+  else if (f === 'showUnits') l.showUnits = el.checked;
+  else if (f === 'note') l.notes[Number(el.dataset.i)].on = el.checked;
+  else if (f === 'csqOn') {
+    l.csq.on = el.checked;
+    if (el.checked) { if (!l.csq.custom) l.csq.persons = headcount(l); delete l.csq.autoPrice; applyCsqPricing(l); }
+    else revertCsqPricing(l);
+  }
+  else return;
+  rerenderKeepingDetails(); renderPreview(); markDirty();
+}
+function rerenderKeepingDetails() {   // keep "Description options" panels open across re-renders
+  const open = [...document.querySelectorAll('#q-lines details[open]')].map(d => d.closest('[data-line]').dataset.line);
+  renderLines();
+  open.forEach(u => document.querySelector(`[data-line="${u}"] details`)?.setAttribute('open', ''));
+}
+function onLineClick(e) {
+  const btn = e.target.closest('[data-act]'); if (!btn) return;
+  const l = lineOf(btn); if (!l) return;
+  const act = btn.dataset.act, i = Q.lines.indexOf(l);
+  if (act === 'remove') { if (!confirm(`Remove "${l.title || 'this item'}"?`)) return; Q.lines.splice(i, 1); }
+  else if (act === 'up' && i > 0) [Q.lines[i - 1], Q.lines[i]] = [Q.lines[i], Q.lines[i - 1]];
+  else if (act === 'down' && i < Q.lines.length - 1) [Q.lines[i + 1], Q.lines[i]] = [Q.lines[i], Q.lines[i + 1]];
+  else if (act === 'reset') {   // back to the list price — or to the CSQ price when CSQ is on
+    e.preventDefault(); l.unitPrice = listPrice(l);
+    if (l.csq?.on) { delete l.csq.autoPrice; applyCsqPricing(l); }
+  }
+  else if (act === 'resetSub') { e.preventDefault(); l.subText = null; }
+  else if (act === 'clearSub') { e.preventDefault(); l.subText = ''; }
+  else if (act === 'machine') {
+    const code = btn.dataset.code;
+    if (l.machines.includes(code)) l.machines = l.machines.filter(x => x !== code);
+    else if (l.machines.length >= 3) { toast('Up to 3 machines per person'); return; }
+    else l.machines.push(code);
+    l.unitPrice = listPrice(l);
+    if (l.csq?.on) { delete l.csq.autoPrice; applyCsqPricing(l); }   // machine count changes the CSQ amount and gap
+  } else return;
+  rerenderKeepingDetails(); renderPreview(); markDirty();
+}
+// ── Swap a line to another course by typing in its name box (e.g. picked the wrong one) ──
+let titleAc = {items: [], hl: -1, uid: null, list: null};
+function showTitleAc(inp, l) {
+  const q = inp.value.trim();
+  const items = q.length >= 2 ? searchCourses(q).filter(it => it.id !== l.courseId).slice(0, 10) : [];
+  titleAc = {items, hl: -1, uid: l.uid, list: inp.parentElement.querySelector('[data-titleac]')};
+  drawTitleAc();
+}
+function drawTitleAc() {
+  const {list, items, hl} = titleAc; if (!list) return;
+  list.innerHTML = items.length ? `<div class="ac-sub" style="padding:7px 12px 4px">Swap this line to:</div>` +
+    items.map((it, i) => `<div class="ac-item${i === hl ? ' hl' : ''}" data-i="${i}"><div class="ac-name">${it.html}</div><div class="ac-sub">${it.sub}</div></div>`).join('') : '';
+  list.classList.toggle('open', items.length > 0);
+}
+function closeTitleAc() { if (titleAc.list) titleAc.list.classList.remove('open'); titleAc = {items: [], hl: -1, uid: null, list: null}; }
+function pickTitleAc(i) {
+  const it = titleAc.items[i], l = Q.lines.find(x => x.uid === titleAc.uid);
+  closeTitleAc();
+  if (it && l) swapCourse(l, it.id);
+}
+// Replace a line's course, keeping what the rep already entered where it still makes sense
+function swapCourse(l, id) {
+  const c = courseById(id); if (!c) return;
+  const n = newCourseLine(c);
+  n.uid = l.uid; n.qty = l.qty; n.disc = l.disc?.auto ? {type: 'pct', value: ''} : l.disc;   // a CSQ-made discount is recalculated
+  if (l.csq?.on && csqAvailable(n)) { n.csq.on = true; n.csq.persons = l.csq.persons; n.csq.custom = l.csq.custom; }
+  if (!n.csq.custom) n.csq.persons = headcount(n);
+  applyCsqPricing(n);
+  Q.lines[Q.lines.indexOf(l)] = n;
+  renderLines(); renderPreview(); markDirty();
+  toast(`Changed to ${c.name}`);
+}
+function onTitleKey(e) {
+  if (e.target.dataset.f !== 'title' || !titleAc.items.length) return;
+  if (e.key === 'ArrowDown') { titleAc.hl = Math.min(titleAc.items.length - 1, titleAc.hl + 1); drawTitleAc(); e.preventDefault(); }
+  else if (e.key === 'ArrowUp') { titleAc.hl = Math.max(0, titleAc.hl - 1); drawTitleAc(); e.preventDefault(); }
+  else if (e.key === 'Enter' && titleAc.hl >= 0) { pickTitleAc(titleAc.hl); e.preventDefault(); }
+  else if (e.key === 'Escape') closeTitleAc();
+}
+
+function addCourse(id) {
+  const c = courseById(id); if (!c) return;
+  Q.lines.push(newCourseLine(c));
+  $('q-add-course').value = ''; closeAc('q-add-list');
+  renderLines(); renderPreview(); markDirty();
+}
+// Custom item, named from whatever was typed in the "Add a course" search (searched, not on the list → add it anyway)
+function addCustomLine(name) {
+  const search = $('q-add-course'), title = (name ?? search.value).trim();
+  const l = newCustomLine(); l.title = title;
+  Q.lines.push(l);
+  search.value = ''; closeAc('q-add-list');
+  renderLines(); renderPreview(); markDirty();
+  document.querySelector(`#q-lines .line:last-child [data-f="${title ? 'unitPrice' : 'title'}"]`)?.focus();
+}
+
+function setQuoteState(s) {
+  if (s === Q.state) return;
+  const courseLines = Q.lines.filter(l => l.kind === 'course');
+  if (courseLines.length && !confirm(`Switch pricing to ${s}?\n\nCourse prices will be reset to the ${s} price list (any prices you've edited will be replaced).${s !== 'QLD' ? ' CSQ funding only applies in QLD.' : ''}`)) return;
+  Q.state = s;
+  courseLines.forEach(l => {
+    const p = courseById(l.courseId)?.pricing[s];
+    if (l.mode === 'group' && !p?.groups?.[l.groupIdx]) { l.mode = courseById(l.courseId)?.earthmoving ? 'machines' : 'pp'; l.groupIdx = 0; }
+    l.unitPrice = listPrice(l);
+    if (s !== 'QLD' && l.csq) l.csq.on = false;
+  });
+  const missing = courseLines.filter(l => !courseById(l.courseId)?.pricing[s]).map(l => l.title);
+  if (missing.length) toast(`Not offered in ${s}: ${missing.join(', ')}`);
+  renderStateSeg(); renderLines(); renderPreview(); markDirty();
+}
+
+// ── Autocomplete (company + course pickers) ──
+function closeAc(id) { $(id).classList.remove('open'); }
+function bindAc(inputId, listId, search, onPick) {
+  const inp = $(inputId), list = $(listId);
+  let items = [], hl = -1;
+  const draw = () => {
+    items = search(inp.value.trim());
+    list.innerHTML = items.map((it, i) => `<div class="ac-item${i === hl ? ' hl' : ''}" data-i="${i}"><div class="ac-name">${it.html}</div>${it.sub ? `<div class="ac-sub">${it.sub}</div>` : ''}</div>`).join('');
+    list.classList.toggle('open', items.length > 0);
+  };
+  inp.addEventListener('input', () => { hl = -1; draw(); });
+  inp.addEventListener('focus', () => { if (inp.value.trim() || inputId === 'q-add-course') draw(); });
+  inp.addEventListener('keydown', e => {
+    if (!list.classList.contains('open')) return;
+    if (e.key === 'ArrowDown') { hl = Math.min(items.length - 1, hl + 1); draw(); e.preventDefault(); }
+    else if (e.key === 'ArrowUp') { hl = Math.max(0, hl - 1); draw(); e.preventDefault(); }
+    else if (e.key === 'Enter' && hl >= 0) { onPick(items[hl]); closeAc(listId); e.preventDefault(); }
+    else if (e.key === 'Escape') closeAc(listId);
+  });
+  list.addEventListener('mousedown', e => { const it = e.target.closest('.ac-item'); if (it) { e.preventDefault(); onPick(items[Number(it.dataset.i)]); closeAc(listId); } });
+  inp.addEventListener('blur', () => setTimeout(() => closeAc(listId), 120));
+}
+function searchCompanies(q) {
+  if (!q || !COMPANIES.length) return [];
+  const words = q.toLowerCase().split(/\s+/);
+  return COMPANIES.filter(c => words.every(w => c.name.toLowerCase().includes(w))).slice(0, 12).map(c => ({
+    name: c.name, html: esc(c.name) + (c.states || []).map(s => `<span class="state-badge s-${s}">${s}</span>`).join(''),
+    sub: c.kind === 'prospect' ? '✨ Prospect' : `Booked client · ${money(Math.round(c.total || 0))} total`,
+  }));
+}
+function searchCourses(q) {
+  const words = q.toLowerCase().split(/\s+/).filter(Boolean);
+  return PL.courses.filter(c => c.pricing[Q.state] && words.every(w => (c.name + ' ' + c.units.map(u => u.code + ' ' + u.title).join(' ')).toLowerCase().includes(w)))
+    .slice(0, 25).map(c => {
+      const p = c.pricing[Q.state];
+      const price = p.ppByUnits ? `from ${money(p.ppByUnits[0])} pp` : p.tbc ? 'TBC' : `${money(p.pp)} pp`;
+      return {id: c.id, html: esc(c.name), sub: `${esc(titleCase(c.section))} · ${price}${Q.state === 'QLD' && c.csq ? ' · <b style="color:var(--ok)">CSQ</b>' : ''}`};
+    });
+}
+function pickCompany(name) {
+  Q.company = name;
+  const c = CO_BY_NAME.get(name);
+  if (c) {
+    // Price in the company's main state (state tags are sorted by share) unless lines already priced
+    const st = c.states?.[0];
+    if (st && st !== Q.state) { if (!Q.lines.length) Q.state = st; else toast(`${name} is tagged ${st} — use the state switch to reprice if needed`); }
+    // Prefill the contact from the prospect record or the latest call, only into empty fields
+    const pc = c.contact || {}, crm = CRM[name];
+    const lastContact = (crm?.callLog || []).find(x => x.contact && x.type !== 'quote')?.contact;
+    if (!Q.contact.name) Q.contact.name = pc.name || lastContact || '';
+    if (!Q.contact.phone && pc.phone) Q.contact.phone = pc.phone;
+    if (!Q.contact.email && pc.email) Q.contact.email = pc.email;
+  }
+  renderHeaderFields(); renderLines(); renderPreview(); markDirty();
+}
+
+// ── Save / open / new ──
+function validateForSave() {
+  if (!Q.company.trim()) return 'Enter the customer company';
+  if (!Q.preparedBy) return 'Select who prepared the quote';
+  if (!Q.lines.length) return 'Add at least one item';
+  return '';
+}
+async function saveQuote() {
+  const err = validateForSave(); if (err) { toast(err); return; }
+  const all = LS.get(KEY_QUOTES, []);
+  const isNew = !Q.savedAt;
+  Q.savedAt = Date.now();
+  Q.totals = quoteTotals(Q);
+  const i = all.findIndex(x => x.id === Q.id);
+  if (i >= 0) all[i] = Q; else all.unshift(Q);
+  if (!LS.set(KEY_QUOTES, all)) { toast('Could not save — this browser is blocking local storage'); return; }
+  LS.set(KEY_ME, Number(Q.preparedBy));
+  DIRTY = false; LS.set(KEY_DRAFT, Q);
+  let logMsg = '';
+  if (isNew || !Q.crmLogged) logMsg = await logQuoteToCrm(Q);
+  renderStatus();
+  toast(`Quote ${Q.number} saved${logMsg ? ' · ' + logMsg : ''}`);
+}
+function openQuote(id, asCopy) {
+  if (DIRTY && !confirm('Discard the unsaved changes to the current quote?')) return;
+  const src = LS.get(KEY_QUOTES, []).find(q => q.id === id); if (!src) return;
+  Q = JSON.parse(JSON.stringify(src));
+  if (asCopy) Object.assign(Q, {id: uid(), number: randomNumber(), date: todayISO(), savedAt: null, crmLogged: false});
+  DIRTY = !!asCopy; LS.set(KEY_DRAFT, Q);
+  showView('new'); renderAll();
+  if (asCopy) toast(`Copied as ${Q.number} — save to keep it`);
+}
+// Wipe the editor and start a fresh quote (new number). A saved quote stays in My Quotes.
+function clearAll() {
+  const msg = Q.savedAt
+    ? `Clear everything and start a new quote?\n\nQuote ${Q.number} stays saved in My Quotes${DIRTY ? ' (without the changes you haven\'t saved)' : ''}.`
+    : 'Clear everything on this quote and start again?\n\nThis quote hasn\'t been saved, so it will be lost.';
+  if ((Q.company || Q.lines.length || Q.comments || Q.contact.name) && !confirm(msg)) return;
+  Q = blankQuote(); DIRTY = false; LS.set(KEY_DRAFT, Q); renderAll();
+  toast('Cleared — new quote ' + Q.number);
+}
+function regenNumber() {
+  if (Q.savedAt && !confirm('This quote is already saved under ' + Q.number + '. Give it a new number?')) return;
+  Q.number = randomNumber(); $('q-number').value = Q.number; renderPreview(); markDirty();
+}
+
+// The "quote created" note on the company's CRM log: a call-log entry with type:'quote' (call logs
+// merge safely between teammates; the dashboard shows it as a note and leaves it out of call stats).
+// Written once per quote, through the dashboard (BRIDGE), and only for companies already in the CRM —
+// a typed name that isn't a known company must not create a new company record.
+async function logQuoteToCrm(q) {
+  if (!CRM_LOG_ENABLED) return '';
+  if (!BRIDGE) return 'company log only works inside the CRM';
+  if (!CO_BY_NAME.has(q.company) && !CRM[q.company]) return `not added to a company log — "${q.company}" isn't in the CRM`;
+  try {
+    await BRIDGE.logQuote(q.company, {id: Date.now(), type: 'quote', date: q.date, quoteNo: q.number, total: q.totals.inc,
+      courses: q.lines.map(l => l.title).filter(Boolean), agentId: Number(q.preparedBy), agentName: memberName(q.preparedBy), company: q.company});
+    q.crmLogged = true;
+    const all = LS.get(KEY_QUOTES, []); const i = all.findIndex(x => x.id === q.id); if (i >= 0) { all[i].crmLogged = true; LS.set(KEY_QUOTES, all); }
+    LS.set(KEY_DRAFT, q);
+    return 'noted on the company log';
+  } catch (e) { console.warn('CRM log failed', e); return 'company log failed — it will retry next save'; }
+}
+// Called by the dashboard's "Create quote" button: start a fresh quote for that company
+function startQuoteFor(name) {
+  const hasWork = Q.company || Q.lines.length || Q.comments || Q.contact.name;
+  if (hasWork && DIRTY && !confirm(`Start a new quote for ${name}?\n\nThe quote you're working on has unsaved changes${Q.savedAt ? '' : ' and has never been saved'}.`)) return;
+  Q = blankQuote(); DIRTY = false;
+  showView('new');
+  pickCompany(name);
+  toast(`New quote for ${name}`);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// My Quotes
+// ════════════════════════════════════════════════════════════════════════════
+function renderMyQuotes() {
+  const q = $('mq-search').value.trim().toLowerCase();
+  const all = LS.get(KEY_QUOTES, []).sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+  const list = all.filter(x => !q || (x.number + ' ' + x.company + ' ' + x.lines.map(l => l.title).join(' ')).toLowerCase().includes(q));
+  $('mq-list').innerHTML = !all.length ? '<div class="empty">No saved quotes on this computer yet.</div>' : !list.length ? '<div class="empty">No quotes match.</div>' : `
+    <table class="mq-table"><thead><tr><th>Quote no</th><th>Date</th><th>Customer</th><th>Items</th><th class="num">Total (inc GST)</th><th>Prepared by</th><th></th></tr></thead><tbody>
+    ${list.map(x => `<tr>
+      <td class="mono">${esc(x.number)}</td>
+      <td>${fmtDate(x.date)}</td>
+      <td><b>${esc(x.company)}</b><div class="c-sub">${esc(x.state)}${x.contact?.name ? ' · ' + esc(x.contact.name) : ''}</div></td>
+      <td class="c-sub" style="max-width:260px">${esc(x.lines.map(l => l.title).filter(Boolean).join(', '))}</td>
+      <td class="num"><b>${money2(x.totals?.inc ?? quoteTotals(x).inc)}</b></td>
+      <td>${esc(memberName(x.preparedBy))}</td>
+      <td><div class="mq-actions">
+        <button class="btn btn-sm" onclick="openQuote('${x.id}')">Open</button>
+        <button class="btn btn-sm" onclick="downloadPdf(LS.get(KEY_QUOTES, []).find(q => q.id === '${x.id}'))">PDF</button>
+        <button class="btn btn-sm" onclick="openQuote('${x.id}', true)">Copy</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteQuote('${x.id}')">Delete</button>
+      </div></td></tr>`).join('')}
+    </tbody></table>`;
+}
+function deleteQuote(id) {
+  const all = LS.get(KEY_QUOTES, []), q = all.find(x => x.id === id); if (!q) return;
+  if (!confirm(`Delete quote ${q.number} (${q.company}) from this computer? This can't be undone.`)) return;
+  LS.set(KEY_QUOTES, all.filter(x => x.id !== id)); renderMyQuotes(); toast(`Deleted ${q.number}`);
+}
+function exportBackup() {
+  const all = LS.get(KEY_QUOTES, []);
+  if (!all.length) { toast('No quotes to back up'); return; }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify({kind: 'kallibr-quotes', exported: new Date().toISOString(), quotes: all}, null, 1)], {type: 'application/json'}));
+  a.download = `Kallibr quotes backup ${todayISO()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+function importBackup(input) {
+  const file = input.files[0]; input.value = ''; if (!file) return;
+  file.text().then(txt => {
+    const data = JSON.parse(txt);
+    if (data?.kind !== 'kallibr-quotes' || !Array.isArray(data.quotes)) throw new Error('not a quotes backup');
+    const all = LS.get(KEY_QUOTES, []), ids = new Set(all.map(q => q.id));
+    const added = data.quotes.filter(q => !ids.has(q.id));
+    LS.set(KEY_QUOTES, all.concat(added)); renderMyQuotes();
+    toast(`Restored ${added.length} quote${added.length === 1 ? '' : 's'}${data.quotes.length - added.length ? ` (${data.quotes.length - added.length} already here)` : ''}`);
+  }).catch(e => toast('That file isn\'t a quotes backup'));
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Price list view
+// ════════════════════════════════════════════════════════════════════════════
+let plState = 'QLD', plSection = '', plOpen = new Set();
+function ppHTML(p) {
+  if (!p) return '<span class="badge b-na">Not offered</span>';
+  if (p.ppByUnits) return p.ppByUnits.map((v, i) => v == null ? '' : `<div class="grp"><b>${money(v)}</b> · ${i + 1} machine${i ? 's' : ''}</div>`).join('');
+  if (p.tbc) return '<span class="badge b-tbc">TBC</span>';
+  return `<span class="price">${money(p.pp)}</span><small> pp</small>`;
+}
+function groupsHTML(p) {
+  if (!p) return '';
+  const out = (p.groups || []).map(g => {
+    const size = g.label === 'outcomes' ? `${g.max} outcomes` : g.label ? `Up to ${g.max} (${esc(g.label)})` : `Up to ${g.max}`;
+    return `<div class="grp">${size}: ${g.price == null ? '<span class="badge b-tbc">TBC</span>' : `<b>${money(g.price)}</b>`}</div>`;
+  });
+  if (p.extraPP) out.push(`<div class="grp">+ <b>${money(p.extraPP.pp)}</b> pp, up to ${p.extraPP.upTo}</div>`);
+  return out.join('') || '<span class="c-sub">Per person only</span>';
+}
+// CSQ (QLD only): flat amount per eligible person off our price; the client pays the gap, never below $0
+const csqGap = (c, pp) => Math.max(0, pp - c.csq.amount);
+function csqLine(c, p) {
+  if (plState !== 'QLD' || !c.csq || !p) return '';
+  if (c.csq.perMachine) return `<div class="csq" title="CSQ funding per machine, per eligible person">CSQ −${money(c.csq.amount)} per machine → gap ${(c.csq.gapByMachines || []).map(money).join(' / ')}</div>`;
+  return `<div class="csq" title="CSQ funding per eligible person (from ${esc(c.csq.from.join(' + '))})">CSQ −${money(c.csq.amount)}${p.pp != null ? ` → ${money(csqGap(c, p.pp))} gap` : ''}</div>`;
+}
+const gstBadge = c => c.gst === 'free' ? '<span class="badge b-free">GST-free</span>' : '<span class="badge b-incl">Incl. GST</span>';
+function plMatches(c, q) {
+  if (!q) return true;
+  const hay = (c.name + ' ' + c.units.map(u => u.code + ' ' + u.title).join(' ') + ' ' + c.notes.join(' ')).toLowerCase();
+  return q.split(/\s+/).every(w => hay.includes(w));
+}
+function renderPriceList() {
+  document.querySelectorAll('#pl-states button').forEach(b => b.classList.toggle('active', b.dataset.s === plState));
+  document.querySelectorAll('#pl-sections .chip').forEach(b => b.classList.toggle('active', b.dataset.sec === plSection));
+  const q = $('pl-search').value.trim().toLowerCase();
+  const showNA = $('pl-show-na').checked;
+  $('pl-csq-wrap').style.display = plState === 'QLD' ? '' : 'none';
+  const csqOnly = plState === 'QLD' && $('pl-csq-only').checked;
+  const list = PL.courses.filter(c => (!plSection || c.section === plSection) && plMatches(c, q) && (showNA || c.pricing[plState]) && (!csqOnly || c.csq));
+  const offered = PL.courses.filter(c => c.pricing[plState]).length;
+  $('pl-count').textContent = `${list.length} course${list.length === 1 ? '' : 's'} shown · ${offered} offered in ${plState}`;
+  if (!list.length) { $('pl-list').innerHTML = '<div class="list"><div class="empty">No courses match.</div></div>'; return; }
+  const bySection = [];
+  list.forEach(c => { let s = bySection.find(x => x.name === c.section); if (!s) bySection.push(s = {name: c.section, items: []}); s.items.push(c); });
+  $('pl-list').innerHTML = bySection.map(s => `
+    <div class="section-h">${esc(titleCase(s.name))}</div>
+    <div class="list">
+      <div class="row-head"><div>Course</div><div>Duration</div><div>Per person (${plState})</div><div>Private group (${plState})</div><div>GST</div></div>
+      ${s.items.map(plRowHTML).join('')}
+    </div>`).join('');
+}
+function plRowHTML(c) {
+  const p = c.pricing[plState], isOpen = plOpen.has(c.id);
+  const sub = [c.units.length > 1 ? `${c.units.length} units` : (c.units[0]?.code || ''), c.earthmoving ? 'pick up to 3 machines' : ''].filter(Boolean).join(' · ');
+  return `<div class="row${p ? '' : ' na'}${isOpen ? ' open' : ''}" onclick="plToggle('${c.id}')" role="button" tabindex="0" aria-expanded="${isOpen}" onkeydown="if(event.key==='Enter')plToggle('${c.id}')">
+      <div><div class="c-name">${esc(c.name)}</div><div class="c-sub">${esc(sub)}</div></div>
+      <div class="c-dur">${esc(duration(c.duration)) || '—'}</div>
+      <div>${ppHTML(p)}${csqLine(c, p)}</div>
+      <div>${p ? groupsHTML(p) : ''}</div>
+      <div>${gstBadge(c)}</div>
+    </div>${isOpen ? plDetailHTML(c) : ''}`;
+}
+function plDetailHTML(c) {
+  const units = c.units.length ? `<ul class="units">${c.units.map(u => `<li>${u.code ? `<span class="code">${esc(u.code)}</span>` : ''}${esc(u.title)}</li>`).join('')}</ul>` : '<div class="c-sub">No units listed</div>';
+  const states = PL.states.map(s => `<tr class="${s === plState ? 'cur' : ''}"><td>${s}</td><td>${ppHTML(c.pricing[s])}</td><td>${c.pricing[s] ? groupsHTML(c.pricing[s]) : ''}</td></tr>`).join('');
+  return `<div class="detail">
+      <div>
+        <div class="d-label">${c.earthmoving ? 'Machines (electives — up to 3 per person)' : 'Units included'}</div>${units}
+        ${c.notes.length ? `<div class="d-label">Notes</div><div class="notes">${c.notes.map(esc).join('<br>')}</div>` : ''}
+      </div>
+      <div>
+        <div class="d-label">All states</div>
+        <table class="cmp"><thead><tr><th>State</th><th>Per person</th><th>Private group</th></tr></thead><tbody>${states}</tbody></table>
+        ${c.csq?.perMachine ? `<div class="d-label">CSQ funding (QLD)</div><div class="notes"><b>${money(c.csq.amount)}</b> per machine, per eligible person · client gap fee ${(c.csq.gapByMachines || []).map((g, i) => `${money(g)} for ${i + 1} machine${i ? 's' : ''}`).join(', ')}<br><span class="c-sub">Groups (outcomes): ${money(c.csq.amount)} off per funded outcome</span></div>`
+        : c.csq ? `<div class="d-label">CSQ funding (QLD)</div><div class="notes"><b>${money(c.csq.amount)}</b> per eligible person${c.pricing.QLD?.pp != null ? ` · gap fee ${money(csqGap(c, c.pricing.QLD.pp))} pp${c.csq.amount >= c.pricing.QLD.pp ? ' (CSQ covers the full price)' : ''}` : ''}<br><span class="c-sub">From CSQ list: ${esc(c.csq.from.join(' + '))}</span></div>` : ''}
+        <div class="d-label">Delivery</div><div class="notes">${esc(c.delivery) || '—'}</div>
+        ${c.url ? `<div class="d-label">Website</div><div class="notes"><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.url.replace(/^https?:\/\//, ''))}</a></div>` : ''}
+      </div>
+    </div>`;
+}
+function plToggle(id) { plOpen.has(id) ? plOpen.delete(id) : plOpen.add(id); renderPriceList(); }
+function initPriceList() {
+  $('pl-source').textContent = `${PL.courses.length} courses · from ${PL.source} (${PL.sheet} sheet)${PL.csqSource ? ` + CSQ funding from ${PL.csqSource}` : ''} · built ${PL.built}`;
+  $('pl-states').innerHTML = PL.states.map(s => `<button data-s="${s}" onclick="plState='${s}';renderPriceList()">${s}</button>`).join('');
+  const sections = [...new Set(PL.courses.map(c => c.section))];
+  $('pl-sections').innerHTML = `<button class="chip" data-sec="" onclick="plSection='';renderPriceList()">All</button>` +
+    sections.map(s => `<button class="chip" data-sec="${esc(s)}" onclick="plSection=this.dataset.sec;renderPriceList()">${esc(titleCase(s))}</button>`).join('');
+  $('pl-search').addEventListener('input', renderPriceList);
+  $('pl-show-na').addEventListener('change', renderPriceList);
+  $('pl-csq-only').addEventListener('change', renderPriceList);
+  renderPriceList();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// Boot
+// ════════════════════════════════════════════════════════════════════════════
+function showView(v) {
+  document.querySelectorAll('.view').forEach(s => s.classList.toggle('active', s.id === 'view-' + v));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === v));
+  if (v === 'mine') renderMyQuotes();
+  if (v === 'new') fitPreview();
+}
+function init() {
+  if (!PL) { document.body.innerHTML = '<div class="empty">price_list.js is missing — run rebuild_price_list.ps1.</div>'; return; }
+  if (BRIDGE) document.body.classList.add('embed');
+  initPriceList();
+  // Restore an in-progress draft so a closed tab doesn't lose work
+  const draft = LS.get(KEY_DRAFT, null);
+  Q = draft && draft.number ? draft : blankQuote();
+  const saved = LS.get(KEY_QUOTES, []).find(q => q.id === Q.id);
+  DIRTY = !!draft && (!saved || JSON.stringify(saved) !== JSON.stringify(draft));
+  renderAll();
+
+  // Header field bindings
+  const bindText = (id, set) => $(id).addEventListener('input', e => { set(e.target.value); renderPreview(); markDirty(); });
+  bindText('q-company', v => { Q.company = v; renderCompanyInfo(); });
+  bindText('q-loc-addr', v => Q.loc.addr = v);
+  bindText('q-c-name', v => Q.contact.name = v);
+  bindText('q-c-email', v => Q.contact.email = v);
+  bindText('q-c-phone', v => Q.contact.phone = v);
+  bindText('q-c-mobile', v => Q.contact.mobile = v);
+  bindText('q-comments', v => Q.comments = v);
+  $('q-date').addEventListener('change', e => { Q.date = e.target.value; renderPreview(); markDirty(); });
+  $('q-by').addEventListener('change', e => { Q.preparedBy = e.target.value ? Number(e.target.value) : ''; renderPreview(); markDirty(); });
+  $('q-loc-type').addEventListener('change', e => { Q.loc.type = e.target.value; $('q-loc-addr-wrap').style.visibility = Q.loc.type === 'client' ? 'visible' : 'hidden'; renderPreview(); markDirty(); });
+  $('q-lines').addEventListener('input', onLineInput);
+  $('q-lines').addEventListener('change', onLineChange);
+  $('q-lines').addEventListener('click', onLineClick);
+  $('q-lines').addEventListener('keydown', onTitleKey);
+  $('q-lines').addEventListener('mousedown', e => { const it = e.target.closest('[data-titleac] .ac-item'); if (it) { e.preventDefault(); pickTitleAc(Number(it.dataset.i)); } });
+  $('q-lines').addEventListener('focusout', e => { if (e.target.dataset.f === 'title') setTimeout(closeTitleAc, 150); });
+  bindAc('q-company', 'q-company-list', searchCompanies, it => pickCompany(it.name));
+  // Course search, with a last option to add what was typed as a custom item (not on the price list)
+  bindAc('q-add-course', 'q-add-list',
+    q => [...searchCourses(q), ...(q ? [{custom: true, name: q, html: `➕ Add “${esc(q)}” as a custom item`, sub: 'Not on the price list — set your own price'}] : [])],
+    it => it.custom ? addCustomLine(it.name) : addCourse(it.id));
+  window.addEventListener('resize', fitPreview);
+  window.addEventListener('beforeunload', e => { if (DIRTY && Q.savedAt) { e.preventDefault(); e.returnValue = ''; } });
+  loadCompanies().then(renderCompanyInfo);
+}
+init();
+</script>
+</body>
+</html>

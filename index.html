@@ -256,6 +256,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 .btn-ghost:hover{background:var(--lav);color:var(--text);}
 .toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;padding:10px 18px;border-radius:12px;font-size:0.82rem;font-weight:500;z-index:400;opacity:0;transform:translateY(8px);transition:all 0.22s;pointer-events:none;}
 .toast.show{opacity:1;transform:translateY(0);}
+/* Quotes tab — the quote builder fills the whole content area */
+#page-quotes{margin:-30px -34px;}
+#quotes-frame{display:block;width:100%;height:100vh;border:0;}
+@media(max-width:900px){#page-quotes{margin:-18px -14px;}}
+.quote-log-item{background:#eef8f7;border-color:#b9e0dd;}
 /* CSQ flag */
 .csq-tag{display:inline-block;background:#edf7ed;border:1px solid #9ecf9e;border-radius:4px;padding:1px 5px;font-size:0.64rem;font-weight:700;color:#2d7a2d;vertical-align:middle;line-height:1.3;margin-left:4px;flex-shrink:0;}
 .name-cell{display:flex;align-items:center;min-width:0;}
@@ -333,6 +338,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
     <button class="nav-item" onclick="showPage('outreach',this)"><span class="icon">📞</span> Outreach Targets</button>
     <div class="nav-label" style="margin-top:10px">CRM</div>
     <button class="nav-item" onclick="showPage('prospects',this)"><span class="icon">✨</span> Prospects <span class="nav-count" id="nav-pr-count" style="display:none" title="Prospects that look like they've now booked — review on the Prospects page"></span></button>
+    <button class="nav-item" onclick="showPage('quotes',this)"><span class="icon">📄</span> Quotes</button>
     <button class="nav-item" onclick="showPage('followups',this)"><span class="icon">📅</span> Follow-Up Review</button>
     <button class="nav-item" onclick="showPage('coursematch',this)"><span class="icon">🎯</span> Course Match</button>
     <button class="nav-item" onclick="showPage('performance',this)"><span class="icon">📈</span> Performance</button>
@@ -447,6 +453,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
     <div class="kpi-card kpi-returning" style="border-left:4px solid #7B68C8"><div class="kpi-label">🔄 Returning</div><div class="kpi-value" id="out-kpi-returning">—</div><div class="kpi-sub">Active 2yrs ago, silent last yr, back this yr</div></div>
   </div>
   <div class="outreach-filters">
+    <button class="filter-btn" onclick="setOutFilter('clients',this)" title="Every company — booked clients and active prospects, not just outreach targets">All Clients</button>
     <button class="filter-btn active" onclick="setOutFilter('all',this)">All Targets</button>
     <button class="filter-btn f-lapsed" onclick="setOutFilter('lapsed',this)">🔴 Lapsed</button>
     <button class="filter-btn f-dormant" onclick="setOutFilter('dormant',this)">🟡 Gone Quiet</button>
@@ -480,6 +487,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
       <button class="back-btn" id="crm-back-btn" onclick="closeCRM()">← Back</button>
       <div class="crm-company-name" id="crm-name">—</div>
       <div class="crm-meta" id="crm-meta"></div>
+      <button class="btn-primary" style="margin-top:12px;font-size:0.78rem;padding:7px 14px" onclick="createQuoteFor(crmCompany)">📄 Create quote</button>
     </div>
     <div><div class="kpi-label" style="margin-bottom:4px">Lead Status</div>
       <div class="status-strip">
@@ -506,7 +514,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
       <div class="assign-grid" id="crm-assign-grid"></div>
       <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">
         <span style="font-size:0.76rem;color:var(--text2)" id="crm-assign-label">No member assigned</span>
-        <button class="btn-ghost" id="crm-unassign-btn" onclick="unassignCRM()" style="display:none;font-size:0.72rem;padding:4px 10px;border-color:#fde8e8;color:#c0392b">Remove</button>
+        <button class="btn-ghost" id="crm-unassign-btn" onclick="unassignCRM()" style="display:none;font-size:0.72rem;padding:4px 10px;border-color:#fde8e8;color:#c0392b;flex-shrink:0">Clear all</button>
       </div>
     </div>
   </div>
@@ -552,7 +560,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
         </div>
         <div class="call-form-grid">
           <div class="form-group" style="margin-bottom:0"><label class="form-label">Follow-up Date</label><input class="form-input" type="date" id="crm-followup"></div>
-          <div></div>
+          <div class="form-group" style="margin-bottom:0"><label class="form-label" for="crm-logged-by">Logged By <span style="color:#c0392b">*</span></label><select class="form-select" id="crm-logged-by"></select></div>
         </div>
         <div style="height:12px"></div>
         <div class="form-group"><label class="form-label">Call Notes</label><textarea class="form-textarea" id="crm-notes" placeholder="Key points, objections, next steps…"></textarea></div>
@@ -586,6 +594,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
     <th onclick="sortProspects('n')">Company</th><th>State</th><th onclick="sortProspects('industry')">Industry</th><th>Main Contact</th><th onclick="sortProspects('addedAt')">Added</th><th>Assigned To</th><th>Last Outcome</th><th onclick="sortProspects('fu')">Follow-up</th><th>Status</th>
   </tr></thead><tbody id="pr-tbody"></tbody></table></div></div>
 </div>
+
+<!-- QUOTES (quotes.html, shown in a frame; it reads the dashboard's data through window.crmBridge) -->
+<div id="page-quotes" class="page"><iframe id="quotes-frame" title="Quotes"></iframe></div>
 
 <!-- FOLLOW-UP REVIEW -->
 <div id="page-followups" class="page">
@@ -784,7 +795,7 @@ function _yearFill(lbl){const i=_yearFromLabel(lbl)-RAW.startYear;return YEAR_FI
 function _yearBorder(lbl){const i=_yearFromLabel(lbl)-RAW.startYear;return YEAR_BORDER[((i%YEAR_BORDER.length)+YEAR_BORDER.length)%YEAR_BORDER.length];}
 
 // ── HARDCODED TEAM ──
-const TEAM = [{"id": 1, "name": "Ben", "colour": "#b8a9de"}, {"id": 2, "name": "Harry", "colour": "#87c5ef", "active": false}, {"id": 3, "name": "Hailey", "colour": "#9ecf9e"}, {"id": 4, "name": "Peter", "colour": "#f2a0b0"}, {"id": 5, "name": "Lino", "colour": "#f9be7c"}, {"id": 6, "name": "Ellyse", "colour": "#a8d8ea"}, {"id": 7, "name": "Billy", "colour": "#f7c5e0"}, {"id": 8, "name": "Elodie", "colour": "#b5ead7"}, {"id": 9, "name": "Renee", "colour": "#c7ceea"}, {"id": 10, "name": "Justin", "colour": "#fddcb5"}, {"id": 11, "name": "Matt", "colour": "#e89ba6"}, {"id": 12, "name": "Paul", "colour": "#cdb4db"}, {"id": 13, "name": "Varun", "colour": "#a3d9d4"}, {"id": 14, "name": "Tom", "colour": "#e0b0d5"}, {"id": 15, "name": "Leigh-Ann", "colour": "#c2d59b"}];
+const TEAM = [{"id": 1, "name": "Ben", "colour": "#b8a9de"}, {"id": 2, "name": "Harry", "colour": "#87c5ef", "active": false}, {"id": 3, "name": "Hailey", "colour": "#9ecf9e"}, {"id": 4, "name": "Peter", "colour": "#f2a0b0"}, {"id": 5, "name": "Lino", "colour": "#f9be7c"}, {"id": 6, "name": "Ellyse", "colour": "#a8d8ea"}, {"id": 7, "name": "Billy", "colour": "#f7c5e0"}, {"id": 8, "name": "Elodie", "colour": "#b5ead7"}, {"id": 9, "name": "Renee", "colour": "#c7ceea"}, {"id": 10, "name": "Justin", "colour": "#fddcb5"}, {"id": 11, "name": "Matt", "colour": "#e89ba6"}, {"id": 12, "name": "Paul", "colour": "#cdb4db"}, {"id": 13, "name": "Varun", "colour": "#a3d9d4"}, {"id": 14, "name": "Tom", "colour": "#e0b0d5"}, {"id": 15, "name": "Leigh-Ann", "colour": "#c2d59b"}, {"id": 16, "name": "Grace", "colour": "#f6c85f"}];
 // Active = on the team now. Inactive members (e.g. left the company) keep all their
 // historical data and stay visible for stats/attribution, but can't take new work.
 const tmActive=()=>TEAM.filter(m=>m.active!==false);
@@ -844,6 +855,7 @@ async function saveCRM(){
             CRM[key]=serverCRM[key];
           }else{
             _mergeCSQ(CRM[key],serverCRM[key]);
+            _mergeAssign(CRM[key],serverCRM[key],false);
             if(_mergeProspectFields(key,serverCRM))continue;
             // Merge call logs — local wins, server fills in missing entries
             // Special case: followupDone is sticky — once true on either side, stays true
@@ -873,6 +885,30 @@ async function saveCRM(){
   }catch(e){console.warn('Supabase save failed:',e);}
 }
 function getCRM(name){if(!CRM[name])CRM[name]={assigneeId:null,status:'pending',callLog:[]};if(!CRM[name].callLog)CRM[name].callLog=[];return CRM[name];}
+// ── Assignment (a company can have several team members, e.g. multi-site clients) ──
+// Stored as assigneeIds:[...]; assigneeId mirrors the first one so older code/exports still
+// read something sensible. If the two disagree, an older copy of the page changed
+// assigneeId on its own — trust that.
+function assigneesOf(crm){
+  if(!crm)return[];
+  const a=crm.assigneeIds,first=crm.assigneeId??null;
+  if(Array.isArray(a)&&(a[0]??null)===first)return a;
+  return first!=null?[first]:[];
+}
+const isAssignedTo=(crm,id)=>assigneesOf(crm).includes(Number(id));
+function setAssignees(crm,ids){crm.assigneeIds=[...ids];crm.assigneeId=ids[0]??null;crm.assignAt=Date.now();}
+// Newest assignment change wins when reconciling with a teammate's copy
+function _mergeAssign(local,server,preferServerOnTie){
+  const sa=server.assignAt||0,la=local.assignAt||0;
+  if(sa>la||(preferServerOnTie&&sa===la)){local.assigneeIds=server.assigneeIds;local.assigneeId=server.assigneeId??null;local.assignAt=server.assignAt;}
+}
+// Avatar(s) + name(s) for table cells
+function assigneesHTML(crm){
+  const ms=assigneesOf(crm).map(id=>TEAM.find(m=>m.id===id)).filter(Boolean);
+  if(!ms.length)return '<span style="color:var(--text2);font-size:0.78rem">—</span>';
+  const av=ms.map((m,i)=>`<div title="${esc(tmName(m))}" style="width:22px;height:22px;border-radius:50%;background:${m.colour};display:inline-flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#fff;border:2px solid #fff;${i?'margin-left:-7px;':''}flex-shrink:0">${initials(m.name)}</div>`).join('');
+  return `<div style="display:inline-flex;align-items:center;gap:6px"><span style="display:inline-flex">${av}</span><span style="font-size:0.78rem">${ms.map(m=>esc(m.name)).join(', ')}</span></div>`;
+}
 
 function aggregatePeriod(m,p){
   if(p==='monthly')return{labels:MONTHS,values:m};
@@ -904,6 +940,7 @@ function showPage(id,btn){
   if(id==='courselist'&&!courseListInit)initCourseList();
   if(id==='outreach'&&!outreachInit)initOutreach();
   if(id==='prospects')renderProspects();
+  if(id==='quotes')ensureQuotesFrame();
   if(id==='followups')renderFollowUps();
   if(id==='performance')renderPerformancePage();
   if(id==='team')renderTeamPage();
@@ -1026,31 +1063,46 @@ function applyOutFilter(){
   const mf=sel?sel.value:'';
   const stateSel=document.getElementById('out-state-filter');const sf=stateSel?stateSel.value:'';
   const csq=csqOnly('out-csq-filter');
-  outFiltered=RAW.outreach.filter(o=>{
-    if(outFilter!=='all'&&o.signal!==outFilter)return false;
+  const src=outFilter==='clients'?allClientRows():RAW.outreach;
+  outFiltered=src.filter(o=>{
+    if(outFilter!=='all'&&outFilter!=='clients'&&o.signal!==outFilter)return false;
     if(csq&&!isCSQ(o.n))return false;
     if(outSearch&&!o.n.toLowerCase().includes(outSearch))return false;
     if(sf&&!companyInState(o.n,sf))return false;
-    if(mf==='unassigned'){const crm=CRM[o.n]||{};if(crm.assigneeId)return false;}
-    else if(mf){const crm=CRM[o.n]||{};if(crm.assigneeId!=mf)return false;}
+    if(mf==='unassigned'){if(assigneesOf(CRM[o.n]).length)return false;}
+    else if(mf){if(!isAssignedTo(CRM[o.n],mf))return false;}
     return true;
   });
   outFiltered.sort((a,b)=>{let va=a[outSortKey]??0,vb=b[outSortKey]??0;if(typeof va==='string')return outSortDir*va.localeCompare(vb);return outSortDir*(va-vb);});
-  document.getElementById('out-count').textContent=`${outFiltered.length} companies`;renderOutreach();
+  document.getElementById('out-count').textContent=`${outFiltered.length.toLocaleString()} ${outFiltered.length===1?'company':'companies'}`;renderOutreach();
+}
+// "All Clients" view: every booked client (with its outreach signal if it has one) plus
+// active prospects, so a rep can pull up everything assigned to them in one list
+let _clientRowsBase=null;
+function allClientRows(){
+  if(!_clientRowsBase){
+    const byName=new Map(RAW.outreach.map(o=>[o.n,o]));
+    _clientRowsBase=RAW.clients.map(c=>byName.get(c.n)||{n:c.n,signal:'',prior12:sumPrior12(c.m),last12:sumLast12(c.m),t:c.t,reason:'',priority:c.t});
+    const seen=new Set(_clientRowsBase.map(r=>r.n));
+    RAW.outreach.forEach(o=>{if(!seen.has(o.n))_clientRowsBase.push(o);});
+  }
+  const prospects=Object.keys(CRM).filter(k=>prospectState(k)==='active').map(k=>({n:k,signal:'prospect',prior12:0,last12:0,t:0,reason:'Not yet booked',priority:0}));
+  return _clientRowsBase.concat(prospects);
 }
 function renderOutreach(){
   const start=outPage*OUT_PER,slice=outFiltered.slice(start,start+OUT_PER);
-  const sLabel={lapsed:'🔴 Lapsed',dormant:'🟡 Gone Quiet',declining:'🟠 Declining',new:'🌱 New Client',returning:'🔄 Returning'};
-  const sBadge={lapsed:'badge-lapsed',dormant:'badge-dormant',declining:'badge-declining',new:'badge-new',returning:'badge-returning'};
+  const sLabel={lapsed:'🔴 Lapsed',dormant:'🟡 Gone Quiet',declining:'🟠 Declining',new:'🌱 New Client',returning:'🔄 Returning',prospect:'✨ Prospect'};
+  const sBadge={lapsed:'badge-lapsed',dormant:'badge-dormant',declining:'badge-declining',new:'badge-new',returning:'badge-returning',prospect:'badge-prospect'};
+  const dash='<span style="color:var(--text2);font-size:0.78rem">—</span>';
   document.getElementById('out-tbody').innerHTML=slice.map(o=>{
-    const crm=CRM[o.n]||{};const member=TEAM.find(m=>m.id===crm.assigneeId);
-    const avatarHtml=member?`<div style="display:inline-flex;align-items:center;gap:6px"><div style="width:22px;height:22px;border-radius:50%;background:${member.colour};display:inline-flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#fff">${initials(member.name)}</div><span style="font-size:0.78rem">${member.name}</span></div>`:'<span style="color:var(--text2);font-size:0.78rem">—</span>';
+    const crm=CRM[o.n]||{};const isPros=o.signal==='prospect';
+    const avatarHtml=assigneesHTML(crm);
     const st=crm.status||'pending';const scol={contacted:'#1565a8',won:'#2d7a2d',lost:'#b33050'};
     const statusHtml=st!=='pending'?`<span style="font-size:0.72rem;font-weight:600;color:${scol[st]};background:${scol[st]}18;padding:2px 8px;border-radius:99px;text-transform:capitalize">${st}</span>`:'—';
     const csqBadge=csqTag(o.n);
     const lastLog=(crm.callLog||[]).filter(l=>l.outcome)[0];
     const lastOutcomeHtml=lastLog?`<span style="font-size:0.72rem;font-weight:600;color:${OUTCOME_COLOURS[lastLog.outcome]||'#2d2d3a'}">${OUTCOME_LABELS[lastLog.outcome]||lastLog.outcome}</span>`:`<span style="color:var(--text2);font-size:0.78rem">—</span>`;
-    return `<tr onclick="openCRM('${o.n.replace(/'/g,"\\'")}')"><td style="font-weight:600;max-width:220px"><div class="name-cell" title="${esc(o.n)}"><span class="nm">${o.n}</span>${csqBadge}</div></td><td><span class="badge ${sBadge[o.signal]}">${sLabel[o.signal]}</span></td><td>${stateBadgesHTML(o.n)||'<span style="color:var(--text2);font-size:0.78rem">—</span>'}</td><td class="num" style="font-size:0.78rem">${o.prior12>0?fmt(o.prior12):'—'}</td><td class="num" style="font-size:0.78rem;${o.last12===0?'color:#c0392b;font-weight:700':''}">${o.last12>0?fmt(o.last12):'$0'}</td><td class="num" style="font-size:0.78rem">${fmt(o.t)}</td><td style="font-size:0.76rem;color:var(--text2);max-width:200px">${o.reason}</td><td>${avatarHtml}</td><td>${lastOutcomeHtml}</td><td>${statusHtml}</td></tr>`;
+    return `<tr onclick="openCRM('${o.n.replace(/'/g,"\\'")}')"><td style="font-weight:600;max-width:220px"><div class="name-cell" title="${esc(o.n)}"><span class="nm">${o.n}</span>${csqBadge}</div></td><td>${o.signal?`<span class="badge ${sBadge[o.signal]}">${sLabel[o.signal]}</span>`:dash}</td><td>${stateBadgesHTML(o.n)||dash}</td><td class="num" style="font-size:0.78rem">${o.prior12>0?fmt(o.prior12):'—'}</td><td class="num" style="font-size:0.78rem;${o.last12===0&&!isPros?'color:#c0392b;font-weight:700':''}">${isPros?'—':o.last12>0?fmt(o.last12):'$0'}</td><td class="num" style="font-size:0.78rem">${isPros?'—':fmt(o.t)}</td><td style="font-size:0.76rem;color:var(--text2);max-width:200px">${o.reason||'—'}</td><td>${avatarHtml}</td><td>${lastOutcomeHtml}</td><td>${statusHtml}</td></tr>`;
   }).join('');
   renderPag('out-pagination',outFiltered.length,OUT_PER,outPage,'goOP');
 }
@@ -1119,20 +1171,37 @@ function openCRM(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-crm').classList.add('active');
 }
 function renderCRMAssign(crm){
-  const member=TEAM.find(m=>m.id===crm.assigneeId);
-  document.getElementById('crm-assign-label').textContent=member?`Assigned to ${member.name}`:'No member assigned';
-  document.getElementById('crm-unassign-btn').style.display=member?'inline-block':'none';
-  // Only active members are assignable. If this company is still held by someone
-  // who has left, show them greyed/selected so it's visible (reassign by picking an active member).
-  const grid=tmActive().slice();
-  if(member&&member.active===false)grid.unshift(member);
-  document.getElementById('crm-assign-grid').innerHTML=grid.map(m=>{
-    const left=m.active===false;
-    return `<div class="assign-member ${crm.assigneeId===m.id?'selected':''}${left?' left-member':''}" ${left?'':`onclick="assignCRM(${m.id})"`}><div class="assign-avatar" style="background:${m.colour}">${initials(m.name)}</div><div><div class="assign-info-name">${m.name}${left?'<span class="left-member-tag">left</span>':''}</div></div></div>`;
+  const ids=assigneesOf(crm),members=ids.map(id=>TEAM.find(m=>m.id===id)).filter(Boolean);
+  document.getElementById('crm-assign-label').textContent=members.length?`Assigned to ${members.map(m=>m.name).join(', ')}`:'No member assigned — click to assign (more than one is fine)';
+  document.getElementById('crm-unassign-btn').style.display=members.length>1?'inline-block':'none';
+  // Click a member to add them, click again to remove. Only active members can be added;
+  // anyone who has left but is still assigned shows greyed out and can be clicked off.
+  const leftAssigned=members.filter(m=>m.active===false);
+  document.getElementById('crm-assign-grid').innerHTML=[...leftAssigned,...tmActive()].map(m=>{
+    const left=m.active===false,sel=ids.includes(m.id);
+    return `<div class="assign-member ${sel?'selected':''}${left?' left-member':''}" onclick="toggleAssignCRM(${m.id})" title="${sel?'Click to remove':'Click to assign'}"><div class="assign-avatar" style="background:${m.colour}">${initials(m.name)}</div><div><div class="assign-info-name">${m.name}${left?'<span class="left-member-tag">left</span>':''}</div></div></div>`;
   }).join('');
+  renderLoggedBy(crm);
 }
-function assignCRM(id){const crm=getCRM(crmCompany);crm.assigneeId=id;saveCRM();renderCRMAssign(crm);toast('Assigned to '+TEAM.find(m=>m.id===id)?.name);if(outreachInit)renderOutreach();}
-function unassignCRM(){const crm=getCRM(crmCompany);crm.assigneeId=null;saveCRM();renderCRMAssign(crm);toast('Assignment removed');if(outreachInit)renderOutreach();}
+// "Logged By" on the call form: who made the call, chosen from the assignees
+function renderLoggedBy(crm){
+  const sel=document.getElementById('crm-logged-by'),cur=Number(sel.value)||null;
+  const ms=assigneesOf(crm).map(id=>TEAM.find(m=>m.id===id)).filter(m=>m&&m.active!==false);
+  let me=null;try{me=Number(localStorage.getItem('kallibr_me'))||null;}catch(e){}
+  const pick=ms.length===1?ms[0].id:ms.some(m=>m.id===cur)?cur:ms.some(m=>m.id===me)?me:null;
+  sel.innerHTML=!ms.length?'<option value="">Assign a team member first</option>':(ms.length>1&&!pick?'<option value="">Select who made the call…</option>':'')+ms.map(m=>`<option value="${m.id}"${m.id===pick?' selected':''}>${esc(m.name)}</option>`).join('');
+  sel.disabled=!ms.length;
+}
+function toggleAssignCRM(id){
+  const crm=getCRM(crmCompany),ids=assigneesOf(crm),m=TEAM.find(t=>t.id===id);
+  if(ids.includes(id)){setAssignees(crm,ids.filter(x=>x!==id));toast(`${m?.name} removed`);}
+  else{if(m?.active===false)return;setAssignees(crm,[...ids,id]);toast(`Assigned to ${m?.name}`);}
+  saveCRM();renderCRMAssign(crm);if(outreachInit)renderOutreach();
+}
+function unassignCRM(){
+  if(!confirm(`Remove everyone assigned to "${crmCompany}"?`))return;
+  const crm=getCRM(crmCompany);setAssignees(crm,[]);saveCRM();renderCRMAssign(crm);toast('All assignments removed');if(outreachInit)renderOutreach();
+}
 function setStatus(s,btn){const crm=getCRM(crmCompany);crm.status=s;saveCRM();document.querySelectorAll('.status-btn').forEach(b=>b.classList.remove('active-status'));btn.classList.add('active-status');if(outreachInit)renderOutreach();toast('Status updated');}
 function selectAttempt(n,btn){selAttempt=n;document.querySelectorAll('.attempt-btn').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');}
 function selectOutcome(o,btn){
@@ -1152,19 +1221,34 @@ function saveCallLog(){
   if(!selOutcome){toast('Please select a call outcome');return;}
   if(!document.getElementById('crm-contact').value.trim()){toast('Please enter a contact name');return;}
   const crm=getCRM(crmCompany);
-  if(!crm.assigneeId){toast('Please assign a team member before logging a call');return;}
-  const member=TEAM.find(m=>m.id===crm.assigneeId);
-  crm.callLog.unshift({id:Date.now(),date:today(),attempt:selAttempt,outcome:selOutcome,contact:document.getElementById('crm-contact').value.trim(),companySize:document.getElementById('crm-company-size').value,objection:document.getElementById('crm-objection').value,coursesInterested:[...selCourses],followup:document.getElementById('crm-followup').value,notes:document.getElementById('crm-notes').value.trim(),agentId:crm.assigneeId,agentName:member?.name||'Unassigned',company:crmCompany});
+  if(!assigneesOf(crm).length){toast('Please assign a team member before logging a call');return;}
+  const agentId=Number(document.getElementById('crm-logged-by').value)||null;
+  if(!agentId){toast('Select who made the call (Logged By)');return;}
+  const member=TEAM.find(m=>m.id===agentId);
+  try{localStorage.setItem('kallibr_me',String(agentId));}catch(e){}
+  crm.callLog.unshift({id:Date.now(),date:today(),attempt:selAttempt,outcome:selOutcome,contact:document.getElementById('crm-contact').value.trim(),companySize:document.getElementById('crm-company-size').value,objection:document.getElementById('crm-objection').value,coursesInterested:[...selCourses],followup:document.getElementById('crm-followup').value,notes:document.getElementById('crm-notes').value.trim(),agentId,agentName:member?.name||'Unassigned',company:crmCompany});
   saveCRM();renderCallHistory(crm);
   selAttempt=null;selOutcome=null;selCourses=[];
   document.querySelectorAll('.attempt-btn,.outcome-chip,.course-chip').forEach(b=>b.classList.remove('selected'));
   document.getElementById('crm-contact').value='';document.getElementById('crm-company-size').value='';document.getElementById('crm-objection').value='';document.getElementById('crm-notes').value='';document.getElementById('crm-followup').value='';
   toast('Call logged ✓');if(outreachInit)renderOutreach();
 }
+// "Quote created" notes written by the Quotes tab (type:'quote'). They sit in the call log so they
+// merge safely between teammates, but they aren't calls — Performance, Sales Team and Course Match skip them.
+const isCall=l=>l.type!=='quote';
+function quoteLogHTML(e){
+  const courses=(e.courses||[]).filter(Boolean).map(c=>`<span class="call-log-chip chip-course">${esc(c)}</span>`).join('');
+  return `<div class="call-log-item quote-log-item">
+      <div class="call-log-top"><span class="call-log-outcome-label" style="color:#007370">📄 Quote created · #${esc(e.quoteNo)}</span><span class="call-log-date">${fmtDate(e.date)}</span></div>
+      ${courses?`<div class="call-log-chips">${courses}</div>`:''}
+      <div class="call-log-footer"><span>👤 ${esc(e.agentName||'—')}</span><span style="font-weight:700;color:var(--text)">${e.total!=null?fmtFull(e.total)+' inc GST':''}</span></div>
+    </div>`;
+}
 function renderCallHistory(crm){
   const log=crm.callLog||[];
   if(!log.length){document.getElementById('crm-call-history').innerHTML='<div style="font-size:0.82rem;color:var(--text2);text-align:center;padding:20px">No calls logged yet</div>';return;}
   document.getElementById('crm-call-history').innerHTML=log.map((e,idx)=>{
+    if(e.type==='quote')return quoteLogHTML(e);
     const dd=daysDiff(e.followup);const overdueHtml=e.followup&&dd!==null?(dd<0?`<span class="overdue-flag">Overdue ${Math.abs(dd)}d</span>`:dd===0?`<span class="followup-flag">Today!</span>`:`<span class="followup-flag">Follow up ${fmtDate(e.followup)}</span>`):'';
     const outcomeOptions=Object.entries(OUTCOME_LABELS).map(([k,v])=>`<option value="${k}" ${e.outcome===k?'selected':''}>${v}</option>`).join('');
     const objectionOptions=`<option value="">None / not raised</option><option value="budget" ${e.objection==='budget'?'selected':''}>Budget constraints</option><option value="timing" ${e.objection==='timing'?'selected':''}>Bad timing</option><option value="competitor" ${e.objection==='competitor'?'selected':''}>Using another provider</option><option value="no-need" ${e.objection==='no-need'?'selected':''}>No current training need</option><option value="decision-maker" ${e.objection==='decision-maker'?'selected':''}>Need decision maker</option><option value="price" ${e.objection==='price'?'selected':''}>Price too high</option><option value="quality" ${e.objection==='quality'?'selected':''}>Quality concerns</option><option value="location" ${e.objection==='location'?'selected':''}>Location concerns</option><option value="other" ${e.objection==='other'?'selected':''}>Other</option>`;
@@ -1241,6 +1325,33 @@ function markFollowUpDone(company,entryId){
 }
 function closeCRM(){showPage(prevPage,document.querySelector(`.nav-item[onclick*="'${prevPage}'"]`));}
 
+// ── QUOTES TAB ──
+// quotes.html runs in a frame on the Quotes page. It reads the already-loaded data and writes its
+// "quote created" note through this bridge, so the note goes through saveCRM's merge-safe save.
+window.crmBridge={
+  data:()=>({RAW,CRM,STATE_TAGS}),
+  async logQuote(company,entry){
+    const crm=getCRM(company);
+    if(!crm.callLog.some(l=>l.type==='quote'&&l.quoteNo===entry.quoteNo)){crm.callLog.unshift(entry);await saveCRM();}
+    if(crmCompany===company)renderCallHistory(crm);
+    return true;
+  },
+};
+function ensureQuotesFrame(){
+  const f=document.getElementById('quotes-frame');
+  if(!f.getAttribute('src'))f.setAttribute('src','quotes.html?embed=1');
+  else try{f.contentWindow.loadCompanies?.().then(()=>f.contentWindow.renderCompanyInfo?.());}catch(e){}   // pick up new prospects
+  return f;
+}
+// "Create quote" on a company profile: open the Quotes tab with that company filled in
+function createQuoteFor(name){
+  showPage('quotes',document.querySelector(`.nav-item[onclick*="'quotes'"]`));
+  const f=ensureQuotesFrame();
+  const go=()=>f.contentWindow.startQuoteFor(name);
+  if(f.contentWindow&&typeof f.contentWindow.startQuoteFor==='function')go();
+  else f.addEventListener('load',()=>setTimeout(go,30),{once:true});
+}
+
 // ── CSQ flag (manual) ──
 // Newest change wins when reconciling with a teammate's copy
 function _mergeCSQ(local,server){if((server.csqAt||0)>(local.csqAt||0)){local.csq=server.csq;local.csqAt=server.csqAt;}}
@@ -1298,7 +1409,7 @@ function _mergeProspectFields(key,serverMap){
   const have=new Set(dst.callLog.map(l=>l.id));
   [...(local.callLog||[]),...(server.callLog||[])].forEach(l=>{if(!have.has(l.id)){have.add(l.id);dst.callLog.push({...l,company:into});}});
   dst.callLog.sort((a,b)=>(b.id||0)-(a.id||0));
-  local.callLog=[];local.assigneeId=null;
+  local.callLog=[];local.assigneeId=null;local.assigneeIds=[];
   return true;
 }
 
@@ -1368,8 +1479,8 @@ function matchSubHTML(name){
   }
   const c=RAW.clients.find(x=>x.n===name),o=RAW.outreach.find(x=>x.n===name);
   const tot=c?.t||o?.t||0,l12=c?sumLast12(c.m):(o?.last12||0);
-  const a=TEAM.find(m=>m.id===CRM[name]?.assigneeId);
-  return `Booked client · ${fmt(tot)} total · ${fmt(l12)} last 12${a?' · assigned to '+esc(a.name):''}`;
+  const as=assigneesOf(CRM[name]).map(id=>TEAM.find(m=>m.id===id)?.name).filter(Boolean);
+  return `Booked client · ${fmt(tot)} total · ${fmt(l12)} last 12${as.length?' · assigned to '+esc(as.join(', ')):''}`;
 }
 // Active prospects whose name now closely matches a company in the booking data
 function prospectSuggestions(){
@@ -1395,14 +1506,15 @@ function mergeProspect(from,to,keepProspect){
   const dst=getCRM(to),have=new Set(dst.callLog.map(l=>l.id));
   (src.callLog||[]).forEach(l=>{if(!have.has(l.id))dst.callLog.push({...l,company:to});});
   dst.callLog.sort((a,b)=>(b.id||0)-(a.id||0));
-  if(!dst.assigneeId&&src.assigneeId)dst.assigneeId=src.assigneeId;
+  const da=assigneesOf(dst),sa=assigneesOf(src);
+  if(sa.some(id=>!da.includes(id)))setAssignees(dst,[...da,...sa.filter(id=>!da.includes(id))]);
   if((!dst.status||dst.status==='pending')&&src.status)dst.status=src.status;
   const now=Date.now();
   if(src.csq===true&&!isCSQ(to)){dst.csq=true;dst.csqAt=now;}
   if(keepProspect)dst.prospect={...src.prospect,mergedInto:undefined,renamed:undefined,updatedAt:now};
   else{const p=src.prospect;dst.convertedFrom={name:from,addedBy:p.addedBy,addedAt:p.addedAt,states:p.states,industry:p.industry,contact:p.contact,convertedAt:today()};}
   src.prospect={...src.prospect,mergedInto:to,renamed:!!keepProspect,updatedAt:now};
-  src.callLog=[];src.assigneeId=null;
+  src.callLog=[];setAssignees(src,[]);
   invalidateMatchIndex();saveCRM();updateProspectNav();
   if(outreachInit)renderOutreach();
 }
@@ -1478,7 +1590,7 @@ function submitProspect(){
   if(contact.email&&!/^\S+@\S+\.\S+$/.test(contact.email)){toast('That email address doesn\'t look right');return;}
   if(top&&top.score>=MATCH_STRONG&&!_prConfirmNear){_prConfirmNear=true;_setPrSubmit('strong');toast('Check the possible duplicates first');return;}
   const crm=getCRM(name);
-  crm.assigneeId=addedBy;if(!crm.status)crm.status='pending';
+  setAssignees(crm,[addedBy]);if(!crm.status)crm.status='pending';
   crm.prospect={addedBy,addedAt:today(),states:[..._prStates],industry:document.getElementById('pr-industry').value,contact,updatedAt:Date.now()};
   if(document.getElementById('pr-csq').checked){crm.csq=true;crm.csqAt=Date.now();}
   try{localStorage.setItem('kallibr_me',String(addedBy));}catch(e){}
@@ -1571,7 +1683,7 @@ function renderProspects(){
   const mf=msel.value,sf=document.getElementById('pr-state').value,inf=isel.value,q=document.getElementById('pr-search').value.toLowerCase(),csq=csqOnly('pr-csq-filter');
   const list=rows.filter(r=>{
     if(r.st!==prView)return false;
-    if(mf==='unassigned'?r.crm.assigneeId:mf&&r.crm.assigneeId!=mf)return false;
+    if(mf==='unassigned'?assigneesOf(r.crm).length:mf&&!isAssignedTo(r.crm,mf))return false;
     if(sf&&!(r.p.states||[]).includes(sf))return false;
     if(inf&&r.industry!==inf)return false;
     if(csq&&!isCSQ(r.target))return false;
@@ -1582,8 +1694,8 @@ function renderProspects(){
   document.getElementById('pr-count').textContent=`${list.length} prospect${list.length===1?'':'s'}`;
   const scol={contacted:'#1565a8',won:'#2d7a2d',lost:'#b33050'},dash='<span style="color:var(--text2);font-size:0.78rem">—</span>';
   document.getElementById('pr-tbody').innerHTML=list.length?list.map(r=>{
-    const member=TEAM.find(m=>m.id===r.crm.assigneeId),by=TEAM.find(m=>m.id===r.p.addedBy),c=r.p.contact||{};
-    const avatar=member?`<div style="display:inline-flex;align-items:center;gap:6px"><div style="width:22px;height:22px;border-radius:50%;background:${member.colour};display:inline-flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#fff">${initials(member.name)}</div><span style="font-size:0.78rem">${esc(member.name)}</span></div>`:dash;
+    const by=TEAM.find(m=>m.id===r.p.addedBy),c=r.p.contact||{};
+    const avatar=assigneesHTML(r.crm);
     const st=r.crm.status||'pending';
     const status=st!=='pending'?`<span style="font-size:0.72rem;font-weight:600;color:${scol[st]};background:${scol[st]}18;padding:2px 8px;border-radius:99px;text-transform:capitalize">${st}</span>`:'—';
     const last=r.last?`<span style="font-size:0.72rem;font-weight:600;color:${OUTCOME_COLOURS[r.last.outcome]||'#2d2d3a'}">${OUTCOME_LABELS[r.last.outcome]||r.last.outcome}</span>`:dash;
@@ -1627,15 +1739,15 @@ function runCourseMatch(){
   // For each company, find the latest call log that matches all filters
   const matches=[];
   Object.entries(CRM).forEach(([company,crm])=>{
-    if(fMember&&String(crm.assigneeId||'')!==fMember)return;
+    if(fMember&&!isAssignedTo(crm,fMember))return;
     if(fCsq&&isCSQ(company)!==(fCsq==='yes'))return;
-    const logs=(crm.callLog||[]).slice().sort((a,b)=>(b.id||0)-(a.id||0));
+    const logs=(crm.callLog||[]).filter(isCall).sort((a,b)=>(b.id||0)-(a.id||0));
     for(const l of logs){
       if(fCourse&&!(l.coursesInterested||[]).includes(fCourse))continue;
       if(fOutcome&&l.outcome!==fOutcome)continue;
       if(fObjection&&l.objection!==fObjection)continue;
       if(fSize&&l.companySize!==fSize)continue;
-      matches.push({company,log:l,assigneeId:crm.assigneeId,status:crm.status||'pending'});
+      matches.push({company,log:l,crm,status:crm.status||'pending'});
       break; // Only latest matching call per company
     }
   });
@@ -1644,8 +1756,7 @@ function runCourseMatch(){
   const wrap=document.getElementById('cm-results');
   if(!matches.length){wrap.innerHTML='<div style="text-align:center;padding:40px;color:var(--text2);background:var(--white);border:1.5px solid var(--border);border-radius:12px">No matching companies found. Try adjusting your filters.</div>';return;}
   const rows=matches.map(m=>{
-    const member=TEAM.find(t=>t.id===m.assigneeId);
-    const avatarHtml=member?`<div style="display:inline-flex;align-items:center;gap:6px"><div style="width:22px;height:22px;border-radius:50%;background:${member.colour};display:inline-flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#fff">${initials(member.name)}</div><span style="font-size:0.78rem">${member.name}</span></div>`:'<span style="color:var(--text2);font-size:0.78rem">—</span>';
+    const avatarHtml=assigneesHTML(m.crm);
     const courseChips=(m.log.coursesInterested||[]).map(c=>`<span class="call-log-chip chip-course">${c}</span>`).join('');
     const objChip=m.log.objection?`<span class="call-log-chip chip-objection">${OBJECTION_LABELS[m.log.objection]||m.log.objection}</span>`:'';
     const sizeChip=m.log.companySize?`<span class="call-log-chip chip-size">${m.log.companySize}</span>`:'';
@@ -1672,7 +1783,7 @@ function renderFollowUps(){
     const logsWithFu=(crm.callLog||[]).filter(l=>l.followup&&!l.followupDone);
     if(!logsWithFu.length)return;
     const latest=logsWithFu[0];
-    allFu.push({company,crm,log:latest,days:daysDiff(latest.followup),member:TEAM.find(m=>m.id===crm.assigneeId)});
+    allFu.push({company,crm,log:latest,days:daysDiff(latest.followup)});
   });
   // Populate member filter
   const sel=document.getElementById('fu-member-filter');const curVal=sel.value;
@@ -1683,7 +1794,7 @@ function renderFollowUps(){
     if(fuFilter==='overdue'&&(f.days===null||f.days>=0))return false;
     if(fuFilter==='today'&&f.days!==0)return false;
     if(fuFilter==='upcoming'&&(f.days===null||f.days<0||f.days>7))return false;
-    if(mf&&f.crm.assigneeId!=mf)return false;
+    if(mf&&!isAssignedTo(f.crm,mf))return false;
     if(search&&!f.company.toLowerCase().includes(search))return false;
     return true;
   });
@@ -1694,7 +1805,7 @@ function renderFollowUps(){
   document.getElementById('fu-count').textContent=`${filtered.length} follow-ups`;
   document.getElementById('fu-tbody').innerHTML=filtered.length?filtered.map(f=>{
     const d=f.days;const db=d===null?'':(d<0?`<span class="days-badge days-overdue">${Math.abs(d)}d overdue</span>`:d===0?`<span class="days-badge days-today">Today</span>`:d<=7?`<span class="days-badge days-soon">In ${d}d</span>`:`<span class="days-badge days-later">In ${d}d</span>`);
-    const mHtml=f.member?`<div style="display:inline-flex;align-items:center;gap:6px"><div style="width:20px;height:20px;border-radius:50%;background:${f.member.colour};display:inline-flex;align-items:center;justify-content:center;font-size:0.6rem;font-weight:700;color:#fff">${initials(f.member.name)}</div>${f.member.name}</div>`:'<span style="color:var(--text2)">—</span>';
+    const mHtml=assigneesHTML(f.crm);
     return `<tr onclick="openCRM('${f.company.replace(/'/g,"\\'")}')"><td style="font-weight:600;max-width:200px"><div class="name-cell" title="${esc(f.company)}"><span class="nm">${f.company}</span>${csqTag(f.company)}</div></td><td style="font-size:0.8rem">${f.log.contact||'—'}</td><td style="font-size:0.8rem">${fmtDate(f.log.followup)}</td><td>${db}</td><td style="font-size:0.76rem;font-weight:600;color:${OUTCOME_COLOURS[f.log.outcome]||'#2d2d3a'}">${OUTCOME_LABELS[f.log.outcome]||f.log.outcome}</td><td style="font-size:0.76rem;color:var(--text2)">${(f.log.coursesInterested||[]).slice(0,2).join(', ')||'—'}</td><td>${mHtml}</td><td style="display:flex;gap:6px"><button class="btn-primary" style="font-size:0.72rem;padding:5px 10px" onclick="event.stopPropagation();openCRM('${f.company.replace(/'/g,"\\'")}')">Open</button><button style="font-size:0.72rem;padding:5px 10px;border-radius:10px;border:1.5px solid #2d7a2d;background:#edf7ed;color:#2d7a2d;cursor:pointer;font-weight:600;white-space:nowrap" onclick="event.stopPropagation();markFollowUpDone('${f.company.replace(/'/g,"\\'")}',${ f.log.id})">✓ Done</button></td></tr>`;
   }).join(''):'<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text2)">No follow-ups match the current filter</td></tr>';
 }
@@ -1765,18 +1876,20 @@ function loadPerfData(id){
   const allCalls=[];
   Object.values(CRM).forEach(crm=>{
     (crm.callLog||[]).forEach(l=>{
+      if(!isCall(l))return;
       if(!isAll&&l.agentId!==id)return;
       if(dfrom&&l.date&&l.date<dfrom)return;
       if(dto&&l.date&&l.date>dto)return;
       allCalls.push(l);
     });
   });
-  const assigned=isAll?Object.values(CRM).filter(c=>c.assigneeId!=null).length:Object.values(CRM).filter(c=>c.assigneeId===id).length;
+  // A company shared by several members counts towards each of them
+  const assigned=isAll?Object.values(CRM).filter(c=>assigneesOf(c).length).length:Object.values(CRM).filter(c=>isAssignedTo(c,id)).length;
   // When a date filter is active, derive contacted/won from filtered call logs so they respect the date range
   let contacted,won;
   if(perfDateFilter==='all'){
-    contacted=isAll?Object.values(CRM).filter(c=>['contacted','won','lost'].includes(c.status)).length:Object.values(CRM).filter(c=>c.assigneeId===id&&['contacted','won','lost'].includes(c.status)).length;
-    won=isAll?Object.values(CRM).filter(c=>c.status==='won').length:Object.values(CRM).filter(c=>c.assigneeId===id&&c.status==='won').length;
+    contacted=isAll?Object.values(CRM).filter(c=>['contacted','won','lost'].includes(c.status)).length:Object.values(CRM).filter(c=>isAssignedTo(c,id)&&['contacted','won','lost'].includes(c.status)).length;
+    won=isAll?Object.values(CRM).filter(c=>c.status==='won').length:Object.values(CRM).filter(c=>isAssignedTo(c,id)&&c.status==='won').length;
   }else{
     // Count unique companies that had a meaningful outcome in the filtered call log
     const contactedCompanies=new Set(allCalls.filter(l=>['interested','won','not-interested','proposal','callback'].includes(l.outcome)).map(l=>l.company));
@@ -1879,9 +1992,9 @@ function renderTeamPage(){
   const activeCount=tmActive().length,leftCount=TEAM.length-activeCount;
   document.getElementById('team-subtitle').textContent=`Your ${activeCount}-person team${leftCount?` (+${leftCount} former)`:''} — click View Stats to see individual performance`;
   document.getElementById('team-grid').innerHTML=TEAM.map(m=>{
-    const assigned=Object.values(CRM).filter(c=>c.assigneeId===m.id).length;
-    const calls=Object.values(CRM).reduce((s,c)=>s+(c.callLog||[]).filter(l=>l.agentId===m.id).length,0);
-    const won=Object.values(CRM).filter(c=>c.assigneeId===m.id&&c.status==='won').length;
+    const assigned=Object.values(CRM).filter(c=>isAssignedTo(c,m.id)).length;
+    const calls=Object.values(CRM).reduce((s,c)=>s+(c.callLog||[]).filter(l=>isCall(l)&&l.agentId===m.id).length,0);
+    const won=Object.values(CRM).filter(c=>isAssignedTo(c,m.id)&&c.status==='won').length;
     const left=m.active===false;
     return `<div class="team-card-simple${left?' left-member':''}">
       <div class="team-avatar-sm" style="background:${m.colour}">${initials(m.name)}</div>
@@ -1893,7 +2006,7 @@ function renderTeamPage(){
     </div>`;
   }).join('');
   if(assignChart){assignChart.destroy();assignChart=null;}
-  assignChart=new Chart(document.getElementById('assignChart').getContext('2d'),{type:'bar',data:{labels:TEAM.map(m=>m.name),datasets:[{data:TEAM.map(m=>Object.values(CRM).filter(c=>c.assigneeId===m.id).length),backgroundColor:TEAM.map(m=>m.colour),borderRadius:8,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+' assigned'}}},scales:{x:{grid:{display:false},ticks:{font:{size:11},color:'#6b6b82'}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{stepSize:1,font:{size:11},color:'#6b6b82'},border:{display:false}}}}});
+  assignChart=new Chart(document.getElementById('assignChart').getContext('2d'),{type:'bar',data:{labels:TEAM.map(m=>m.name),datasets:[{data:TEAM.map(m=>Object.values(CRM).filter(c=>isAssignedTo(c,m.id)).length),backgroundColor:TEAM.map(m=>m.colour),borderRadius:8,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+' assigned'}}},scales:{x:{grid:{display:false},ticks:{font:{size:11},color:'#6b6b82'}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{stepSize:1,font:{size:11},color:'#6b6b82'},border:{display:false}}}}});
 }
 
 async function init(){
@@ -1939,11 +2052,12 @@ async function init(){
           }
           CRM[key].callLog = localLogs.sort((a,b) => (b.id||0) - (a.id||0));
           if(incoming[key].status && !CRM[key]._localEdit) CRM[key].status = incoming[key].status;
-          if(incoming[key].assigneeId !== undefined && !CRM[key]._localEdit) CRM[key].assigneeId = incoming[key].assigneeId;
+          _mergeAssign(CRM[key], incoming[key], true);
         }
       }
       // Refresh visible pages
       invalidateMatchIndex(); updateProspectNav();
+      if(document.getElementById('page-crm').classList.contains('active') && crmCompany && CRM[crmCompany]) renderCRMAssign(CRM[crmCompany]);
       if(document.getElementById('page-prospects').classList.contains('active')) renderProspects();
       if(document.getElementById('page-followups').classList.contains('active')) renderFollowUps();
       if(document.getElementById('page-performance').classList.contains('active')) renderPerformancePage();
