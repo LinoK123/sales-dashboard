@@ -94,7 +94,7 @@ main{max-width:1180px;margin:0 auto;padding:26px 28px 60px;}
 .opts .chk{font-size:0.76rem;}
 .machines{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
 .mach{padding:5px 10px;border-radius:16px;border:1.5px solid var(--border);background:var(--white);font-size:0.74rem;cursor:pointer;}
-.mach.sel{background:var(--lav);border-color:var(--lav2);font-weight:600;}
+.mach.picked{background:var(--lav);border-color:var(--lav2);}   /* not "sel" — that's the full-width dropdown class */
 .csq-box{border:1.5px dashed #9ecf9e;border-radius:10px;padding:8px 10px;margin-bottom:8px;background:#f7fcf7;}
 .csq-box.on{border-style:solid;}
 .csq-row{display:grid;grid-template-columns:auto 110px 120px 1fr;gap:8px;align-items:center;margin-top:6px;}
@@ -731,7 +731,7 @@ function lineEditorHTML(l, i) {
     : csqPriced ? `<span class="hint" style="color:var(--ok)">CSQ price${lp != null ? ` · list ${money(lp)}` : ''}</span>`
     : lp == null ? `<span class="hint warn">No list price (TBC) — enter one</span>`
     : Number(l.unitPrice) !== lp ? `<span class="hint">List ${money(lp)} · <a href="#" data-act="reset">reset</a></span>` : `<span class="hint">List price</span>`;
-  const machines = l.mode === 'machines' ? `<div class="lbl" style="margin-bottom:4px">Machines (pick up to 3)</div><div class="machines">${c.units.map(u => `<button class="mach${l.machines.includes(u.code) ? ' sel' : ''}" data-act="machine" data-code="${esc(u.code)}" title="${esc(u.code)}">${esc(u.title.replace(/^Conduct (civil construction )?/i, '').replace(/ operations$/i, '').replace(/^\w/, ch => ch.toUpperCase()))}</button>`).join('')}</div>` : '';
+  const machines = l.mode === 'machines' ? `<div class="lbl" style="margin-bottom:4px">Machines (pick up to 3)</div><div class="machines">${c.units.map(u => `<button class="mach${l.machines.includes(u.code) ? ' picked' : ''}" data-act="machine" data-code="${esc(u.code)}" title="${esc(u.code)}">${esc(u.title.replace(/^Conduct (civil construction )?/i, '').replace(/ operations$/i, '').replace(/^\w/, ch => ch.toUpperCase()))}</button>`).join('')}</div>` : '';
   const csq = csqAvailable(l) ? `<div class="csq-box${l.csq.on ? ' on' : ''}">
       <label class="chk"><input type="checkbox" data-f="csqOn"${l.csq.on ? ' checked' : ''}> <b style="color:var(--ok)">Apply CSQ funding</b> <span class="hint">(${c.csq.perMachine
         ? (l.mode === 'group' ? `${money(c.csq.amount)} off per funded outcome` : `${money(c.csq.amount)} per machine, per eligible person · gap ${(c.csq.gapByMachines || []).map(money).join(' / ')} for 1 / 2 / 3 machines`)
