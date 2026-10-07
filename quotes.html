@@ -88,7 +88,9 @@ main{max-width:1180px;margin:0 auto;padding:26px 28px 60px;}
 .line-head .inp{font-weight:600;}
 .line-num{font-size:0.7rem;font-weight:700;color:var(--text2);width:18px;flex-shrink:0;}
 .line-row{display:grid;grid-template-columns:1.5fr 0.8fr 1fr 1fr;gap:8px;margin-bottom:8px;}
-.line-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:0.76rem;color:var(--text2);}
+.line-foot{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;font-size:0.76rem;color:var(--text2);}
+.foot-right{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.line-row.three{grid-template-columns:0.8fr 1fr 1fr;}   /* custom items: Qty | Unit price | Discount */
 .line-total{font-weight:700;color:var(--text);font-size:0.84rem;}
 .opts{display:flex;flex-wrap:wrap;gap:6px 14px;margin:2px 0 8px;}
 .opts .chk{font-size:0.76rem;}
@@ -162,7 +164,7 @@ a{color:var(--lav3);}
   .row{grid-template-columns:1fr auto;gap:6px 12px;}
   .row .c-dur,.row .grp{grid-column:1/-1;}
   .detail{grid-template-columns:1fr;}
-  .grid2,.grid4,.line-row{grid-template-columns:1fr 1fr;}
+  .grid2,.grid4,.line-row,.line-row.three{grid-template-columns:1fr 1fr;}
   .q-layout{grid-template-columns:minmax(0,1fr);}
 }
 </style>
@@ -707,16 +709,26 @@ function lineEditorHTML(l, i) {
       <div style="display:flex;gap:4px"><input class="inp" type="number" min="0" step="0.01" data-f="discValue" value="${esc(d.value)}" placeholder="0" style="min-width:0">
       <select class="sel" data-f="discType" style="width:auto;padding-right:6px"><option value="pct"${d.type === 'pct' ? ' selected' : ''}>%</option><option value="amt"${d.type === 'amt' ? ' selected' : ''}>$</option></select></div>
       <span class="hint" data-dischint>${k.disc ? `− ${money2(-k.disc.inc)}` : ''}</span></div>`;
+  // GST + line total sit together in the footer of every line, always visible
+  const footRight = `<div class="foot-right"><span class="lbl">GST</span>${gstSel.replace('class="sel"', 'class="sel" style="width:auto;padding:5px 30px 5px 9px;font-size:0.76rem"')}${totalTxt}</div>`;
   if (l.kind === 'custom') {
     return `<div class="line" data-line="${l.uid}">
-      <div class="line-head"><span class="line-num">${i + 1}</span><input class="inp" data-f="title" value="${esc(l.title)}" placeholder="Item name (e.g. Travel, Materials)">${moveBtns}</div>
-      <div class="line-row">
-        <div class="fld"><span class="lbl">Description</span><input class="inp" data-f="description" value="${esc(l.description)}" placeholder="Optional"></div>
+      <div class="line-head"><span class="line-num">${i + 1}</span><input class="inp" data-f="title" value="${esc(l.title)}" placeholder="Item name (e.g. Travel, Materials)" style="flex:1;min-width:0">${moveBtns}</div>
+      <div class="line-row three">
         <div class="fld"><span class="lbl">Qty</span><input class="inp" type="number" min="0" data-f="qty" value="${esc(l.qty)}"></div>
         <div class="fld"><span class="lbl">Unit price</span><input class="inp${k.missingPrice ? ' bad' : ''}" type="number" step="0.01" data-f="unitPrice" value="${esc(l.unitPrice ?? '')}"></div>
         ${discFld}
       </div>
-      <div class="line-foot"><div class="fld" style="flex-direction:row;align-items:center;gap:8px"><span class="lbl">GST</span>${gstSel}</div>${totalTxt}</div>
+      <div class="line-foot">
+        <details class="details" style="flex:1;min-width:260px"${l.description ? ' open' : ''}><summary>Description options</summary>
+          <div class="fld" style="margin-top:4px">
+            <span class="lbl">Text under the item name</span>
+            <textarea class="ta" data-f="description" rows="${Math.min(12, Math.max(3, String(l.description || '').split('\n').length + 1))}" style="font-size:0.78rem;line-height:1.45" placeholder="Optional — shown under the item name on the quote">${esc(l.description)}</textarea>
+            <span class="hint"><a href="#" data-act="clearDesc">Clear</a></span>
+          </div>
+        </details>
+        ${footRight}
+      </div>
     </div>`;
   }
   const c = courseById(l.courseId), p = c?.pricing[Q.state];
@@ -760,9 +772,8 @@ function lineEditorHTML(l, i) {
             <span class="hint" data-subhint>${subHintHTML(l)}</span>
             ${offNotes.length ? `<span class="hint">Not included (internal notes): ${offNotes.map(esc).join(' · ')}</span>` : ''}
           </div>
-          <div class="fld" style="max-width:220px;margin-top:8px"><span class="lbl">GST</span>${gstSel}</div>
         </details>
-        ${totalTxt}
+        ${footRight}
       </div>
     </div>`;
 }
@@ -849,6 +860,7 @@ function onLineClick(e) {
   }
   else if (act === 'resetSub') { e.preventDefault(); l.subText = null; }
   else if (act === 'clearSub') { e.preventDefault(); l.subText = ''; }
+  else if (act === 'clearDesc') { e.preventDefault(); l.description = ''; }
   else if (act === 'machine') {
     const code = btn.dataset.code;
     if (l.machines.includes(code)) l.machines = l.machines.filter(x => x !== code);
