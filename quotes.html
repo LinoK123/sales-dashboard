@@ -442,9 +442,9 @@ function csqGapFor(l) {   // the client's gap fee per person from the CSQ sheet,
   return cs.gap ?? null;
 }
 const csqTarget = l => { const g = csqGapFor(l); return g == null ? null : r2(csqPerPerson(l) + g); };
-function setAutoDisc(l, v) {
+function setAutoDisc(l, v, per) {
   if (l.disc && l.disc.auto === false && Number(l.disc.value) > 0) return;   // rep's own discount wins
-  l.disc = v > 0 ? {type: 'amt', value: v, auto: true} : {type: 'pct', value: '', auto: true};
+  l.disc = v > 0 ? {type: 'amt', value: v, per, auto: true} : {type: 'pct', value: '', auto: true};
 }
 function clearAutoDisc(l) { if (l.disc?.auto) l.disc = {type: 'pct', value: ''}; }
 function applyCsqPricing(l) {
@@ -454,7 +454,15 @@ function applyCsqPricing(l) {
   const want = byGroup ? r2(target * groupMax(l)) : target;           // CSQ price for one unit (person, or a full group)
   const setPrice = v => { if (l.csq.autoPrice !== false) { l.unitPrice = v; l.csq.autoPrice = true; } };
   if (list == null || want >= list) { setPrice(want); clearAutoDisc(l); }
-  else { setPrice(list); setAutoDisc(l, r2((list - want) * (byGroup ? (Number(l.qty) || 0) : (Number(l.csq.persons) || 0)))); }
+  else {
+    setPrice(list);
+    const diff = r2(list - want), persons = Number(l.csq.persons) || 0;
+    // Per person: the difference per head when everyone attending is eligible; otherwise a line total
+    // for just the eligible people. Groups: the difference per group, as a line total.
+    if (byGroup) setAutoDisc(l, r2(diff * (Number(l.qty) || 0)), 'line');
+    else if (persons === (Number(l.qty) || 0)) setAutoDisc(l, diff, 'unit');
+    else setAutoDisc(l, r2(diff * persons), 'line');
+  }
 }
 function revertCsqPricing(l) {
   if (l.csq?.autoPrice) l.unitPrice = listPrice(l);
@@ -462,17 +470,26 @@ function revertCsqPricing(l) {
   clearAutoDisc(l);
 }
 
-// Discount on a line: { type: 'pct' | 'amt', value }. % of the line, or $ off the whole line.
+// Discount on a line: { type: 'pct' | 'amt', value, per }. % of the line, or a $ amount.
+// A $ discount on a per-person line (and custom items) is per person/item — it's multiplied by Qty —
+// when per === 'unit' (set whenever the rep enters it). Group lines, and $ discounts saved before this
+// (no per), are $ off the whole line.
+const discPerUnit = l => l.disc?.type === 'amt' && l.disc.per === 'unit' && l.mode !== 'group';
 const discountLabel = d => !d || !(Number(d.value) > 0) ? '' : d.type === 'pct' ? `${Number(d.value)}%` : '';
 function lineCalc(l) {
   const unit = Number(l.unitPrice) || 0, qty = Math.max(0, Number(l.qty) || 0);   // groups: qty = number of groups
   const gross = r2(unit * qty);
   const main = {qty, unitEx: exUnit(unit, l.gst), ...split(gross, l.gst)};
   // Order: our price → less discount → less CSQ. Neither can take the line below $0.
-  const dv = Math.max(0, Number(l.disc?.value) || 0);
-  const discAmt = !dv ? 0 : l.disc.type === 'pct' ? r2(gross * Math.min(dv, 100) / 100) : Math.min(r2(dv), gross);
+  const dv = Math.max(0, Number(l.disc?.value) || 0), perUnit = discPerUnit(l);
+  const discAmt = !dv ? 0 : l.disc.type === 'pct' ? r2(gross * Math.min(dv, 100) / 100) : Math.min(r2(perUnit ? dv * qty : dv), gross);
   let disc = null;
-  if (discAmt > 0) { const s = split(discAmt, l.gst); disc = {label: discountLabel(l.disc), ex: -s.ex, gst: -s.gst, inc: -s.inc}; }
+  if (discAmt > 0) {
+    const s = split(discAmt, l.gst);
+    disc = {label: discountLabel(l.disc), ex: -s.ex, gst: -s.gst, inc: -s.inc};
+    // Per person: show Qty × amount on the quote, like the course row (the amount actually applied if capped)
+    if (perUnit) { disc.qty = qty; disc.each = r2(discAmt / qty); disc.unitEx = -r2(s.ex / qty); }
+  }
   let csq = null;
   if (l.csq?.on && csqAvailable(l)) {
     // CSQ is a flat amount per eligible person (earthmoving: per machine, per person; outcome groups: per outcome)
@@ -550,7 +567,7 @@ function quoteSheetHTML(q) {
   const rows = q.lines.map(l => {
     const k = lineCalc(l);
     let h = `<tr>${cell(lineDescHTML(l), 'left')}${cell(k.main.qty, 'center')}${cell(k.missingPrice ? 'TBC' : money2(k.main.unitEx), 'right')}${cell(money2(k.main.ex), 'right')}${cell(money2(k.main.gst), 'right')}${cell(money2(k.main.inc), 'right')}</tr>`;
-    if (k.disc) h += `<tr>${cell(`Less discount${k.disc.label ? ' – ' + k.disc.label : ''}`, 'left', sub)}${cell('', 'center')}${cell('', 'right')}${cell(money2(k.disc.ex), 'right')}${cell(money2(k.disc.gst), 'right')}${cell(money2(k.disc.inc), 'right')}</tr>`;
+    if (k.disc) h += `<tr>${cell(`Less discount${k.disc.label ? ' – ' + k.disc.label : ''}`, 'left', sub)}${cell(k.disc.qty ?? '', 'center')}${cell(k.disc.qty != null ? money2(k.disc.unitEx) : '', 'right')}${cell(money2(k.disc.ex), 'right')}${cell(money2(k.disc.gst), 'right')}${cell(money2(k.disc.inc), 'right')}</tr>`;
     if (k.csq) {
       const who = k.csq.outcomes ? `${k.csq.persons} funded outcome${k.csq.persons === 1 ? '' : 's'}` : `${k.csq.persons} eligible participant${k.csq.persons === 1 ? '' : 's'}`;
       const each = k.csq.perMachine ? `${money2(k.csq.amount)} (${k.csq.perMachine.n} machine${k.csq.perMachine.n === 1 ? '' : 's'} × ${money2(k.csq.perMachine.each)})` : money2(k.csq.amount);
@@ -722,16 +739,20 @@ function renderCompanyInfo() {
 function renderAll() { renderHeaderFields(); renderLines(); renderPreview(); renderStatus(); }
 
 // ── Lines ──
+// Under the discount box: the total off, with the working for a per-person $ discount (e.g. $50 × 3)
+const discHintText = (l, k) => !k.disc ? '' : `− ${money2(-k.disc.inc)}${k.disc.qty > 1 ? ` (${money2(k.disc.each)} × ${k.disc.qty}${l.gst === 'add' ? ' + GST' : ''})` : ''}${l.disc?.type === 'amt' && !discPerUnit(l) && l.mode !== 'group' ? ' for the line' : ''}`;
 function lineEditorHTML(l, i) {
   const k = lineCalc(l), n = Q.lines.length;
   const moveBtns = `<button class="icon-btn" title="Move up" ${i ? '' : 'disabled'} data-act="up">↑</button><button class="icon-btn" title="Move down" ${i < n - 1 ? '' : 'disabled'} data-act="down">↓</button><button class="icon-btn" title="Remove" data-act="remove">✕</button>`;
   const gstSel = `<select class="sel" data-f="gst"><option value="free"${l.gst === 'free' ? ' selected' : ''}>GST-free</option><option value="incl"${l.gst === 'incl' ? ' selected' : ''}>Price incl. GST</option><option value="add"${l.gst === 'add' ? ' selected' : ''}>Add GST (10%)</option></select>`;
   const totalTxt = `<span class="line-total" data-total>${money2(k.net.inc)} inc GST</span>`;
   const d = l.disc || {type: 'pct', value: ''};
+  // $ on a per-person line / custom item is per person / per item; on a group line it's off the whole line
+  const amtTxt = l.mode === 'group' ? '$' : l.kind === 'custom' ? '$ each' : '$ pp';
   const discFld = `<div class="fld"><span class="lbl">Discount</span>
       <div style="display:flex;gap:4px"><input class="inp" type="number" min="0" step="1" data-f="discValue" value="${esc(d.value)}" placeholder="0" style="min-width:0">
-      <select class="sel" data-f="discType" style="width:auto;padding-right:6px"><option value="pct"${d.type === 'pct' ? ' selected' : ''}>%</option><option value="amt"${d.type === 'amt' ? ' selected' : ''}>$</option></select></div>
-      <span class="hint" data-dischint>${k.disc ? `− ${money2(-k.disc.inc)}` : ''}</span></div>`;
+      <select class="sel" data-f="discType" style="width:auto;padding-right:6px"><option value="pct"${d.type === 'pct' ? ' selected' : ''}>%</option><option value="amt"${d.type === 'amt' ? ' selected' : ''}>${amtTxt}</option></select></div>
+      <span class="hint" data-dischint>${discHintText(l, k)}</span></div>`;
   // GST + line total sit together in the footer of every line, always visible
   const footRight = `<div class="foot-right"><span class="lbl">GST</span>${gstSel.replace('class="sel"', 'class="sel" style="width:auto;padding:5px 30px 5px 9px;font-size:0.76rem"')}${totalTxt}</div>`;
   if (l.kind === 'custom') {
@@ -811,7 +832,7 @@ function refreshLineFoot(l) {   // cheap update while typing (keeps focus in the
   const box = document.querySelector(`[data-line="${l.uid}"]`); if (!box) return;
   const k = lineCalc(l);
   box.querySelector('[data-total]').textContent = `${money2(k.net.inc)} inc GST`;
-  const dh = box.querySelector('[data-dischint]'); if (dh) dh.textContent = k.disc ? `− ${money2(-k.disc.inc)}` : '';
+  const dh = box.querySelector('[data-dischint]'); if (dh) dh.textContent = discHintText(l, k);
   const ch = box.querySelector('[data-csqhint]'); if (ch) ch.innerHTML = `${k.csq ? `− ${money2(-k.csq.inc)} off` : ''}${l.csq.persons > headcount(l) ? ' · <span class="hint bad">more than attending</span>' : ''}`;
   box.querySelector('[data-f="unitPrice"]')?.classList.toggle('bad', k.missingPrice);
   // CSQ pricing can move the price and discount while the rep types elsewhere — keep those boxes in step
@@ -828,7 +849,7 @@ function onLineInput(e) {
     const h = el.closest('.fld').querySelector('[data-subhint]');
     if (h) h.innerHTML = subHintHTML(l);
   }
-  else if (f === 'discValue') { l.disc = l.disc || {type: 'pct', value: ''}; l.disc.value = el.value === '' ? '' : Number(el.value); l.disc.auto = false; }
+  else if (f === 'discValue') { l.disc = l.disc || {type: 'pct', value: ''}; l.disc.value = el.value === '' ? '' : Number(el.value); l.disc.auto = false; l.disc.per = 'unit'; }
   else if (f === 'qty' || f === 'participants') {
     l[f] = el.value === '' ? '' : Number(el.value);
     if (l.csq && !l.csq.custom) {   // eligible count follows attendance until edited
@@ -854,7 +875,7 @@ function onLineChange(e) {
     if (!l.csq.custom) l.csq.persons = headcount(l);
     if (l.csq?.on) { delete l.csq.autoPrice; clearAutoDisc(l); applyCsqPricing(l); }   // new pricing basis — recalc CSQ price
   } else if (f === 'gst') l.gst = el.value;
-  else if (f === 'discType') { l.disc = l.disc || {type: 'pct', value: ''}; l.disc.type = el.value; l.disc.auto = false; }
+  else if (f === 'discType') { l.disc = l.disc || {type: 'pct', value: ''}; l.disc.type = el.value; l.disc.auto = false; l.disc.per = 'unit'; }
   else if (f === 'showUnits') l.showUnits = el.checked;
   else if (f === 'note') l.notes[Number(el.dataset.i)].on = el.checked;
   else if (f === 'csqOn') {
