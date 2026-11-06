@@ -333,12 +333,16 @@ const BRIDGE = (() => { try { return window.parent !== window ? window.parent.cr
 // Switch to false to stop writing "quote created" notes to the company log
 const CRM_LOG_ENABLED = true;
 
-// Kallibr venues (from the quote template footer)
+// Kallibr venues — the Training Location options (in this order) and the quote footer (FOOTER_ORDER).
+// city = footer heading, then the optional business name, then addr (one line per row; the
+// Training Location column uses label + addr)
 const VENUES = [
-  {id: 'bne', label: 'Kallibr Brisbane', addr: 'Building 2, 492 Beaudesert Road\nSalisbury QLD 4107', state: 'QLD'},
-  {id: 'syd', label: 'Kallibr Sydney', addr: '3A Williamson Road\nIngleburn NSW 2565', state: 'NSW'},
-  {id: 'mel', label: 'Kallibr Melbourne', addr: '20 Industry Boulevard\nCarrum Downs VIC 3201', state: 'VIC'},
+  {id: 'bne', label: 'Kallibr Brisbane', city: 'Brisbane', addr: 'Building 2, 492 Beaudesert Road\nSalisbury QLD 4107', state: 'QLD'},
+  {id: 'gc', label: 'GL Training Gold Coast', city: 'Gold Coast', name: 'GL Training', addr: '8 Ryecroft Street\nCarrara QLD 4211', state: 'QLD'},
+  {id: 'syd', label: 'Kallibr Sydney', city: 'Sydney', addr: '3A Williamson Road\nIngleburn NSW 2565', state: 'NSW'},
+  {id: 'mel', label: 'Kallibr Melbourne', city: 'Melbourne', addr: '20 Industry Boulevard\nCarrum Downs VIC 3201', state: 'VIC'},
 ];
+const FOOTER_ORDER = ['syd', 'bne', 'gc', 'mel'];
 
 // ════════════════════════════════════════════════════════════════════════════
 // Company list (data.json + state tags + CRM prospects/contacts). Needs http(s) —
@@ -520,6 +524,11 @@ function locationLines(q) {
   if (q.loc.type === 'tbc') return ['To be confirmed'];
   const v = VENUES.find(x => x.id === q.loc.type); return v ? [v.label, ...addr(v.addr)] : [];
 }
+// Quote footer: one column per venue, in FOOTER_ORDER
+function footerVenuesHTML() {
+  const vs = FOOTER_ORDER.map(id => VENUES.find(v => v.id === id)).filter(Boolean);
+  return vs.map((v, i) => `<td style="vertical-align: top; width: ${(100 / vs.length).toFixed(2)}%; padding: 12px ${i < vs.length - 1 ? '12px' : '0'} 0 0;"><div style="font-weight: bold; color: #1a1a1a;">${esc(v.city)}</div>${(v.name ? [v.name] : []).concat(v.addr.split('\n')).map(x => `<div>${esc(x)}</div>`).join('')}</td>`).join('\n');
+}
 
 // ════════════════════════════════════════════════════════════════════════════
 // Quote document (mirrors Kallibr's Quote Template; used for the preview AND the PDF)
@@ -633,9 +642,7 @@ ${rows}
 <div style="margin-top: 6px;">**Funding eligibility is subject to provision of required documentation and evidence to satisfy eligibility approval requirements.</div>
 </div></div>
 <table cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-top: 22px; border-top: 1px solid #cfd8e0; font-size: 10.5px; line-height: 1.4; color: #4a5560;"><tbody><tr>
-<td style="vertical-align: top; width: 33%; padding: 12px 12px 0 0;"><div style="font-weight: bold; color: #1a1a1a;">Sydney</div><div>3A Williamson Road</div><div>Ingleburn NSW 2565</div></td>
-<td style="vertical-align: top; width: 34%; padding: 12px 12px 0 0;"><div style="font-weight: bold; color: #1a1a1a;">Brisbane</div><div>Building 2, 492 Beaudesert Road</div><div>Salisbury QLD 4107</div></td>
-<td style="vertical-align: top; width: 33%; padding: 12px 0 0 0;"><div style="font-weight: bold; color: #1a1a1a;">Melbourne</div><div>20 Industry Boulevard</div><div>Carrum Downs VIC 3201</div></td>
+${footerVenuesHTML()}
 </tr></tbody></table>
 <div style="margin-top: 14px; padding-top: 8px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 10px; color: #6b7885;">Kallibr Training · Real experience is everything · RTO 32365 · kallibr.com.au · 1300 668 141</div>
 </div>`;
