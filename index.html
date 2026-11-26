@@ -189,6 +189,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 .outcome-chip.o-left-message.selected{background:#e8f0fb;border-color:#1565a8;color:#1565a8;}
 .outcome-chip.o-email-sent.selected{background:#e2f4f6;border-color:#0f7b8a;color:#0d6b78;}
 .outcome-chip.o-callback.selected{background:#fff8ee;border-color:#a05c00;color:#a05c00;}
+.outcome-chip.o-meeting.selected{background:#f1eafa;border-color:#6a4c93;color:#6a4c93;}
 .outcome-chip.o-interested.selected{background:#edf7ed;border-color:#2d7a2d;color:#2d7a2d;}
 .outcome-chip.o-not-interested.selected{background:#fde8e8;border-color:#c0392b;color:#c0392b;}
 .outcome-chip.o-proposal.selected{background:var(--lav);border-color:var(--lav2);color:#5a4a8a;}
@@ -550,6 +551,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
             <button class="outcome-chip o-left-message" onclick="selectOutcome('left-message',this)">📬 Left Message / VM</button>
             <button class="outcome-chip o-email-sent" onclick="selectOutcome('email-sent',this)">✉️ Email Sent</button>
             <button class="outcome-chip o-callback" onclick="selectOutcome('callback',this)">🔁 Callback Requested</button>
+            <button class="outcome-chip o-meeting" onclick="selectOutcome('meeting',this)">🤝 Meeting Held</button>
             <button class="outcome-chip o-interested" onclick="selectOutcome('interested',this)">✅ Interested — Follow Up</button>
             <button class="outcome-chip o-not-interested" onclick="selectOutcome('not-interested',this)">❌ Not Interested</button>
             <button class="outcome-chip o-proposal" onclick="selectOutcome('proposal',this)">📄 Proposal Sent</button>
@@ -846,8 +848,8 @@ const TOP_COURSES = ["DOGGING - DG LICENCE", "RIGGING BASIC - RB LICENCE", "FORK
 
 const PASTEL=["#f2a0b0","#9ecf9e","#87c5ef","#b8a9de","#f9be7c","#a8d8ea","#f7c5e0","#b5ead7","#ffdac1","#c7ceea","#ffb7b2","#a2c4c9"];
 const OBJECTION_LABELS={'budget':'Budget','timing':'Bad timing','competitor':'Using competitor','no-need':'No current need','decision-maker':'Need decision maker','price':'Price too high','quality':'Quality concerns','location':'Location concerns','other':'Other'};
-const OUTCOME_LABELS={'no-answer':'No Answer','left-message':'Left Message/VM','email-sent':'Email Sent','callback':'Callback Requested','interested':'Interested','not-interested':'Not Interested','proposal':'Proposal Sent','won':'Booking Confirmed'};
-const OUTCOME_COLOURS={'no-answer':'#8d99ae','left-message':'#1565a8','email-sent':'#0f7b8a','callback':'#a05c00','interested':'#2d7a2d','not-interested':'#c0392b','proposal':'#b8a9de','won':'#2d7a2d'};
+const OUTCOME_LABELS={'no-answer':'No Answer','left-message':'Left Message/VM','email-sent':'Email Sent','callback':'Callback Requested','meeting':'Meeting Held','interested':'Interested','not-interested':'Not Interested','proposal':'Proposal Sent','won':'Booking Confirmed'};
+const OUTCOME_COLOURS={'no-answer':'#8d99ae','left-message':'#1565a8','email-sent':'#0f7b8a','callback':'#a05c00','meeting':'#6a4c93','interested':'#2d7a2d','not-interested':'#c0392b','proposal':'#b8a9de','won':'#2d7a2d'};
 
 const fmt=v=>v>=1e6?'$'+(v/1e6).toFixed(2)+'M':v>=1e3?'$'+(v/1e3).toFixed(1)+'K':'$'+v.toFixed(0);
 const fmtFull=v=>'$'+v.toLocaleString('en-AU',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -1236,7 +1238,7 @@ function setStatus(s,btn){const crm=getCRM(crmCompany);crm.status=s;saveCRM();do
 function selectAttempt(n,btn){selAttempt=n;document.querySelectorAll('.attempt-btn').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');}
 function selectOutcome(o,btn){
   selOutcome=o;document.querySelectorAll('.outcome-chip').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');
-  const crm=getCRM(crmCompany);const auto={won:'won','not-interested':'lost',interested:'contacted',proposal:'contacted'};
+  const crm=getCRM(crmCompany);const auto={won:'won','not-interested':'lost',interested:'contacted',proposal:'contacted',meeting:'contacted'};
   if(auto[o]){crm.status=auto[o];saveCRM();document.querySelectorAll('.status-btn').forEach(b=>b.classList.remove('active-status'));const sb=document.querySelector('.s-'+auto[o]);if(sb)sb.classList.add('active-status');}
   if(['no-answer','left-message','callback'].includes(o)&&!document.getElementById('crm-followup').value){const d=new Date();d.setDate(d.getDate()+(o==='callback'?3:7));document.getElementById('crm-followup').value=d.toISOString().slice(0,10);}
 }
@@ -1970,7 +1972,7 @@ function loadPerfData(id){
     won=isAll?Object.values(CRM).filter(c=>c.status==='won').length:Object.values(CRM).filter(c=>isAssignedTo(c,id)&&c.status==='won').length;
   }else{
     // Count unique companies that had a meaningful outcome in the filtered call log
-    const contactedCompanies=new Set(allCalls.filter(l=>['interested','won','not-interested','proposal','callback'].includes(l.outcome)).map(l=>l.company));
+    const contactedCompanies=new Set(allCalls.filter(l=>['interested','won','not-interested','proposal','callback','meeting'].includes(l.outcome)).map(l=>l.company));
     const wonCompanies=new Set(allCalls.filter(l=>l.outcome==='won').map(l=>l.company));
     contacted=contactedCompanies.size;
     won=wonCompanies.size;
