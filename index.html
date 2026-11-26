@@ -1369,6 +1369,8 @@ function closeCRM(){showPage(prevPage,document.querySelector(`.nav-item[onclick*
 // "quote created" note through this bridge, so the note goes through saveCRM's merge-safe save.
 window.crmBridge={
   data:()=>({RAW,CRM,STATE_TAGS,TEAM}),   // TEAM: the one staff list — quotes.html uses it too
+  // Open a company's profile (from the All Quotes list). Back returns to the Quotes tab.
+  openCompany(name){if(name)openCRM(name);},
   // Adds the quote's note, or brings an existing note for that quote number up to date when the quote
   // is re-saved with a different total / courses / date / preparer. Returns 'added' | 'updated' | 'unchanged'.
   async logQuote(company,entry){

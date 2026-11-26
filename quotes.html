@@ -119,6 +119,8 @@ main{max-width:1180px;margin:0 auto;padding:26px 28px 60px;}
 .mq-table{width:100%;border-collapse:collapse;font-size:0.82rem;}
 .mq-table th{background:var(--lav);text-align:left;padding:9px 12px;font-size:0.66rem;letter-spacing:0.06em;text-transform:uppercase;}
 .mq-table td{padding:10px 12px;border-top:1px solid var(--border);vertical-align:middle;}
+.co-link{background:none;border:0;padding:0;font:inherit;font-weight:700;color:var(--text);text-align:left;cursor:pointer;text-decoration:underline;text-decoration-color:var(--lav2);text-underline-offset:3px;}
+.co-link:hover,.co-link:focus-visible{color:var(--lav3);text-decoration-color:var(--lav3);}
 .mq-table tr:hover td{background:#faf8ff;}
 .mq-actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;}
 .mq-table tr.deleted td{opacity:0.5;}
@@ -1374,7 +1376,7 @@ function renderQuotes() {
       return `<tr class="${x.deleted ? 'deleted' : ''}">
       <td class="mono">${esc(x.number)}</td>
       <td>${fmtDate(x.quote_date)}</td>
-      <td><b>${esc(x.company)}</b></td>
+      <td>${canOpenCompany(x.company) ? `<button class="co-link" onclick="openCompanyPage(this.dataset.co)" data-co="${esc(x.company)}" title="Open ${esc(x.company)}'s customer page">${esc(x.company)}</button>` : `<b>${esc(x.company)}</b>`}</td>
       <td class="c-sub" style="max-width:240px">${esc((x.items || []).join(', '))}</td>
       <td class="num"><b>${money2(Number(x.total_inc) || 0)}</b></td>
       <td>${esc(memberName(x.prepared_by))}</td>
@@ -1388,6 +1390,10 @@ function renderQuotes() {
       </div></td></tr>`; }).join('')}
     </tbody></table>`;
 }
+// Customer names link to their customer page in the CRM (only inside the CRM, and only for
+// companies it knows: clients, prospects, or a prospect that has since been merged)
+const canOpenCompany = name => !!(name && BRIDGE && typeof BRIDGE.openCompany === 'function' && (CO_BY_NAME.has(name) || CRM[name]?.prospect?.mergedInto));
+function openCompanyPage(name) { try { BRIDGE.openCompany(name); } catch (e) { toast("Couldn't open that customer — " + e.message); } }
 async function pdfFromList(id) {
   try { downloadPdf(await fetchQuote(id)); } catch (e) { toast("Couldn't load that quote — " + e.message); }
 }
