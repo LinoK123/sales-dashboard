@@ -224,6 +224,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 .fu-table tr:last-child td{border-bottom:none;}
 .fu-table tr:hover td{background:#faf8ff;}
 .fu-table tr{cursor:pointer;}
+.outreach-kpi-row.fu-kpi4{grid-template-columns:repeat(4,1fr);}
+.fu-quotes{margin-bottom:22px;}
+.fu-quotes-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.fu-quotes-head h3{font-family:'DM Serif Display',serif;font-size:1.15rem;font-weight:400;margin:0;color:var(--text);}
+.fu-quotes-head span{font-size:0.78rem;color:var(--text2);}
 .days-badge{display:inline-block;padding:3px 10px;border-radius:99px;font-size:0.72rem;font-weight:700;}
 .days-overdue{background:#fde8e8;color:#c0392b;}
 .days-today{background:#fff3cd;color:#856404;}
@@ -336,7 +341,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 .pd-foot{font-size:0.74rem;color:var(--text2);margin-top:14px;padding-top:12px;border-top:1px solid var(--border);}
 .pd-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
 @media(max-width:1100px){.data-view{grid-template-columns:1fr;}.crm-grid{grid-template-columns:1fr 1fr;}.crm-grid-wide{grid-template-columns:1fr;}.perf-kpi-row{grid-template-columns:repeat(3,1fr);}}
-@media(max-width:900px){.kpi-row,.outreach-kpi-row{grid-template-columns:repeat(2,1fr);}.two-col,.perf-two-col{grid-template-columns:1fr;}.main{padding:18px 14px;}.crm-grid{grid-template-columns:1fr;}.crm-prospect-span{grid-column:auto;}.attempt-grid{grid-template-columns:repeat(2,1fr);}.call-form-grid.three,.pd-grid{grid-template-columns:1fr;}}
+@media(max-width:900px){.kpi-row,.outreach-kpi-row,.outreach-kpi-row.fu-kpi4{grid-template-columns:repeat(2,1fr);}.two-col,.perf-two-col{grid-template-columns:1fr;}.main{padding:18px 14px;}.crm-grid{grid-template-columns:1fr;}.crm-prospect-span{grid-column:auto;}.attempt-grid{grid-template-columns:repeat(2,1fr);}.call-form-grid.three,.pd-grid{grid-template-columns:1fr;}}
 @media(max-width:600px){.sidebar{display:none;}.main{margin-left:0;}}
 </style>
 </head>
@@ -618,7 +623,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 <!-- FOLLOW-UP REVIEW -->
 <div id="page-followups" class="page">
   <div class="page-header">
-    <div><div class="page-title">Follow-Up Review</div><div class="page-subtitle">All scheduled follow-ups — sorted by urgency</div></div>
+    <div><div class="page-title">Follow-Up Review</div><div class="page-subtitle">Scheduled follow-ups and quotes going cold — sorted by urgency</div></div>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <select class="form-select" style="width:auto;min-width:160px" id="fu-member-filter" onchange="renderFollowUps()">
         <option value="">All team members</option>
@@ -627,11 +632,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
       <input class="search-input" style="max-width:200px" type="text" id="fu-search" placeholder="🔍  Search…" oninput="renderFollowUps()">
     </div>
   </div>
-  <div class="outreach-kpi-row">
+  <div class="outreach-kpi-row fu-kpi4">
     <div class="kpi-card kpi-overdue" style="border-left:4px solid #c0392b"><div class="kpi-label">🔴 Overdue</div><div class="kpi-value" id="fu-overdue">—</div><div class="kpi-sub">Past follow-up date</div></div>
     <div class="kpi-card kpi-today" style="border-left:4px solid #e6a817"><div class="kpi-label">🟡 Due Today</div><div class="kpi-value" id="fu-today">—</div><div class="kpi-sub">Follow up today</div></div>
     <div class="kpi-card kpi-upcoming" style="border-left:4px solid #2d7a2d"><div class="kpi-label">🟢 Upcoming</div><div class="kpi-value" id="fu-upcoming">—</div><div class="kpi-sub">Next 7 days</div></div>
+    <div class="kpi-card" style="border-left:4px solid #8a6100;cursor:pointer" onclick="document.getElementById('fu-quotes').scrollIntoView({behavior:'smooth',block:'start'})" title="Show the quotes going cold"><div class="kpi-label">📄 Quotes Going Cold</div><div class="kpi-value" id="fu-cold-quotes">—</div><div class="kpi-sub">Pending / Finalising, no contact 28+ days</div></div>
   </div>
+  <div id="fu-quotes" class="fu-quotes"></div>
   <div class="outreach-filters">
     <button class="filter-btn active" onclick="setFuFilter('all',this)">All</button>
     <button class="filter-btn" style="border-color:#c0392b;color:#c0392b" onclick="setFuFilter('overdue',this)">🔴 Overdue</button>
@@ -1885,6 +1892,83 @@ function renderFollowUps(){
     const mHtml=assigneesHTML(f.crm);
     return `<tr onclick="openCRM('${f.company.replace(/'/g,"\\'")}')"><td style="font-weight:600;max-width:200px"><div class="name-cell" title="${esc(f.company)}"><span class="nm">${f.company}</span>${csqTag(f.company)}</div></td><td style="font-size:0.8rem">${f.log.contact||'—'}</td><td style="font-size:0.8rem">${fmtDate(f.log.followup)}</td><td>${db}</td><td style="font-size:0.76rem;font-weight:600;color:${OUTCOME_COLOURS[f.log.outcome]||'#2d2d3a'}">${OUTCOME_LABELS[f.log.outcome]||f.log.outcome}</td><td style="font-size:0.76rem;color:var(--text2)">${(f.log.coursesInterested||[]).slice(0,2).join(', ')||'—'}</td><td>${mHtml}</td><td style="display:flex;gap:6px"><button class="btn-primary" style="font-size:0.72rem;padding:5px 10px" onclick="event.stopPropagation();openCRM('${f.company.replace(/'/g,"\\'")}')">Open</button><button style="font-size:0.72rem;padding:5px 10px;border-radius:10px;border:1.5px solid #2d7a2d;background:#edf7ed;color:#2d7a2d;cursor:pointer;font-weight:600;white-space:nowrap" onclick="event.stopPropagation();markFollowUpDone('${f.company.replace(/'/g,"\\'")}',${ f.log.id})">✓ Done</button></td></tr>`;
   }).join(''):'<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--text2)">No follow-ups match the current filter</td></tr>';
+  renderColdQuotes(mf,search,csq);
+}
+
+// ── Quotes going cold (shown on Follow-Up Review) ──
+// A Pending or Finalising quote is "going cold" when nothing has happened for QUOTE_COLD_DAYS:
+// its status hasn't changed AND no call/meeting has been logged for that company since.
+// It drops off once the status moves on or someone logs contact with the company.
+const QUOTE_COLD_DAYS=28;
+const QUOTE_COLD_STATUSES=['pending','finalising'];
+const _dayMs=86400000;
+// The CRM key for a quote's company (a merged prospect forwards to the company it was merged into)
+function quoteCompanyKey(name){
+  let k=name,hops=0;
+  while(k&&CRM[k]?.prospect?.mergedInto&&CRM[k].prospect.mergedInto!==k&&hops++<5)k=CRM[k].prospect.mergedInto;
+  return k;
+}
+// When the quote entered its current status (ms)
+function quoteStatusSince(q){
+  const hit=(q.status_log||[]).filter(e=>e.status===q.status&&e.at).slice(-1)[0];
+  if(hit)return hit.at;
+  if(q.status_at)return q.status_at;
+  if(q.quote_date)return new Date(q.quote_date+'T12:00:00').getTime();
+  return q.edited_at||Date.now();
+}
+// Last call/meeting logged for a company (ms), or 0
+function lastContactAt(key){
+  let best=0;
+  for(const l of (CRM[key]?.callLog||[])){
+    if(!isCall(l))continue;
+    const t=l.date?new Date(l.date+'T12:00:00').getTime():(l.id||0);
+    if(t>best)best=t;
+  }
+  return best;
+}
+function coldQuotes(){
+  if(!DASH_QUOTES_STATE.ok)return [];
+  const now=Date.now();
+  return DASH_QUOTES.filter(q=>!q.deleted&&QUOTE_COLD_STATUSES.includes(q.status)).map(q=>{
+    const key=quoteCompanyKey(q.company);
+    const since=quoteStatusSince(q),contact=lastContactAt(key);
+    const quiet=Math.floor((now-Math.max(since,contact))/_dayMs);
+    return {q,key,since,contact,quiet};
+  }).filter(x=>x.quiet>=QUOTE_COLD_DAYS);
+}
+function renderColdQuotes(mf,search,csq){
+  const wrap=document.getElementById('fu-quotes');
+  const all=coldQuotes();
+  document.getElementById('fu-cold-quotes').textContent=DASH_QUOTES_STATE.ok?all.length:'—';
+  const list=all.filter(x=>{
+    if(mf&&x.q.prepared_by!==Number(mf))return false;
+    if(csq&&!isCSQ(x.key))return false;
+    if(search&&!((x.q.company||'')+' '+x.q.number).toLowerCase().includes(search))return false;
+    return true;
+  }).sort((a,b)=>b.quiet-a.quiet);
+  if(!list.length){
+    wrap.innerHTML=DASH_QUOTES_STATE.ok===false?`<div style="font-size:0.8rem;color:var(--text2)">Quotes couldn't be loaded (${esc(DASH_QUOTES_STATE.error)}), so quotes going cold aren't shown.</div>`:'';
+    return;
+  }
+  const dstr=ms=>new Date(ms).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'});
+  wrap.innerHTML=`<div class="fu-quotes-head"><h3>📄 Quotes going cold</h3><span>${list.length} Pending or Finalising quote${list.length===1?'':'s'} with no status change or logged contact for ${QUOTE_COLD_DAYS}+ days. Log a call or update the quote's status to clear it.${mf?' Filtered by who prepared the quote.':''}</span></div>
+  <div class="fu-table-wrap"><div style="overflow-x:auto"><table class="fu-table"><thead><tr>
+    <th>Company</th><th>Quote</th><th>Status</th><th>In status since</th><th>Last contact</th><th>Quiet for</th><th style="text-align:right">Total</th><th>Prepared by</th><th></th>
+  </tr></thead><tbody>${list.map(x=>{
+    const q=x.q,info=QUOTE_STATUS[q.status],pm=TEAM.find(m=>m.id===q.prepared_by);
+    const known=!!(CRM[x.key]||RAW.clients.some(c=>c.n===x.key));
+    const coArg=esc(JSON.stringify(x.key));
+    return `<tr onclick="openQuoteFromDash('${q.id}')" title="Open quote #${esc(q.number)}">
+      <td style="font-weight:600;max-width:200px"><div class="name-cell" title="${esc(q.company)}"><span class="nm">${esc(q.company||'No company')}</span>${known?csqTag(x.key):''}</div></td>
+      <td style="font-size:0.8rem;white-space:nowrap">#${esc(q.number)}<div style="font-size:0.7rem;color:var(--text2)">${fmtDate(q.quote_date)}</div></td>
+      <td><span class="days-badge" style="background:${info.bg};color:${info.fg}">${info.label}</span></td>
+      <td style="font-size:0.8rem;white-space:nowrap">${dstr(x.since)}</td>
+      <td style="font-size:0.8rem;white-space:nowrap">${x.contact?dstr(x.contact):'<span style="color:var(--text2)">None logged</span>'}</td>
+      <td><span class="days-badge days-overdue">${x.quiet}d</span></td>
+      <td style="font-size:0.8rem;text-align:right;font-weight:600;white-space:nowrap">${fmtFull(Number(q.total_inc)||0)}</td>
+      <td>${pm?`<span style="display:inline-flex;align-items:center;gap:6px;font-size:0.78rem"><span class="perf-avatar" style="width:22px;height:22px;font-size:0.6rem;background:${pm.colour}">${initials(pm.name)}</span>${esc(pm.name)}</span>`:'<span style="color:var(--text2)">—</span>'}</td>
+      <td style="display:flex;gap:6px"><button class="btn-primary" style="font-size:0.72rem;padding:5px 10px;white-space:nowrap" onclick="event.stopPropagation();openQuoteFromDash('${q.id}')">Open quote</button>${known?`<button style="font-size:0.72rem;padding:5px 10px;border-radius:10px;border:1.5px solid var(--lav2);background:var(--lav);color:#5a4a8a;cursor:pointer;font-weight:600;white-space:nowrap" onclick="event.stopPropagation();openCRM(${coArg})">Log call</button>`:''}</td>
+    </tr>`;}).join('')}</tbody></table></div></div>`;
 }
 
 // ── PERFORMANCE ──
@@ -2082,14 +2166,18 @@ async function loadDashQuotes(){
     DASH_QUOTES=await r.json()||[];
     DASH_QUOTES_STATE.ok=true;DASH_QUOTES_STATE.error='';
   }catch(e){DASH_QUOTES_STATE.ok=false;DASH_QUOTES_STATE.error=e.message;}
+  refreshQuoteViews();
+}
+function refreshQuoteViews(){
   if(document.getElementById('page-performance').classList.contains('active'))renderPerformancePage();
+  if(document.getElementById('page-followups').classList.contains('active'))renderFollowUps();
 }
 function onDashQuoteChange(row){
   if(!row||!row.id)return;
   const {data,...sum}=row;
   const i=DASH_QUOTES.findIndex(q=>q.id===row.id);
   if(i>=0)DASH_QUOTES[i]=sum;else DASH_QUOTES.unshift(sum);
-  if(document.getElementById('page-performance').classList.contains('active'))renderPerformancePage();
+  refreshQuoteViews();
 }
 const QUOTE_OPEN=['pending','scheduling','finalising'];
 const qMoney=v=>v>=1e4?fmt(v):'$'+Math.round(v).toLocaleString('en-AU');
