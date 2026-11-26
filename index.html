@@ -241,6 +241,21 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 .perf-kpi-val{font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--text);}
 .perf-kpi-lbl{font-size:0.7rem;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;margin-top:4px;}
 .perf-two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px;}
+.perf-two-col>*{min-width:0;}
+.perf-section-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:8px 0 12px;padding-top:18px;border-top:1.5px solid var(--border);font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--text);}
+.perf-section-note{font-family:'DM Sans',sans-serif;font-size:0.76rem;color:var(--text2);}
+.perf-kpi-sub{font-size:0.7rem;color:var(--text2);margin-top:3px;}
+.pq-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:0.8rem;}
+.pq-chip{display:inline-block;min-width:78px;text-align:center;padding:2px 8px;border-radius:99px;font-size:0.7rem;font-weight:700;}
+.pq-bar{flex:1;height:6px;border-radius:3px;background:var(--border);overflow:hidden;min-width:40px;}
+.pq-bar>div{height:100%;border-radius:3px;}
+.pq-num{min-width:28px;text-align:right;font-weight:600;}
+.pq-val{min-width:78px;text-align:right;color:var(--text2);}
+.pq-reasons{font-size:0.74rem;color:var(--text2);padding:8px 0 0 88px;line-height:1.5;}
+.pq-table{width:100%;border-collapse:collapse;font-size:0.78rem;}
+.pq-table th{text-align:left;font-size:0.66rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text2);font-weight:600;padding:6px 6px;border-bottom:1.5px solid var(--border);}
+.pq-table td{padding:8px 6px;border-bottom:1px solid var(--border);}
+.pq-table .num{text-align:right;}
 /* Team */
 .team-grid-display{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px;}
 .team-card-simple{background:var(--white);border-radius:var(--radius2);padding:16px 18px;box-shadow:var(--shadow);border:1.5px solid var(--border);display:flex;align-items:center;gap:12px;}
@@ -677,12 +692,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
   <div id="cm-results"></div>
 </div>
 <div id="page-performance" class="page">
-  <div class="page-header"><div><div class="page-title">Performance</div><div class="page-subtitle">Call activity and outcomes by team member</div></div></div>
+  <div class="page-header"><div><div class="page-title">Performance</div><div class="page-subtitle">Calls, quotes and outcomes by team member</div></div></div>
   <div class="perf-member-selector" id="perf-member-selector"></div>
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;padding-bottom:18px;border-bottom:1.5px solid var(--border)" id="perf-date-filter">
     <button class="filter-btn active" onclick="setPerfDateFilter('all',this)">All Time</button>
     <button class="filter-btn" onclick="setPerfDateFilter('today',this)">Today</button>
     <button class="filter-btn" onclick="setPerfDateFilter('week',this)">This Week</button>
+    <button class="filter-btn" onclick="setPerfDateFilter('lastweek',this)">Last Week</button>
     <button class="filter-btn" onclick="setPerfDateFilter('month',this)">This Month</button>
     <button class="filter-btn" onclick="setPerfDateFilter('lastmonth',this)">Last Month</button>
     <span id="perf-date-label" style="font-size:0.78rem;color:var(--text2);align-self:center;margin-left:4px"></span>
@@ -703,7 +719,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
       <div class="chart-card" style="margin-bottom:0"><div class="chart-title">Call Activity</div><div class="chart-subtitle">Calls logged per week</div><div class="chart-wrap"><canvas id="perfActivityChart"></canvas></div></div>
       <div class="chart-card" style="margin-bottom:0"><div class="chart-title">Top Courses of Interest</div><div class="chart-subtitle">Most requested by prospects called</div><div id="perf-top-courses" style="max-height:260px;overflow-y:auto"></div></div>
     </div>
-    <div class="chart-card"><div class="chart-title">Recent Call Log</div><div class="chart-subtitle" id="perf-log-sub">—</div><div id="perf-call-log" style="max-height:400px;overflow-y:auto"></div></div>
+    <div class="perf-section-head"><span>📄 Quotes</span><span class="perf-section-note" id="pq-note"></span></div>
+    <div class="perf-kpi-row">
+      <div class="perf-kpi"><div class="perf-kpi-val" id="pq-count">—</div><div class="perf-kpi-lbl">Quotes Sent</div></div>
+      <div class="perf-kpi"><div class="perf-kpi-val" id="pq-value">—</div><div class="perf-kpi-lbl">Quoted Value</div></div>
+      <div class="perf-kpi"><div class="perf-kpi-val" id="pq-open">—</div><div class="perf-kpi-lbl">Open Pipeline</div><div class="perf-kpi-sub" id="pq-open-sub"></div></div>
+      <div class="perf-kpi"><div class="perf-kpi-val" id="pq-booked" style="color:#2d7a2d">—</div><div class="perf-kpi-lbl">Booked</div><div class="perf-kpi-sub" id="pq-booked-sub"></div></div>
+      <div class="perf-kpi"><div class="perf-kpi-val" id="pq-rate">—</div><div class="perf-kpi-lbl">Win Rate</div><div class="perf-kpi-sub">booked ÷ (booked + lost)</div></div>
+    </div>
+    <div class="perf-two-col">
+      <div class="chart-card" style="margin-bottom:0"><div class="chart-title">Quote Pipeline</div><div class="chart-subtitle">Quotes by status, inc GST</div><div id="perf-quote-pipeline"></div></div>
+      <div class="chart-card" style="margin-bottom:0"><div class="chart-title" id="perf-quote-side-title">Quotes by Team Member</div><div class="chart-subtitle" id="perf-quote-side-sub">—</div><div id="perf-quote-side" style="max-height:300px;overflow-y:auto"></div></div>
+    </div>
+    <div class="perf-two-col">
+      <div class="chart-card" style="margin-bottom:0"><div class="chart-title">Recent Call Log</div><div class="chart-subtitle" id="perf-log-sub">—</div><div id="perf-call-log" style="max-height:520px;overflow-y:auto"></div></div>
+      <div class="chart-card" style="margin-bottom:0"><div class="chart-title">Recent Quotes</div><div class="chart-subtitle" id="perf-quote-log-sub">—</div><div id="perf-quote-log" style="max-height:520px;overflow-y:auto"></div></div>
+    </div>
   </div>
 </div>
 
@@ -1889,10 +1920,15 @@ function getPerfDateRange(){
   const pad=n=>String(n).padStart(2,'0');
   const todayStr=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   if(perfDateFilter==='today') return{from:todayStr,to:todayStr,label:'Today'};
-  if(perfDateFilter==='week'){
-    const wk=new Date(d);wk.setDate(d.getDate()-d.getDay());
-    const from=`${wk.getFullYear()}-${pad(wk.getMonth()+1)}-${pad(wk.getDate())}`;
-    return{from,to:todayStr,label:'This Week'};
+  // Weeks run Monday–Sunday (same as the weekly activity chart)
+  const ymd=x=>`${x.getFullYear()}-${pad(x.getMonth()+1)}-${pad(x.getDate())}`;
+  const mon=new Date(d);mon.setDate(d.getDate()-((d.getDay()+6)%7));
+  if(perfDateFilter==='week') return{from:ymd(mon),to:todayStr,label:'This Week'};
+  if(perfDateFilter==='lastweek'){
+    const lmon=new Date(mon);lmon.setDate(mon.getDate()-7);
+    const lsun=new Date(mon);lsun.setDate(mon.getDate()-1);
+    const short=x=>x.toLocaleDateString('en-AU',{day:'numeric',month:'short'});
+    return{from:ymd(lmon),to:ymd(lsun),label:`Last Week (${short(lmon)} – ${short(lsun)})`};
   }
   if(perfDateFilter==='month'){
     const from=`${d.getFullYear()}-${pad(d.getMonth()+1)}-01`;
@@ -1968,7 +2004,7 @@ function loadPerfData(id){
 
   // Activity chart — group by day for short ranges, by week for longer ones
   destroyChart('activity');
-  const useDaily=['today','week','month'].includes(perfDateFilter);
+  const useDaily=['today','week','lastweek','month'].includes(perfDateFilter);
   const actCounts={};
   allCalls.forEach(l=>{
     if(!l.date)return;
@@ -2026,6 +2062,134 @@ function loadPerfData(id){
       <div class="call-log-footer"><span></span>${overdueHtml}</div>
     </div>`;
   }).join('')||'<div style="font-size:0.82rem;color:var(--text2);text-align:center;padding:20px">No calls logged yet</div>';
+  renderPerfQuotes(id,isAll,member,dfrom,dto);
+}
+
+// ── Quotes on the Performance page ──
+// Reads the shared Supabase "quotes" table (the same one the Quotes tab uses), list columns only.
+// Read-only here: statuses are still changed on the Quotes tab.
+let DASH_QUOTES=[];
+const DASH_QUOTES_STATE={ok:null,error:''};   // ok: null = loading, true = loaded, false = unavailable
+const DASH_QUOTE_COLS='id,number,company,status,prepared_by,total_inc,quote_date,items,lost_reason,deleted,status_log,edited_at,status_at';
+async function loadDashQuotes(){
+  try{
+    const r=await fetch(`${SB_URL}/rest/v1/quotes?select=${DASH_QUOTE_COLS}&order=edited_at.desc`,{headers:SB_HEADERS});
+    if(!r.ok)throw new Error(r.status===404?"the shared quotes table isn't set up":'error '+r.status);
+    DASH_QUOTES=await r.json()||[];
+    DASH_QUOTES_STATE.ok=true;DASH_QUOTES_STATE.error='';
+  }catch(e){DASH_QUOTES_STATE.ok=false;DASH_QUOTES_STATE.error=e.message;}
+  if(document.getElementById('page-performance').classList.contains('active'))renderPerformancePage();
+}
+function onDashQuoteChange(row){
+  if(!row||!row.id)return;
+  const {data,...sum}=row;
+  const i=DASH_QUOTES.findIndex(q=>q.id===row.id);
+  if(i>=0)DASH_QUOTES[i]=sum;else DASH_QUOTES.unshift(sum);
+  if(document.getElementById('page-performance').classList.contains('active'))renderPerformancePage();
+}
+const QUOTE_OPEN=['pending','scheduling','finalising'];
+const qMoney=v=>v>=1e4?fmt(v):'$'+Math.round(v).toLocaleString('en-AU');
+const qTotal=list=>list.reduce((s,q)=>s+(Number(q.total_inc)||0),0);
+const qMember=id=>TEAM.find(m=>m.id===id);
+function renderPerfQuotes(id,isAll,member,dfrom,dto){
+  const st=DASH_QUOTES_STATE;
+  const set=(elId,v)=>{document.getElementById(elId).textContent=v;};
+  if(!st.ok){
+    const msg=st.ok===null?'Loading quotes…':`Quotes unavailable (${st.error})`;
+    ['pq-count','pq-value','pq-open','pq-booked','pq-rate'].forEach(k=>set(k,'—'));
+    ['pq-open-sub','pq-booked-sub'].forEach(k=>set(k,''));
+    set('pq-note',msg);
+    const empty=`<div style="color:var(--text2);font-size:0.82rem;padding:16px">${esc(msg)}</div>`;
+    ['perf-quote-pipeline','perf-quote-side','perf-quote-log'].forEach(k=>{document.getElementById(k).innerHTML=empty;});
+    set('perf-quote-log-sub','—');set('perf-quote-side-sub','—');
+    return;
+  }
+  // Quotes are counted by their quote date; status is what they are now
+  const qs=DASH_QUOTES.filter(q=>!q.deleted&&(isAll||q.prepared_by===id)
+    &&(!dfrom||(q.quote_date&&q.quote_date>=dfrom))&&(!dto||(q.quote_date&&q.quote_date<=dto)));
+  const by=s=>qs.filter(q=>q.status===s);
+  const open=qs.filter(q=>QUOTE_OPEN.includes(q.status)),booked=by('booked'),lost=by('lost');
+  const decided=booked.length+lost.length;
+  set('pq-note',`${qs.length} quote${qs.length===1?'':'s'} ${isAll?'from the whole team':'prepared by '+member.name} · counted by quote date, showing each quote's current status`);
+  set('pq-count',qs.length);
+  set('pq-value',qMoney(qTotal(qs)));
+  set('pq-open',qMoney(qTotal(open)));
+  set('pq-open-sub',`${open.length} quote${open.length===1?'':'s'}`);
+  set('pq-booked',qMoney(qTotal(booked)));
+  set('pq-booked-sub',`${booked.length} quote${booked.length===1?'':'s'}`);
+  set('pq-rate',decided?Math.round(booked.length/decided*100)+'%':'—');
+
+  // Pipeline by status
+  const maxN=Math.max(1,...['pending','scheduling','finalising','booked','lost'].map(s=>by(s).length));
+  const reasons={};lost.forEach(q=>{const r=q.lost_reason||'No reason given';reasons[r]=(reasons[r]||0)+1;});
+  const reasonTxt=Object.entries(reasons).sort((a,b)=>b[1]-a[1]).map(([r,n])=>`${esc(r)} <b>${n}</b>`).join(' · ');
+  document.getElementById('perf-quote-pipeline').innerHTML=qs.length?Object.entries(QUOTE_STATUS).map(([s,info])=>{
+    const l=by(s);
+    return `<div class="pq-row"><span class="pq-chip" style="background:${info.bg};color:${info.fg}">${info.label}</span>
+      <div class="pq-bar"><div style="width:${(l.length/maxN*100).toFixed(0)}%;background:${info.fg}"></div></div>
+      <span class="pq-num">${l.length}</span><span class="pq-val">${qMoney(qTotal(l))}</span></div>`;
+  }).join('')+(reasonTxt?`<div class="pq-reasons">Lost reasons: ${reasonTxt}</div>`:'')
+  :'<div style="color:var(--text2);font-size:0.82rem;padding:16px">No quotes in this period</div>';
+
+  // Side card: team breakdown for All Team, most-quoted courses for one person
+  const sideEl=document.getElementById('perf-quote-side');
+  if(isAll){
+    set('perf-quote-side-title','Quotes by Team Member');
+    set('perf-quote-side-sub','Prepared by · win rate = booked ÷ (booked + lost)');
+    const rows=TEAM.map(m=>{
+      const l=qs.filter(q=>q.prepared_by===m.id);
+      const b=l.filter(q=>q.status==='booked'),lo=l.filter(q=>q.status==='lost').length;
+      return {m,n:l.length,val:qTotal(l),open:l.filter(q=>QUOTE_OPEN.includes(q.status)).length,b:b.length,bval:qTotal(b),rate:(b.length+lo)?Math.round(b.length/(b.length+lo)*100)+'%':'—'};
+    }).filter(r=>r.n).sort((a,b)=>b.val-a.val);
+    const noOne=qs.filter(q=>!qMember(q.prepared_by)).length;
+    sideEl.innerHTML=rows.length?`<table class="pq-table"><thead><tr><th>Team member</th><th class="num">Quotes</th><th class="num">Value</th><th class="num">Open</th><th class="num">Booked</th><th class="num">Win rate</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr><td><span style="display:inline-flex;align-items:center;gap:7px"><span class="perf-avatar" style="width:22px;height:22px;font-size:0.6rem;background:${r.m.colour}">${initials(r.m.name)}</span>${esc(tmName(r.m))}</span></td>
+        <td class="num">${r.n}</td><td class="num">${qMoney(r.val)}</td><td class="num">${r.open}</td><td class="num" style="color:#2d7a2d">${r.b}${r.b?` <span style="color:var(--text2)">(${qMoney(r.bval)})</span>`:''}</td><td class="num"><b>${r.rate}</b></td></tr>`).join('')}
+      </tbody></table>${noOne?`<div style="font-size:0.72rem;color:var(--text2);padding-top:8px">${noOne} quote${noOne===1?'':'s'} with no preparer chosen</div>`:''}`
+      :'<div style="color:var(--text2);font-size:0.82rem;padding:16px">No quotes in this period</div>';
+  }else{
+    set('perf-quote-side-title','Most Quoted Courses');
+    set('perf-quote-side-sub',`Courses on ${member.name}'s quotes`);
+    const cc={};qs.forEach(q=>new Set(q.items||[]).forEach(c=>{cc[c]=(cc[c]||0)+1;}));
+    const top=Object.entries(cc).sort((a,b)=>b[1]-a[1]).slice(0,10),mx=top[0]?.[1]||1;
+    sideEl.innerHTML=top.length?top.map(([n,c])=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)"><div style="flex:1;font-size:0.8rem;font-weight:500;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(n)}">${esc(n)}</div><div style="width:60px;height:5px;border-radius:3px;background:var(--border);overflow:hidden;flex-shrink:0"><div style="height:100%;border-radius:3px;background:${member.colour};width:${(c/mx*100).toFixed(0)}%"></div></div><div style="font-size:0.8rem;font-weight:600;min-width:24px;text-align:right">${c}</div></div>`).join('')
+      :'<div style="color:var(--text2);font-size:0.82rem;padding:16px">No quotes in this period</div>';
+  }
+
+  // Recent quotes — newest activity first (saved or status changed)
+  set('perf-quote-log-sub',`${qs.length} quote${qs.length===1?'':'s'} — ${member.name}`);
+  const act=q=>Math.max(q.edited_at||0,q.status_at||0);
+  document.getElementById('perf-quote-log').innerHTML=qs.slice().sort((a,b)=>act(b)-act(a)).slice(0,30).map(q=>{
+    const info=QUOTE_STATUS[q.status]||QUOTE_STATUS.pending;
+    const pm=qMember(q.prepared_by);
+    const badge=isAll&&pm?`<span style="background:${pm.colour};color:#fff;padding:2px 7px;border-radius:99px;font-size:0.68rem;font-weight:700">${esc(pm.name)}</span>`:'';
+    const last=(q.status_log||[]).filter(e=>e.status).slice(-1)[0];
+    const lastTxt=last&&last.status!=='pending'?`${info.label} by ${esc(qMember(last.by)?.name||'someone')} · ${new Date(last.at).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric'})}`:'';
+    return `<div class="call-log-item" onclick="openQuoteFromDash('${q.id}')" style="cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='#f0ecff'" onmouseout="this.style.background=''" title="Open this quote on the Quotes tab">
+      <div style="margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline">
+          <div style="font-family:'DM Serif Display',serif;font-size:1.05rem;font-weight:600;color:var(--text);line-height:1.2;min-width:0">${esc(q.company||'No company')}</div>
+          <div style="font-weight:700;font-size:0.9rem;white-space:nowrap">${fmtFull(Number(q.total_inc)||0)}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap">
+          <span class="pq-chip" style="min-width:0;background:${info.bg};color:${info.fg}">${info.label}</span>
+          <span class="call-log-date">Quote #${esc(q.number)} · ${fmtDate(q.quote_date)}</span>
+          ${badge}
+        </div>
+      </div>
+      <div class="call-log-chips">${(q.items||[]).map(c=>`<span class="call-log-chip chip-course">${esc(c)}</span>`).join('')}</div>
+      ${q.status==='lost'&&q.lost_reason?`<div class="call-log-notes">Lost: ${esc(q.lost_reason)}</div>`:''}
+      ${lastTxt?`<div class="call-log-footer"><span style="font-size:0.72rem;color:var(--text2)">${lastTxt}</span></div>`:''}
+    </div>`;
+  }).join('')||'<div style="font-size:0.82rem;color:var(--text2);text-align:center;padding:20px">No quotes in this period</div>';
+}
+// Clicking a recent quote opens it on the Quotes tab
+function openQuoteFromDash(qid){
+  showPage('quotes',document.querySelector(`.nav-item[onclick*="'quotes'"]`));
+  const f=ensureQuotesFrame();
+  const go=()=>f.contentWindow.openQuote(qid);
+  if(f.contentWindow&&typeof f.contentWindow.openQuote==='function')go();
+  else f.addEventListener('load',()=>setTimeout(go,30),{once:true});
 }
 
 // ── TEAM PAGE ──
@@ -2090,6 +2254,11 @@ async function init(){
       if(document.getElementById('page-outreach').classList.contains('active')) renderOutreach();
       toast('🔄 Updated by a teammate');
     })
+    .subscribe();
+  // Shared quotes for the Performance page (read-only here), kept live
+  loadDashQuotes();
+  sbClient.channel('dash_quotes')
+    .on('postgres_changes', {event:'*', schema:'public', table:'quotes'}, p => onDashQuoteChange(p.new))
     .subscribe();
 }
 init();
