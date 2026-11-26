@@ -7,6 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <!-- Price list data, generated from the Excel price list by rebuild_price_list.ps1 -->
 <script src="price_list.js"></script>
+<!-- Supabase client, for live updates when someone else changes a quote -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root{
   --lav:#ddd4f0;--lav2:#b8a9de;--lav3:#7b68c8;--sky:#bde0f7;--cream:#fdf8f2;--white:#fff;
@@ -119,6 +121,33 @@ main{max-width:1180px;margin:0 auto;padding:26px 28px 60px;}
 .mq-table td{padding:10px 12px;border-top:1px solid var(--border);vertical-align:middle;}
 .mq-table tr:hover td{background:#faf8ff;}
 .mq-actions{display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;}
+.mq-table tr.deleted td{opacity:0.5;}
+/* Quote status (same ids/colours as the dashboard's QUOTE_STATUS) */
+.st-pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:0.7rem;font-weight:700;white-space:nowrap;}
+.st-sel{padding:4px 26px 4px 10px;border-radius:99px;border:1.5px solid transparent;font:inherit;font-size:0.74rem;font-weight:700;cursor:pointer;appearance:none;background-repeat:no-repeat;background-position:right 9px center;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b6b82' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");}
+.st-sel:focus{outline:2px solid var(--lav2);outline-offset:1px;}
+.st-pending{background-color:#fff4d6;color:#8a6100;}
+.st-scheduling{background-color:#e3f0fb;color:#1565a8;}
+.st-finalising{background-color:#ece8f7;color:#5a4a8a;}
+.st-booked{background-color:#edf7ed;color:#2d7a2d;}
+.st-lost{background-color:#fde8e8;color:#b33050;}
+.st-sub{font-size:0.68rem;color:var(--text2);margin-top:3px;white-space:nowrap;}
+.st-history{font-size:0.72rem;color:var(--text2);line-height:1.6;margin-top:6px;}
+.st-history b{color:var(--text);font-weight:600;}
+.me-pick{display:inline-flex;align-items:center;gap:6px;font-size:0.76rem;color:var(--text2);margin-left:auto;}
+.me-pick select{padding:5px 8px;border:1.5px solid var(--border);border-radius:8px;font:inherit;font-size:0.78rem;background:var(--white);color:var(--text);}
+.me-pick.unset select{border-color:#e6b84d;background:var(--warn-bg);}
+.banner{border-radius:12px;padding:10px 14px;font-size:0.8rem;margin-bottom:12px;}
+.banner.warn{background:var(--warn-bg);border:1.5px solid #f1d28a;color:var(--warn);}
+.banner.bad{background:var(--bad-bg);border:1.5px solid #f0c4c4;color:var(--bad);}
+.modal-bg{position:fixed;inset:0;background:rgba(45,45,58,0.38);display:none;align-items:flex-start;justify-content:center;padding:12vh 16px;z-index:300;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--white);border-radius:var(--radius2);box-shadow:0 8px 32px rgba(100,80,160,0.18);border:1.5px solid var(--border);width:100%;max-width:440px;padding:20px 22px;}
+.modal-title{font-weight:700;font-size:0.95rem;margin-bottom:12px;}
+.reason-list{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+.reason-list label{display:flex;align-items:center;gap:8px;font-size:0.84rem;padding:7px 10px;border:1.5px solid var(--border);border-radius:9px;cursor:pointer;}
+.reason-list label:has(input:checked){border-color:#b33050;background:#fdf3f5;}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;}
 .num{text-align:right;font-variant-numeric:tabular-nums;}
 .mono{font-family:ui-monospace,Consolas,monospace;font-weight:600;font-size:0.8rem;color:var(--lav3);}
 /* ── Price list ── */
@@ -174,10 +203,11 @@ a{color:var(--lav3);}
   <div class="brand">Kallibr Quotes<span>Local test version</span></div>
   <nav>
     <button class="tab active" data-view="new" onclick="showView('new')">New Quote</button>
-    <button class="tab" data-view="mine" onclick="showView('mine')">My Quotes</button>
+    <button class="tab" data-view="mine" onclick="showView('mine')">All Quotes</button>
     <button class="tab" data-view="prices" onclick="showView('prices')">Price List</button>
   </nav>
-  <div class="data-status" id="data-status">Loading company list…</div>
+  <label class="me-pick" id="me-pick" title="Used to record who changes a quote's status, and to allow deleting your own quotes">You are <select id="me-select" onchange="setMe(this.value)"></select></label>
+  <div class="data-status" id="data-status" style="margin-left:0">Loading company list…</div>
 </header>
 
 <!-- ═════════════ NEW QUOTE ═════════════ -->
@@ -225,6 +255,7 @@ a{color:var(--lav3);}
           <div class="fld"><span class="lbl">Quote date</span><input class="inp" id="q-date" type="date"></div>
           <div class="fld"><span class="lbl">Prepared by <span style="color:var(--bad)">*</span></span><select class="sel" id="q-by"></select></div>
           <div class="fld"><span class="lbl">Pricing state</span><div class="seg" id="q-state"></div></div>
+          <div class="fld full"><span class="lbl">Status</span><div id="q-status-panel"></div></div>
         </div>
       </div>
 
@@ -263,14 +294,20 @@ a{color:var(--lav3);}
 <section class="view" id="view-mine">
   <main>
     <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap">
-      <div><div class="page-title">My Quotes</div><div class="page-sub">Saved on this computer and browser only — use Back up regularly</div></div>
+      <div><div class="page-title">All Quotes</div><div class="page-sub">Everyone's quotes, shared live. Change a status from the list or inside the quote.</div></div>
       <div style="display:flex;gap:8px">
-        <button class="btn" onclick="exportBackup()">⬇ Back up</button>
-        <button class="btn" onclick="document.getElementById('mq-import').click()">⬆ Restore</button>
+        <button class="btn" onclick="exportBackup()" title="Download every quote as a file">⬇ Back up</button>
+        <button class="btn" onclick="document.getElementById('mq-import').click()" title="Upload quotes from a backup file (quotes already in the list are skipped)">⬆ Restore</button>
         <input type="file" id="mq-import" accept=".json,application/json" style="display:none" onchange="importBackup(this)">
       </div>
     </div>
-    <div class="toolbar"><input class="search" id="mq-search" type="search" placeholder="🔍  Search quote no, company or course…" oninput="renderMyQuotes()"></div>
+    <div id="mq-banner" style="margin-top:14px"></div>
+    <div class="chips" id="mq-status-chips" style="margin:14px 0 0"></div>
+    <div class="toolbar" style="margin-top:10px">
+      <input class="search" id="mq-search" type="search" placeholder="🔍  Search quote no, company or course…" oninput="renderQuotes()">
+      <select class="sel" id="mq-by" style="width:auto;min-width:170px" onchange="renderQuotes()" aria-label="Prepared by"></select>
+      <label class="chk"><input type="checkbox" id="mq-deleted" onchange="renderQuotes()"> Show deleted</label>
+    </div>
     <div class="list" id="mq-list"></div>
   </main>
 </section>
@@ -294,6 +331,16 @@ a{color:var(--lav3);}
 
 <div class="toast" id="toast"></div>
 
+<!-- Why was this quote lost? (shown when a quote is marked Lost) -->
+<div class="modal-bg" id="lost-modal">
+  <div class="modal" role="dialog" aria-labelledby="lost-title">
+    <div class="modal-title" id="lost-title">Why was this quote lost?</div>
+    <div class="reason-list" id="lost-reasons"></div>
+    <textarea class="ta" id="lost-note" placeholder="Anything else worth noting? (optional)"></textarea>
+    <div class="modal-foot"><button class="btn" id="lost-cancel">Cancel</button><button class="btn btn-primary" id="lost-ok" style="background:#b33050;border-color:#b33050">Mark as lost</button></div>
+  </div>
+</div>
+
 <script>
 // ════════════════════════════════════════════════════════════════════════════
 // Shared helpers & config
@@ -306,7 +353,7 @@ const r2 = v => Math.round((Number(v) || 0) * 100) / 100;
 const titleCase = s => s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
 // The sheet gives most durations as a bare number of days ("3"); spell those out
 const duration = d => /^\d+(\.\d+)?$/.test(d || '') ? `${d} day${d === '1' ? '' : 's'}` : (d || '');
-const todayISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+const todayISO = (d = new Date()) => { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 const fmtDate = iso => { if (!iso) return ''; const d = new Date(iso + 'T12:00:00'); return d.toLocaleDateString('en-AU', {day: '2-digit', month: '2-digit', year: 'numeric'}); };
 const courseById = id => PL.courses.find(c => c.id === id);
 function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2600); }
@@ -315,10 +362,120 @@ const LS = {
   get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } },
 };
+// KEY_QUOTES: where quotes were kept before they were shared. Now only read once, to upload them.
+// KEY_DRAFT: the quote being edited on this computer (so a closed tab doesn't lose work).
+// KEY_ME: who is using this computer (shared with the dashboard).
 const KEY_QUOTES = 'kallibr_quotes_v1', KEY_DRAFT = 'kallibr_quote_draft_v1', KEY_ME = 'kallibr_me';
 
-// Same team list as the dashboard (index.html)
-const TEAM = [{"id":1,"name":"Ben"},{"id":2,"name":"Harry","active":false},{"id":3,"name":"Hailey"},{"id":4,"name":"Peter"},{"id":5,"name":"Lino"},{"id":6,"name":"Ellyse"},{"id":7,"name":"Billy"},{"id":8,"name":"Elodie"},{"id":9,"name":"Renee"},{"id":10,"name":"Justin"},{"id":11,"name":"Matt"},{"id":12,"name":"Paul"},{"id":13,"name":"Varun"},{"id":14,"name":"Tom"},{"id":15,"name":"Leigh-Ann"},{"id":16,"name":"Grace"}];
+// Quote statuses, in workflow order. Same ids/colours as QUOTE_STATUS in index.html.
+const STATUSES = [
+  {id: 'pending',    label: 'Pending',    hint: 'Sent to the client'},
+  {id: 'scheduling', label: 'Scheduling', hint: 'With the scheduling team to confirm possible dates'},
+  {id: 'finalising', label: 'Finalising', hint: 'Dates set, waiting on final confirmation from the client'},
+  {id: 'booked',     label: 'Booked',     hint: 'Booking confirmed'},
+  {id: 'lost',       label: 'Lost',       hint: 'Not going ahead'},
+];
+const OPEN_STATUSES = ['pending', 'scheduling', 'finalising'];
+const statusLabel = id => STATUSES.find(s => s.id === id)?.label || 'Pending';
+const LOST_REASONS = ['Price', 'Went with another provider', 'Timing / no longer needed', 'No response from client', "Dates or location didn't suit", 'Other'];
+
+const currentMe = () => Number(LS.get(KEY_ME, null)) || null;
+function setMe(v) { LS.set(KEY_ME, v ? Number(v) : null); renderMePick(); if ($('view-mine').classList.contains('active')) renderQuotes(); }
+function renderMePick() {
+  const me = currentMe();
+  $('me-select').innerHTML = '<option value="">Choose…</option>' + tmActive().map(m => `<option value="${m.id}"${m.id === me ? ' selected' : ''}>${esc(m.name)}</option>`).join('');
+  $('me-pick').classList.toggle('unset', !me);
+}
+
+// ── Shared quotes (Supabase "quotes" table: one row per quote — see scripts\setup_quotes_table.sql) ──
+// QUOTES holds every quote's list columns (not the full quote). The full quote is fetched on open.
+let QUOTES = [];
+const SHARED = {ok: null, error: ''};   // ok: null = loading, true = connected, false = unavailable
+const LIST_COLS = 'id,number,company,status,prepared_by,total_inc,quote_date,items,lost_reason,deleted,status_log,edited_at,edited_by,status_at';
+async function sb(path, opts = {}) {
+  const r = await fetch(`${SB_URL}/rest/v1/${path}`, {...opts, headers: {...SB_HEADERS, ...(opts.headers || {})}});
+  if (!r.ok) { let msg = 'error ' + r.status; try { const j = await r.json(); msg = j.message || msg; } catch (e) {} const err = new Error(msg); err.status = r.status; throw err; }
+  const txt = await r.text(); return txt ? JSON.parse(txt) : null;
+}
+const summaryOf = row => { const {data, ...rest} = row; return rest; };
+async function loadQuotes() {
+  try {
+    QUOTES = await sb(`quotes?select=${LIST_COLS}&order=edited_at.desc`) || [];
+    SHARED.ok = true; SHARED.error = '';
+  } catch (e) {
+    SHARED.ok = false;
+    SHARED.error = e.status === 404 ? "The shared quotes table hasn't been set up in Supabase yet." : "Couldn't reach the shared quotes (" + e.message + ').';
+  }
+  renderDataStatus();
+  if ($('view-mine').classList.contains('active')) renderQuotes();
+}
+// Quotes saved on this computer before quotes were shared: upload any not already in the shared
+// list (existing ones are skipped, never overwritten). Runs on every load, so it catches stragglers.
+async function migrateLocalQuotes() {
+  if (!SHARED.ok) return 0;
+  const have = new Set(QUOTES.map(q => q.id));
+  const todo = LS.get(KEY_QUOTES, []).filter(q => q && q.id && q.number && Array.isArray(q.lines) && !have.has(q.id));
+  if (!todo.length) return 0;
+  const rows = todo.map(q => ({...quoteRow(q, q.savedAt || Date.now()), status: 'pending',
+    status_log: [{status: 'pending', by: Number(q.preparedBy) || null, at: q.savedAt || Date.now(), note: 'Uploaded from a rep\'s computer when quotes became shared'}]}));
+  await sb('quotes?on_conflict=id', {method: 'POST', headers: {Prefer: 'resolution=ignore-duplicates,return=minimal'}, body: JSON.stringify(rows)});
+  await loadQuotes();
+  return todo.length;
+}
+// The table row for a quote. Status is NOT included: it's only changed through setQuoteStatus, so
+// someone saving an edit can never undo a status change made by someone else meanwhile.
+function quoteRow(q, editedAt) {
+  const data = {...q}; delete data.status; delete data._editedAt; delete data._dirty;
+  const t = q.totals || quoteTotals(q);
+  return {id: q.id, number: q.number, company: q.company || '', prepared_by: Number(q.preparedBy) || null, total_inc: t.inc,
+          quote_date: q.date || null, items: q.lines.map(l => l.title).filter(Boolean), data, edited_at: editedAt,
+          edited_by: currentMe() || Number(q.preparedBy) || null};
+}
+// Live updates: another computer added or changed a quote
+function subscribeQuotes() {
+  if (!SHARED.ok || !window.supabase) return;
+  try {
+    supabase.createClient(SB_URL, SB_KEY).channel('quotes_changes')
+      .on('postgres_changes', {event: '*', schema: 'public', table: 'quotes'}, p => onQuoteChange(p.new))
+      .subscribe();
+  } catch (e) { console.warn('Live quote updates unavailable', e); }
+}
+function onQuoteChange(row) {
+  if (!row || !row.id) return;
+  const sum = summaryOf(row), i = QUOTES.findIndex(q => q.id === row.id);
+  if (i >= 0) QUOTES[i] = sum; else QUOTES.unshift(sum);
+  if (Q && Q.id === row.id) {
+    Q.status = row.status;
+    if (row.data && row.edited_at !== Q._editedAt) {
+      const who = memberName(row.edited_by) || 'Someone';
+      if (!DIRTY) { Q = {...row.data, status: row.status, _editedAt: row.edited_at}; renderAll(); toast(`${who} just updated this quote`); }
+      else toast(`${who} just changed this quote too — saving will ask before overwriting their changes`);
+    } else renderStatusPanel();
+    saveDraft();
+  }
+  if ($('view-mine').classList.contains('active')) renderQuotes();
+}
+// Header status line: company list + shared quotes + company log
+function renderDataStatus() {
+  const nClients = COMPANIES.filter(c => c.kind === 'client').length, nPros = COMPANIES.length - nClients;
+  const co = COMPANIES.length ? `<b>${nClients.toLocaleString()}</b> clients + <b>${nPros}</b> prospects` : 'Company list unavailable — you can still type any company name';
+  const shared = SHARED.ok === null ? 'Quotes: loading…' : SHARED.ok ? `<b>${QUOTES.filter(q => !q.deleted).length}</b> shared quotes` : '<span style="color:var(--bad)">Shared quotes unavailable</span>';
+  const log = !CRM_LOG_ENABLED ? 'Company log: <b>off</b>' : BRIDGE ? '' : ' · Company log: only inside the CRM';
+  $('data-status').innerHTML = `${co}<br>${shared}${log}`;
+}
+
+// Staff list. The only copy is TEAM in index.html: inside the CRM it comes through the bridge, and
+// opened on its own this page reads it out of index.html. (Opened straight from disk neither works.)
+let TEAM = [];
+async function loadTeam() {
+  const pick = list => (list || []).map(({id, name, active}) => ({id, name, active}));
+  if (BRIDGE) { TEAM = pick(BRIDGE.data().TEAM); return; }
+  try {
+    const html = await (await fetch('index.html', {cache: 'no-cache'})).text();
+    const m = html.match(/const TEAM\s*=\s*(\[[^\n]*?\]);/);
+    if (m) TEAM = pick(JSON.parse(m[1]));
+  } catch (e) {}
+}
 const tmActive = () => TEAM.filter(m => m.active !== false);
 const memberName = id => TEAM.find(m => m.id === Number(id))?.name || '';
 
@@ -350,7 +507,6 @@ const FOOTER_ORDER = ['syd', 'bne', 'gc', 'mel'];
 // ════════════════════════════════════════════════════════════════════════════
 let COMPANIES = [], CO_BY_NAME = new Map(), CRM = {};
 async function loadCompanies() {
-  const status = document.getElementById('data-status');
   let data = null, tags = {};
   COMPANIES = []; CO_BY_NAME = new Map();
   if (BRIDGE) {   // inside the CRM: reuse what the dashboard already has (and its live CRM object)
@@ -369,19 +525,15 @@ async function loadCompanies() {
     const p = CRM[k]?.prospect;
     if (p && !p.mergedInto && !p.archived) add(k, 'prospect', {states: p.states || [], contact: p.contact || null});
   });
-  const nClients = COMPANIES.filter(c => c.kind === 'client').length, nPros = COMPANIES.length - nClients;
-  status.innerHTML = COMPANIES.length
-    ? `<b>${nClients.toLocaleString()}</b> clients + <b>${nPros}</b> prospects loaded<br>${!CRM_LOG_ENABLED ? 'Company log: <b>off</b>' : BRIDGE ? 'Company log: on' : 'Company log: only inside the CRM'}`
-    : `Company list unavailable — open via <b>serve.ps1</b> for lookups<br>You can still type any company name`;
+  renderDataStatus();
 }
 
 // ════════════════════════════════════════════════════════════════════════════
 // Quote model
 // ════════════════════════════════════════════════════════════════════════════
-// Random 8-digit quote number. Each computer makes its own, so 8 digits keeps the chance of two
-// reps ever producing the same number very small (6 digits would clash within a few hundred quotes).
+// Random 8-digit quote number, never one already in the shared list (or saved on this computer)
 function randomNumber() {
-  const taken = new Set(LS.get(KEY_QUOTES, []).map(q => q.number));
+  const taken = new Set([...QUOTES.map(q => q.number), ...LS.get(KEY_QUOTES, []).map(q => q.number)]);
   let n;
   do { n = String(10000000 + crypto.getRandomValues(new Uint32Array(1))[0] % 90000000); } while (taken.has(n));
   return n;
@@ -390,9 +542,13 @@ const uid = () => Math.random().toString(36).slice(2, 10);
 function blankQuote() {
   const me = Number(LS.get(KEY_ME, null)) || '';
   return {id: uid(), savedAt: null, number: randomNumber(), date: todayISO(), preparedBy: me, company: '', state: 'QLD',
-          loc: {type: 'client', addr: ''}, contact: {name: '', phone: '', mobile: '', email: ''}, comments: '', lines: [], crmLogged: false};
+          loc: {type: 'client', addr: ''}, contact: {name: '', phone: '', mobile: '', email: ''}, comments: '', lines: [], crmLogged: false,
+          status: 'pending'};
 }
+// Q: the quote in the editor. Q._editedAt = the shared copy's edited_at when it was opened/saved
+// (used to spot someone else saving it meanwhile). Q.status mirrors the shared row's status.
 let Q = null, DIRTY = false;
+const saveDraft = () => LS.set(KEY_DRAFT, {...Q, _dirty: DIRTY});
 
 // A note is printed by default unless it reads like an internal reminder
 const defaultNoteOn = t => !/\*|check with|min numbers|\batm\b|bundle from the csq/i.test(t);
@@ -702,7 +858,7 @@ function downloadPdf(q) {
 // Editor
 // ════════════════════════════════════════════════════════════════════════════
 const $ = id => document.getElementById(id);
-function markDirty() { DIRTY = true; LS.set(KEY_DRAFT, Q); renderStatus(); }
+function markDirty() { DIRTY = true; saveDraft(); renderStatus(); }
 function renderStatus() {
   const saved = Q.savedAt ? `Saved ${new Date(Q.savedAt).toLocaleString('en-AU', {dateStyle: 'medium', timeStyle: 'short'})}` : 'Not saved yet';
   $('q-status').innerHTML = `<b>${esc(Q.number)}</b> · ${DIRTY && Q.savedAt ? 'Unsaved changes' : saved}`;
@@ -731,7 +887,11 @@ function renderHeaderFields() {
   $('q-loc-addr-wrap').style.visibility = Q.loc.type === 'client' ? 'visible' : 'hidden';
   $('q-c-name').value = Q.contact.name; $('q-c-email').value = Q.contact.email; $('q-c-phone').value = Q.contact.phone; $('q-c-mobile').value = Q.contact.mobile;
   $('q-number').value = Q.number; $('q-date').value = Q.date; $('q-comments').value = Q.comments;
-  $('q-by').innerHTML = '<option value="">Select…</option>' + tmActive().map(m => `<option value="${m.id}"${Number(Q.preparedBy) === m.id ? ' selected' : ''}>${esc(m.name)}</option>`).join('');
+  // Active staff, plus whoever prepared this quote if they've since left (so older quotes still show them)
+  const by = TEAM.find(m => m.id === Number(Q.preparedBy));
+  const opts = [...tmActive(), ...(by && by.active === false ? [by] : [])];
+  $('q-by').innerHTML = (TEAM.length ? '<option value="">Select…</option>' : '<option value="">Staff list unavailable — open through the CRM</option>')
+    + opts.map(m => `<option value="${m.id}"${Number(Q.preparedBy) === m.id ? ' selected' : ''}>${esc(m.name)}${m.active === false ? ' (left)' : ''}</option>`).join('');
   renderStateSeg(); renderCompanyInfo();
 }
 function renderStateSeg() {
@@ -743,7 +903,16 @@ function renderCompanyInfo() {
     ? `${c.kind === 'prospect' ? '✨ Prospect' : `Booked client · ${money(Math.round(c.total || 0))} total spend`}${(c.states || []).map(s => `<span class="state-badge s-${s}">${s}</span>`).join('')}`
     : (COMPANIES.length ? '<span class="hint warn">Not in the company list — it will be quoted as typed</span>' : '');
 }
-function renderAll() { renderHeaderFields(); renderLines(); renderPreview(); renderStatus(); }
+function renderAll() { renderHeaderFields(); renderLines(); renderPreview(); renderStatus(); renderStatusPanel(); }
+// Status inside the editor: a dropdown (changes apply straight away, like the list) and the history
+function renderStatusPanel() {
+  const row = Q.savedAt ? QUOTES.find(q => q.id === Q.id) : null;
+  if (!row) { $('q-status-panel').innerHTML = `<span class="st-pill st-pending">Pending</span> <span class="hint">once saved${SHARED.ok === false ? ' (shared quotes unavailable)' : ''}</span>`; return; }
+  const hist = (row.status_log || []).slice(-6).map(e => e.deleted != null
+      ? `<div>${e.deleted ? 'Deleted' : 'Restored'} · ${esc(memberName(e.by) || '—')} · ${fmtDate(todayISO(new Date(e.at)))}</div>`
+      : `<div><b>${statusLabel(e.status)}</b>${e.reason ? ' — ' + esc(e.reason) : ''}${e.note ? ` (“${esc(e.note)}”)` : ''} · ${esc(memberName(e.by) || '—')} · ${fmtDate(todayISO(new Date(e.at)))}</div>`).join('');
+  $('q-status-panel').innerHTML = `${statusSelectHTML(row)}<div class="st-history">${hist}</div>`;
+}
 
 // ── Lines ──
 // Under the discount box: the total off, with the working for a per-person $ discount (e.g. $50 × 3)
@@ -1057,38 +1226,67 @@ function validateForSave() {
   if (!Q.lines.length) return 'Add at least one item';
   return '';
 }
+// Saves to the shared list. A new quote is added as Pending. An existing one is only overwritten if
+// nobody else has saved it since it was opened (edited_at check); otherwise the rep is asked first.
 async function saveQuote() {
   const err = validateForSave(); if (err) { toast(err); return; }
-  const all = LS.get(KEY_QUOTES, []);
-  const isNew = !Q.savedAt;
-  Q.savedAt = Date.now();
+  if (!SHARED.ok) { toast(SHARED.error || 'Shared quotes are still loading — try again in a moment'); return; }
+  const now = Date.now(), isNew = !QUOTES.some(x => x.id === Q.id);
   Q.totals = quoteTotals(Q);
-  const i = all.findIndex(x => x.id === Q.id);
-  if (i >= 0) all[i] = Q; else all.unshift(Q);
-  if (!LS.set(KEY_QUOTES, all)) { toast('Could not save — this browser is blocking local storage'); return; }
-  LS.set(KEY_ME, Number(Q.preparedBy));
-  DIRTY = false; LS.set(KEY_DRAFT, Q);
-  let logMsg = '';
-  if (isNew || !Q.crmLogged) logMsg = await logQuoteToCrm(Q);
-  renderStatus();
-  toast(`Quote ${Q.number} saved${logMsg ? ' · ' + logMsg : ''}`);
+  const crm = prepareCrmLog(Q);   // decides where the company-log note goes; recorded in the saved quote
+  try {
+    if (isNew) {
+      Q.status = 'pending';
+      await sb('quotes', {method: 'POST', headers: {Prefer: 'return=minimal'}, body: JSON.stringify({...quoteRow({...Q, savedAt: now}, now), status: 'pending',
+        status_log: [{status: 'pending', by: currentMe() || Number(Q.preparedBy) || null, at: now}]})});
+    } else {
+      const body = JSON.stringify(quoteRow({...Q, savedAt: now}, now));
+      const path = `quotes?id=eq.${encodeURIComponent(Q.id)}`;
+      // Only if the shared copy is still the one we opened (a restored draft may not know: then just save)
+      const hit = Q._editedAt == null ? [1]
+        : await sb(`${path}&edited_at=eq.${Q._editedAt}`, {method: 'PATCH', headers: {Prefer: 'return=representation'}, body});
+      if (Q._editedAt == null || !hit.length) {
+        if (Q._editedAt != null) {
+          const [srv] = await sb(`${path}&select=edited_by,edited_at`) || [];
+          const who = memberName(srv?.edited_by) || 'Someone';
+          const when = srv ? new Date(srv.edited_at).toLocaleString('en-AU', {dateStyle: 'medium', timeStyle: 'short'}) : '';
+          if (!confirm(`${who} saved changes to quote ${Q.number} (${when}) after you opened it.\n\nOK = replace their version with yours\nCancel = keep theirs (your changes stay here unsaved — use Copy from All Quotes to keep both)`)) return;
+        }
+        await sb(path, {method: 'PATCH', headers: {Prefer: 'return=minimal'}, body});
+      }
+    }
+  } catch (e) { toast('Could not save — ' + e.message); return; }
+  Q.savedAt = now; Q._editedAt = now; DIRTY = false;
+  if (!currentMe() && Q.preparedBy) setMe(Q.preparedBy);
+  saveDraft();
+  const sum = summaryOf({...quoteRow(Q, now), status: Q.status, deleted: false,
+    status_log: isNew ? [{status: 'pending', by: currentMe() || Number(Q.preparedBy) || null, at: now}] : (QUOTES.find(x => x.id === Q.id)?.status_log || [])});
+  const i = QUOTES.findIndex(x => x.id === Q.id); if (i >= 0) QUOTES[i] = {...QUOTES[i], ...sum}; else QUOTES.unshift(sum);
+  const logMsg = await logQuoteToCrm(Q, crm);   // every save, so the company log note keeps up with edits
+  renderStatus(); renderStatusPanel(); renderDataStatus();
+  toast(`Quote ${Q.number} ${isNew ? 'saved' : 'updated'}${logMsg ? ' · ' + logMsg : ''}`);
 }
-function openQuote(id, asCopy) {
-  if (DIRTY && !confirm('Discard the unsaved changes to the current quote?')) return;
-  const src = LS.get(KEY_QUOTES, []).find(q => q.id === id); if (!src) return;
-  Q = JSON.parse(JSON.stringify(src));
-  if (asCopy) Object.assign(Q, {id: uid(), number: randomNumber(), date: todayISO(), savedAt: null, crmLogged: false});
-  DIRTY = !!asCopy; LS.set(KEY_DRAFT, Q);
+async function fetchQuote(id) {
+  const [row] = await sb(`quotes?id=eq.${encodeURIComponent(id)}&select=data,status,edited_at`) || [];
+  if (!row) throw new Error('quote not found');
+  return {...row.data, status: row.status, _editedAt: row.edited_at};
+}
+async function openQuote(id, asCopy) {
+  if (DIRTY && Q.id !== id && !confirm('Discard the unsaved changes to the current quote?')) return;
+  let src; try { src = await fetchQuote(id); } catch (e) { toast("Couldn't open that quote — " + e.message); return; }
+  Q = src;
+  if (asCopy) Object.assign(Q, {id: uid(), number: randomNumber(), date: todayISO(), savedAt: null, crmLogged: false, crmLoggedTo: null, crmLoggedNo: null, status: 'pending', _editedAt: null});
+  DIRTY = !!asCopy; saveDraft();
   showView('new'); renderAll();
   if (asCopy) toast(`Copied as ${Q.number} — save to keep it`);
 }
-// Wipe the editor and start a fresh quote (new number). A saved quote stays in My Quotes.
+// Wipe the editor and start a fresh quote (new number). A saved quote stays in All Quotes.
 function clearAll() {
   const msg = Q.savedAt
-    ? `Clear everything and start a new quote?\n\nQuote ${Q.number} stays saved in My Quotes${DIRTY ? ' (without the changes you haven\'t saved)' : ''}.`
+    ? `Clear everything and start a new quote?\n\nQuote ${Q.number} stays saved in All Quotes${DIRTY ? ' (without the changes you haven\'t saved)' : ''}.`
     : 'Clear everything on this quote and start again?\n\nThis quote hasn\'t been saved, so it will be lost.';
   if ((Q.company || Q.lines.length || Q.comments || Q.contact.name) && !confirm(msg)) return;
-  Q = blankQuote(); DIRTY = false; LS.set(KEY_DRAFT, Q); renderAll();
+  Q = blankQuote(); DIRTY = false; saveDraft(); renderAll();
   toast('Cleared — new quote ' + Q.number);
 }
 function regenNumber() {
@@ -1096,22 +1294,35 @@ function regenNumber() {
   Q.number = randomNumber(); $('q-number').value = Q.number; renderPreview(); markDirty();
 }
 
-// The "quote created" note on the company's CRM log: a call-log entry with type:'quote' (call logs
-// merge safely between teammates; the dashboard shows it as a note and leaves it out of call stats).
-// Written once per quote, through the dashboard (BRIDGE), and only for companies already in the CRM —
-// a typed name that isn't a known company must not create a new company record.
-async function logQuoteToCrm(q) {
+// The quote note on the company's CRM log: a call-log entry with type:'quote' (call logs merge safely
+// between teammates; the dashboard shows it as a note with the quote's status and leaves it out of call
+// stats). Written through the dashboard (BRIDGE) on every save: the first save adds it, later saves
+// update it if the total, items, date or preparer changed. If the quote's company or number changes,
+// the old note is withdrawn and a new one added. Only companies already in the CRM get a note — a
+// typed name that isn't a known company must not create a new company record.
+// prepareCrmLog runs before the shared save (so where the note lives is saved with the quote);
+// logQuoteToCrm runs after it and does the writing.
+function prepareCrmLog(q) {
+  if (!CRM_LOG_ENABLED || !BRIDGE) return null;   // can't write notes here: leave the record as it was
+  // Where the note is now (quotes saved before crmLoggedTo/No existed: their company / number)
+  const was = {company: q.crmLoggedTo ?? (q.crmLogged ? q.company : null), number: q.crmLoggedNo || q.number};
+  const known = CO_BY_NAME.has(q.company) || !!CRM[q.company];
+  q.crmLogged = known; q.crmLoggedTo = known ? q.company : null; q.crmLoggedNo = known ? q.number : null;
+  return {was, known};
+}
+async function logQuoteToCrm(q, plan) {
   if (!CRM_LOG_ENABLED) return '';
-  if (!BRIDGE) return 'company log only works inside the CRM';
-  if (!CO_BY_NAME.has(q.company) && !CRM[q.company]) return `not added to a company log — "${q.company}" isn't in the CRM`;
+  if (!BRIDGE || !plan) return 'company log only works inside the CRM';
+  const {was, known} = plan;
   try {
-    await BRIDGE.logQuote(q.company, {id: Date.now(), type: 'quote', date: q.date, quoteNo: q.number, total: q.totals.inc,
-      courses: q.lines.map(l => l.title).filter(Boolean), agentId: Number(q.preparedBy), agentName: memberName(q.preparedBy), company: q.company});
-    q.crmLogged = true;
-    const all = LS.get(KEY_QUOTES, []); const i = all.findIndex(x => x.id === q.id); if (i >= 0) { all[i].crmLogged = true; LS.set(KEY_QUOTES, all); }
-    LS.set(KEY_DRAFT, q);
-    return 'noted on the company log';
-  } catch (e) { console.warn('CRM log failed', e); return 'company log failed — it will retry next save'; }
+    const moved = !!was.company && (was.company !== q.company || was.number !== q.number);
+    if (moved) await BRIDGE.voidQuote(was.company, was.number);
+    const res = !known ? '' : await BRIDGE.logQuote(q.company, {id: Date.now(), type: 'quote', date: q.date, quoteNo: q.number, total: q.totals.inc,
+      courses: q.lines.map(l => l.title).filter(Boolean), agentId: Number(q.preparedBy), agentName: memberName(q.preparedBy), company: q.company, status: q.status || 'pending'});
+    if (!known) return `${moved ? `note removed from ${was.company} · ` : ''}not added to a company log — "${q.company}" isn't in the CRM`;
+    if (moved) return was.company !== q.company ? `note moved from ${was.company} to ${q.company}` : 'company log note updated';
+    return res === 'added' ? 'noted on the company log' : res === 'updated' ? 'company log note updated' : '';
+  } catch (e) { console.warn('CRM log failed', e); return 'company log failed — it will catch up next save'; }
 }
 // Called by the dashboard's "Create quote" button: start a fresh quote for that company
 function startQuoteFor(name) {
@@ -1124,51 +1335,147 @@ function startQuoteFor(name) {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// My Quotes
+// All Quotes (shared) — list, status, delete, backup
 // ════════════════════════════════════════════════════════════════════════════
-function renderMyQuotes() {
+let mqStatus = 'open';   // status filter chip: open | <status id> | all
+const lastActivity = x => Math.max(x.edited_at || 0, x.status_at || 0);
+// The status dropdown used in the list and the editor (anyone may change a status)
+function statusSelectHTML(x) {
+  return `<select class="st-sel st-${x.status}" onchange="setQuoteStatus('${x.id}', this.value)" aria-label="Status of quote ${esc(x.number)}"${x.deleted ? ' disabled' : ''}>`
+    + STATUSES.map(s => `<option value="${s.id}"${x.status === s.id ? ' selected' : ''} title="${esc(s.hint)}">${s.label}</option>`).join('') + '</select>';
+}
+function setMqStatus(s) { mqStatus = s; renderQuotes(); }
+function renderQuotes() {
+  const banner = $('mq-banner');
+  banner.innerHTML = SHARED.ok === false ? `<div class="banner bad">${esc(SHARED.error)} Quotes can't be saved or listed until this is fixed.</div>`
+    : !currentMe() ? '<div class="banner warn">Choose who you are (<b>You are</b>, top right) so status changes are recorded against your name.</div>' : '';
+  const showDeleted = $('mq-deleted').checked, me = currentMe();
+  // Prepared-by filter (kept across re-renders)
+  const bySel = $('mq-by'), byCur = bySel.value;
+  bySel.innerHTML = '<option value="">Prepared by anyone</option>' + (me ? `<option value="me"${byCur === 'me' ? ' selected' : ''}>Prepared by me</option>` : '')
+    + TEAM.map(m => `<option value="${m.id}"${byCur === String(m.id) ? ' selected' : ''}>${esc(m.name)}${m.active === false ? ' (left)' : ''}</option>`).join('');
+  const by = bySel.value === 'me' ? me : Number(bySel.value) || null;
   const q = $('mq-search').value.trim().toLowerCase();
-  const all = LS.get(KEY_QUOTES, []).sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
-  const list = all.filter(x => !q || (x.number + ' ' + x.company + ' ' + x.lines.map(l => l.title).join(' ')).toLowerCase().includes(q));
-  $('mq-list').innerHTML = !all.length ? '<div class="empty">No saved quotes on this computer yet.</div>' : !list.length ? '<div class="empty">No quotes match.</div>' : `
-    <table class="mq-table"><thead><tr><th>Quote no</th><th>Date</th><th>Customer</th><th>Items</th><th class="num">Total (inc GST)</th><th>Prepared by</th><th></th></tr></thead><tbody>
-    ${list.map(x => `<tr>
+  const pool = QUOTES.filter(x => (showDeleted || !x.deleted) && (!by || x.prepared_by === by)
+    && (!q || (x.number + ' ' + x.company + ' ' + (x.items || []).join(' ')).toLowerCase().includes(q)));
+  // Status chips with counts (for the current search / prepared-by)
+  const cnt = s => pool.filter(x => s === 'all' || (s === 'open' ? OPEN_STATUSES.includes(x.status) : x.status === s)).length;
+  $('mq-status-chips').innerHTML = [['open', 'Open'], ...STATUSES.map(s => [s.id, s.label]), ['all', 'All']]
+    .map(([id, label]) => `<button class="chip${mqStatus === id ? ' active' : ''}" onclick="setMqStatus('${id}')">${label} <b>${cnt(id)}</b></button>`).join('');
+  const list = pool.filter(x => mqStatus === 'all' || (mqStatus === 'open' ? OPEN_STATUSES.includes(x.status) : x.status === mqStatus))
+    .sort((a, b) => lastActivity(b) - lastActivity(a));
+  if (SHARED.ok === null) { $('mq-list').innerHTML = '<div class="empty">Loading quotes…</div>'; return; }
+  $('mq-list').innerHTML = !QUOTES.length ? '<div class="empty">No quotes yet.</div>' : !list.length ? '<div class="empty">No quotes match.</div>' : `
+    <table class="mq-table"><thead><tr><th>Quote no</th><th>Date</th><th>Customer</th><th>Items</th><th class="num">Total (inc GST)</th><th>Prepared by</th><th>Status</th><th></th></tr></thead><tbody>
+    ${list.map(x => {
+      const last = (x.status_log || []).filter(e => e.status).slice(-1)[0];
+      const sub = x.status === 'lost' && x.lost_reason ? esc(x.lost_reason) : last ? `${esc(memberName(last.by) || '—')} · ${fmtDate(todayISO(new Date(last.at)))}` : '';
+      const mine = me && x.prepared_by === me;
+      return `<tr class="${x.deleted ? 'deleted' : ''}">
       <td class="mono">${esc(x.number)}</td>
-      <td>${fmtDate(x.date)}</td>
-      <td><b>${esc(x.company)}</b><div class="c-sub">${esc(x.state)}${x.contact?.name ? ' · ' + esc(x.contact.name) : ''}</div></td>
-      <td class="c-sub" style="max-width:260px">${esc(x.lines.map(l => l.title).filter(Boolean).join(', '))}</td>
-      <td class="num"><b>${money2(x.totals?.inc ?? quoteTotals(x).inc)}</b></td>
-      <td>${esc(memberName(x.preparedBy))}</td>
+      <td>${fmtDate(x.quote_date)}</td>
+      <td><b>${esc(x.company)}</b></td>
+      <td class="c-sub" style="max-width:240px">${esc((x.items || []).join(', '))}</td>
+      <td class="num"><b>${money2(Number(x.total_inc) || 0)}</b></td>
+      <td>${esc(memberName(x.prepared_by))}</td>
+      <td>${x.deleted ? '<span class="st-pill" style="background:var(--na-bg);color:var(--na)">Deleted</span>' : statusSelectHTML(x)}<div class="st-sub">${sub}</div></td>
       <td><div class="mq-actions">
+        ${x.deleted ? (mine ? `<button class="btn btn-sm" onclick="deleteQuote('${x.id}', false)">Restore</button>` : '') : `
         <button class="btn btn-sm" onclick="openQuote('${x.id}')">Open</button>
-        <button class="btn btn-sm" onclick="downloadPdf(LS.get(KEY_QUOTES, []).find(q => q.id === '${x.id}'))">PDF</button>
+        <button class="btn btn-sm" onclick="pdfFromList('${x.id}')">PDF</button>
         <button class="btn btn-sm" onclick="openQuote('${x.id}', true)">Copy</button>
-        <button class="btn btn-sm btn-danger" onclick="deleteQuote('${x.id}')">Delete</button>
-      </div></td></tr>`).join('')}
+        ${mine ? `<button class="btn btn-sm btn-danger" onclick="deleteQuote('${x.id}', true)">Delete</button>` : ''}`}
+      </div></td></tr>`; }).join('')}
     </tbody></table>`;
 }
-function deleteQuote(id) {
-  const all = LS.get(KEY_QUOTES, []), q = all.find(x => x.id === id); if (!q) return;
-  if (!confirm(`Delete quote ${q.number} (${q.company}) from this computer? This can't be undone.`)) return;
-  LS.set(KEY_QUOTES, all.filter(x => x.id !== id)); renderMyQuotes(); toast(`Deleted ${q.number}`);
+async function pdfFromList(id) {
+  try { downloadPdf(await fetchQuote(id)); } catch (e) { toast("Couldn't load that quote — " + e.message); }
 }
-function exportBackup() {
-  const all = LS.get(KEY_QUOTES, []);
-  if (!all.length) { toast('No quotes to back up'); return; }
+// Ask why a quote was lost. Resolves {reason, note}, or null if cancelled.
+function askLostReason(x) {
+  return new Promise(resolve => {
+    $('lost-title').textContent = `Why was quote ${x.number}${x.company ? ' (' + x.company + ')' : ''} lost?`;
+    $('lost-reasons').innerHTML = LOST_REASONS.map(r => `<label><input type="radio" name="lost-reason" value="${esc(r)}"> ${esc(r)}</label>`).join('');
+    $('lost-note').value = '';
+    const modal = $('lost-modal'); modal.classList.add('open');
+    const done = v => { modal.classList.remove('open'); $('lost-ok').onclick = $('lost-cancel').onclick = null; resolve(v); };
+    $('lost-cancel').onclick = () => done(null);
+    $('lost-ok').onclick = () => {
+      const r = document.querySelector('input[name="lost-reason"]:checked')?.value;
+      if (!r) { toast('Pick a reason'); return; }
+      const note = $('lost-note').value.trim();
+      if (r === 'Other' && !note) { toast('Add a short note for "Other"'); return; }
+      done({reason: r, note});
+    };
+  });
+}
+// Change a quote's status (from the list or the editor). Saved straight away, recorded with who and
+// when, and reflected on the company's quote note. Booked also sets the company's Lead Status to Won.
+async function setQuoteStatus(id, status) {
+  const x = QUOTES.find(q => q.id === id); if (!x) return;
+  const revert = () => { renderQuotes(); if (Q.id === id) renderStatusPanel(); };
+  if (x.status === status) return;
+  const me = currentMe();
+  if (!me) { toast('Choose who you are first (You are, top right)'); revert(); return; }
+  let lost = null;
+  if (status === 'lost') { lost = await askLostReason(x); if (!lost) { revert(); return; } }
+  const entry = {status, by: me, at: Date.now(), ...(lost ? {reason: lost.reason, ...(lost.note ? {note: lost.note} : {})} : {})};
+  const log = [...(x.status_log || []), entry];
+  const patch = {status, status_log: log, status_at: entry.at, lost_reason: lost ? lost.reason : null};
+  try { await sb(`quotes?id=eq.${encodeURIComponent(id)}`, {method: 'PATCH', headers: {Prefer: 'return=minimal'}, body: JSON.stringify(patch)}); }
+  catch (e) { toast('Could not change the status — ' + e.message); revert(); return; }
+  Object.assign(x, patch);
+  if (Q.id === id) { Q.status = status; saveDraft(); }
+  let extra = '';
+  if (BRIDGE && x.company) {
+    try { const r = await BRIDGE.quoteStatus(x.company, x.number, status, lost?.reason); if (r?.won) extra = ` · ${x.company} set to Won`; }
+    catch (e) { console.warn('CRM status update failed', e); }
+  }
+  revert();
+  toast(`Quote ${x.number} → ${statusLabel(status)}${extra}`);
+}
+// Deleting hides a quote (it stays in the table and can be restored). Only the preparer can.
+async function deleteQuote(id, del) {
+  const x = QUOTES.find(q => q.id === id); if (!x) return;
+  const me = currentMe();
+  if (!me || x.prepared_by !== me) { toast(`Only ${memberName(x.prepared_by) || 'the person who prepared it'} can ${del ? 'delete' : 'restore'} this quote`); return; }
+  if (del && !confirm(`Delete quote ${x.number} (${x.company})?\n\nIt will be hidden from everyone's list. You can bring it back with "Show deleted".`)) return;
+  const log = [...(x.status_log || []), {deleted: del, by: me, at: Date.now()}];
+  try { await sb(`quotes?id=eq.${encodeURIComponent(id)}`, {method: 'PATCH', headers: {Prefer: 'return=minimal'}, body: JSON.stringify({deleted: del, status_log: log})}); }
+  catch (e) { toast(`Could not ${del ? 'delete' : 'restore'} — ` + e.message); return; }
+  Object.assign(x, {deleted: del, status_log: log});
+  renderQuotes(); renderDataStatus();
+  toast(`${del ? 'Deleted' : 'Restored'} ${x.number}`);
+}
+async function exportBackup() {
+  let rows;
+  try { rows = await sb('quotes?select=data,status,status_log,lost_reason,deleted&deleted=eq.false&order=edited_at.desc') || []; }
+  catch (e) { toast("Couldn't load quotes to back up — " + e.message); return; }
+  if (!rows.length) { toast('No quotes to back up'); return; }
+  const quotes = rows.map(r => ({...r.data, status: r.status, statusLog: r.status_log, lostReason: r.lost_reason}));
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([JSON.stringify({kind: 'kallibr-quotes', exported: new Date().toISOString(), quotes: all}, null, 1)], {type: 'application/json'}));
+  a.href = URL.createObjectURL(new Blob([JSON.stringify({kind: 'kallibr-quotes', version: 2, exported: new Date().toISOString(), quotes}, null, 1)], {type: 'application/json'}));
   a.download = `Kallibr quotes backup ${todayISO()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
+// Restore: adds quotes from a backup that aren't in the shared list (existing ones are left alone)
 function importBackup(input) {
   const file = input.files[0]; input.value = ''; if (!file) return;
-  file.text().then(txt => {
+  if (!SHARED.ok) { toast(SHARED.error || 'Shared quotes unavailable'); return; }
+  file.text().then(async txt => {
     const data = JSON.parse(txt);
     if (data?.kind !== 'kallibr-quotes' || !Array.isArray(data.quotes)) throw new Error('not a quotes backup');
-    const all = LS.get(KEY_QUOTES, []), ids = new Set(all.map(q => q.id));
-    const added = data.quotes.filter(q => !ids.has(q.id));
-    LS.set(KEY_QUOTES, all.concat(added)); renderMyQuotes();
-    toast(`Restored ${added.length} quote${added.length === 1 ? '' : 's'}${data.quotes.length - added.length ? ` (${data.quotes.length - added.length} already here)` : ''}`);
-  }).catch(e => toast('That file isn\'t a quotes backup'));
+    const have = new Set(QUOTES.map(q => q.id));
+    const todo = data.quotes.filter(q => q && q.id && q.number && Array.isArray(q.lines) && !have.has(q.id));
+    if (todo.length) {
+      const now = Date.now();
+      const rows = todo.map(q => ({...quoteRow(q, q.savedAt || now), status: STATUSES.some(s => s.id === q.status) ? q.status : 'pending',
+        status_log: Array.isArray(q.statusLog) ? q.statusLog : [{status: q.status || 'pending', by: currentMe(), at: now, note: 'Restored from a backup file'}],
+        lost_reason: q.lostReason || null}));
+      await sb('quotes?on_conflict=id', {method: 'POST', headers: {Prefer: 'resolution=ignore-duplicates,return=minimal'}, body: JSON.stringify(rows)});
+      await loadQuotes();
+    }
+    toast(`Restored ${todo.length} quote${todo.length === 1 ? '' : 's'}${data.quotes.length - todo.length ? ` (${data.quotes.length - todo.length} already in the list)` : ''}`);
+  }).catch(e => toast(e.message === 'not a quotes backup' ? "That file isn't a quotes backup" : 'Restore failed — ' + e.message));
 }
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -1271,18 +1578,22 @@ function initPriceList() {
 function showView(v) {
   document.querySelectorAll('.view').forEach(s => s.classList.toggle('active', s.id === 'view-' + v));
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === v));
-  if (v === 'mine') renderMyQuotes();
+  if (v === 'mine') renderQuotes();
   if (v === 'new') fitPreview();
 }
 function init() {
   if (!PL) { document.body.innerHTML = '<div class="empty">price_list.js is missing — run rebuild_price_list.ps1.</div>'; return; }
   if (BRIDGE) document.body.classList.add('embed');
+  // Inside the CRM the staff list is ready straight away; on its own, redraw once index.html is read
+  loadTeam().then(() => { renderMePick(); if (!BRIDGE) { renderHeaderFields(); renderPreview(); } });
   initPriceList();
-  // Restore an in-progress draft so a closed tab doesn't lose work
+  // Restore an in-progress draft so a closed tab doesn't lose work. (Drafts from before quotes were
+  // shared have no _dirty flag: compare with the copy that was saved on this computer instead.)
   const draft = LS.get(KEY_DRAFT, null);
   Q = draft && draft.number ? draft : blankQuote();
-  const saved = LS.get(KEY_QUOTES, []).find(q => q.id === Q.id);
-  DIRTY = !!draft && (!saved || JSON.stringify(saved) !== JSON.stringify(draft));
+  if (draft && draft._dirty == null) { const saved = LS.get(KEY_QUOTES, []).find(q => q.id === Q.id); DIRTY = !saved || JSON.stringify(saved) !== JSON.stringify(draft); }
+  else DIRTY = !!draft?._dirty;
+  delete Q._dirty; if (!Q.status) Q.status = 'pending';
   renderAll();
 
   // Header field bindings
@@ -1311,6 +1622,12 @@ function init() {
   window.addEventListener('resize', fitPreview);
   window.addEventListener('beforeunload', e => { if (DIRTY && Q.savedAt) { e.preventDefault(); e.returnValue = ''; } });
   loadCompanies().then(renderCompanyInfo);
+  // Shared quotes: load the list, upload anything still only on this computer, then listen for changes
+  loadQuotes()
+    .then(migrateLocalQuotes)
+    .then(n => { if (n) toast(`Uploaded ${n} quote${n === 1 ? '' : 's'} from this computer to the shared list`); })
+    .catch(e => console.warn('Uploading local quotes failed', e))
+    .finally(() => { subscribeQuotes(); renderStatusPanel(); });
 }
 init();
 </script>

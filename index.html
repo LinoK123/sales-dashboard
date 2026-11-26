@@ -795,7 +795,7 @@ function _yearFill(lbl){const i=_yearFromLabel(lbl)-RAW.startYear;return YEAR_FI
 function _yearBorder(lbl){const i=_yearFromLabel(lbl)-RAW.startYear;return YEAR_BORDER[((i%YEAR_BORDER.length)+YEAR_BORDER.length)%YEAR_BORDER.length];}
 
 // ── HARDCODED TEAM ──
-const TEAM = [{"id": 1, "name": "Ben", "colour": "#b8a9de"}, {"id": 2, "name": "Harry", "colour": "#87c5ef", "active": false}, {"id": 3, "name": "Hailey", "colour": "#9ecf9e"}, {"id": 4, "name": "Peter", "colour": "#f2a0b0"}, {"id": 5, "name": "Lino", "colour": "#f9be7c"}, {"id": 6, "name": "Ellyse", "colour": "#a8d8ea"}, {"id": 7, "name": "Billy", "colour": "#f7c5e0"}, {"id": 8, "name": "Elodie", "colour": "#b5ead7"}, {"id": 9, "name": "Renee", "colour": "#c7ceea"}, {"id": 10, "name": "Justin", "colour": "#fddcb5"}, {"id": 11, "name": "Matt", "colour": "#e89ba6"}, {"id": 12, "name": "Paul", "colour": "#cdb4db"}, {"id": 13, "name": "Varun", "colour": "#a3d9d4"}, {"id": 14, "name": "Tom", "colour": "#e0b0d5"}, {"id": 15, "name": "Leigh-Ann", "colour": "#c2d59b"}, {"id": 16, "name": "Grace", "colour": "#5b9bd5"}];
+const TEAM = [{"id": 1, "name": "Ben", "colour": "#b8a9de"}, {"id": 2, "name": "Harry", "colour": "#87c5ef", "active": false}, {"id": 3, "name": "Hailey", "colour": "#9ecf9e"}, {"id": 4, "name": "Peter", "colour": "#f2a0b0"}, {"id": 5, "name": "Lino", "colour": "#f9be7c"}, {"id": 6, "name": "Ellyse", "colour": "#a8d8ea"}, {"id": 7, "name": "Billy", "colour": "#f7c5e0"}, {"id": 8, "name": "Elodie", "colour": "#b5ead7"}, {"id": 9, "name": "Renee", "colour": "#c7ceea"}, {"id": 10, "name": "Justin", "colour": "#fddcb5"}, {"id": 11, "name": "Matt", "colour": "#e89ba6"}, {"id": 12, "name": "Paul", "colour": "#cdb4db"}, {"id": 13, "name": "Varun", "colour": "#a3d9d4"}, {"id": 14, "name": "Tom", "colour": "#e0b0d5", "active": false}, {"id": 15, "name": "Leigh-Ann", "colour": "#c2d59b"}, {"id": 16, "name": "Grace", "colour": "#5b9bd5"}];
 // Active = on the team now. Inactive members (e.g. left the company) keep all their
 // historical data and stay visible for stats/attribution, but can't take new work.
 const tmActive=()=>TEAM.filter(m=>m.active!==false);
@@ -857,21 +857,7 @@ async function saveCRM(){
             _mergeCSQ(CRM[key],serverCRM[key]);
             _mergeAssign(CRM[key],serverCRM[key],false);
             if(_mergeProspectFields(key,serverCRM))continue;
-            // Merge call logs — local wins, server fills in missing entries
-            // Special case: followupDone is sticky — once true on either side, stays true
-            const localLogs=CRM[key].callLog||[];
-            const serverLogs=serverCRM[key].callLog||[];
-            const serverById=new Map(serverLogs.map(l=>[l.id,l]));
-            const localIds=new Set();
-            for(const l of localLogs){
-              localIds.add(l.id);
-              const s=serverById.get(l.id);
-              if(s&&s.followupDone)l.followupDone=true; // sticky
-            }
-            for(const l of serverLogs){
-              if(!localIds.has(l.id))localLogs.push(l);
-            }
-            CRM[key].callLog=localLogs.sort((a,b)=>(b.id||0)-(a.id||0));
+            CRM[key].callLog=_mergeLogs(CRM[key].callLog||[],serverCRM[key].callLog||[]);
           }
         }
       }
@@ -885,6 +871,19 @@ async function saveCRM(){
   }catch(e){console.warn('Supabase save failed:',e);}
 }
 function getCRM(name){if(!CRM[name])CRM[name]={assigneeId:null,status:'pending',callLog:[]};if(!CRM[name].callLog)CRM[name].callLog=[];return CRM[name];}
+// Union of two copies of a company's call log, by entry id. When both copies have an entry, the most
+// recently edited one wins (updatedAt, stamped on edits such as a re-saved quote; ties keep the local
+// copy). followupDone is sticky — once true on either side it stays true.
+function _mergeLogs(localLogs,serverLogs){
+  const byId=new Map(localLogs.map(l=>[l.id,l]));
+  for(const s of serverLogs){
+    const l=byId.get(s.id);
+    if(!l){byId.set(s.id,s);continue;}
+    const w=(s.updatedAt||0)>(l.updatedAt||0)?s:l;
+    byId.set(s.id,(l.followupDone||s.followupDone)&&!w.followupDone?{...w,followupDone:true}:w);
+  }
+  return [...byId.values()].sort((a,b)=>(b.id||0)-(a.id||0));
+}
 // ── Assignment (a company can have several team members, e.g. multi-site clients) ──
 // Stored as assigneeIds:[...]; assigneeId mirrors the first one so older code/exports still
 // read something sensible. If the two disagree, an older copy of the page changed
@@ -1236,16 +1235,22 @@ function saveCallLog(){
 // "Quote created" notes written by the Quotes tab (type:'quote'). They sit in the call log so they
 // merge safely between teammates, but they aren't calls — Performance, Sales Team and Course Match skip them.
 const isCall=l=>l.type!=='quote';
+// Quote statuses (set on the Quotes tab). Same ids/colours as quotes.html.
+const QUOTE_STATUS={pending:{label:'Pending',fg:'#8a6100',bg:'#fff4d6'},scheduling:{label:'Scheduling',fg:'#1565a8',bg:'#e3f0fb'},finalising:{label:'Finalising',fg:'#5a4a8a',bg:'#ece8f7'},booked:{label:'Booked',fg:'#2d7a2d',bg:'#edf7ed'},lost:{label:'Lost',fg:'#b33050',bg:'#fde8e8'}};
 function quoteLogHTML(e){
   const courses=(e.courses||[]).filter(Boolean).map(c=>`<span class="call-log-chip chip-course">${esc(c)}</span>`).join('');
+  const st=QUOTE_STATUS[e.status||'pending'];
+  const stHTML=`<span class="call-log-chip" style="background:${st.bg};color:${st.fg}">${st.label}${e.status==='lost'&&e.lostReason?' · '+esc(e.lostReason):''}</span>`;
   return `<div class="call-log-item quote-log-item">
-      <div class="call-log-top"><span class="call-log-outcome-label" style="color:#007370">📄 Quote created · #${esc(e.quoteNo)}</span><span class="call-log-date">${fmtDate(e.date)}</span></div>
+      <div class="call-log-top"><span class="call-log-outcome-label" style="color:#007370">📄 Quote #${esc(e.quoteNo)} ${stHTML}</span><span class="call-log-date">${fmtDate(e.date)}${e.revisedAt?` · revised ${fmtDate(e.revisedAt)}`:''}</span></div>
       ${courses?`<div class="call-log-chips">${courses}</div>`:''}
       <div class="call-log-footer"><span>👤 ${esc(e.agentName||'—')}</span><span style="font-weight:700;color:var(--text)">${e.total!=null?fmtFull(e.total)+' inc GST':''}</span></div>
     </div>`;
 }
 function renderCallHistory(crm){
-  const log=crm.callLog||[];
+  // void = a quote note withdrawn because the quote moved to another company (entries are never
+  // deleted — the sync merge would bring them back — so they're hidden instead)
+  const log=(crm.callLog||[]).filter(e=>!e.void);
   if(!log.length){document.getElementById('crm-call-history').innerHTML='<div style="font-size:0.82rem;color:var(--text2);text-align:center;padding:20px">No calls logged yet</div>';return;}
   document.getElementById('crm-call-history').innerHTML=log.map((e,idx)=>{
     if(e.type==='quote')return quoteLogHTML(e);
@@ -1306,6 +1311,7 @@ function saveEditLog(idx){
   const editedMember=TEAM.find(m=>m.id===editedAgentId);
   entry.agentId=editedAgentId;
   entry.agentName=editedMember?.name||'Unknown';
+  entry.updatedAt=Date.now();   // so this edit wins over teammates' older copies when syncing
   saveCRM();
   renderCallHistory(crm);
   if(document.getElementById('page-followups').classList.contains('active'))renderFollowUps();
@@ -1329,12 +1335,48 @@ function closeCRM(){showPage(prevPage,document.querySelector(`.nav-item[onclick*
 // quotes.html runs in a frame on the Quotes page. It reads the already-loaded data and writes its
 // "quote created" note through this bridge, so the note goes through saveCRM's merge-safe save.
 window.crmBridge={
-  data:()=>({RAW,CRM,STATE_TAGS}),
+  data:()=>({RAW,CRM,STATE_TAGS,TEAM}),   // TEAM: the one staff list — quotes.html uses it too
+  // Adds the quote's note, or brings an existing note for that quote number up to date when the quote
+  // is re-saved with a different total / courses / date / preparer. Returns 'added' | 'updated' | 'unchanged'.
   async logQuote(company,entry){
     const crm=getCRM(company);
-    if(!crm.callLog.some(l=>l.type==='quote'&&l.quoteNo===entry.quoteNo)){crm.callLog.unshift(entry);await saveCRM();}
+    const cur=crm.callLog.find(l=>l.type==='quote'&&l.quoteNo===entry.quoteNo);
+    let result='added';
+    if(!cur)crm.callLog.unshift(entry);
+    else{
+      const status=entry.status||cur.status;
+      const same=!cur.void&&cur.total===entry.total&&cur.date===entry.date&&cur.agentId===entry.agentId&&cur.status===status&&JSON.stringify(cur.courses||[])===JSON.stringify(entry.courses||[]);
+      if(same)result='unchanged';
+      else{Object.assign(cur,{total:entry.total,date:entry.date,courses:entry.courses,agentId:entry.agentId,agentName:entry.agentName,status,void:false,revisedAt:today(),updatedAt:Date.now()});result='updated';}
+    }
+    if(result!=='unchanged')await saveCRM();
     if(crmCompany===company)renderCallHistory(crm);
-    return true;
+    return result;
+  },
+  // A quote's status changed on the Quotes tab: show it on the company's quote note, and when the
+  // quote is Booked set the company's Lead Status to Won. Returns {noted, won}.
+  async quoteStatus(company,quoteNo,status,lostReason){
+    const crm=CRM[company];if(!crm)return{noted:false,won:false};
+    const cur=(crm.callLog||[]).find(l=>l.type==='quote'&&l.quoteNo===quoteNo&&!l.void);
+    const res={noted:false,won:false};
+    if(cur&&(cur.status!==status||(cur.lostReason||null)!==(lostReason||null))){
+      cur.status=status;cur.lostReason=status==='lost'?(lostReason||null):null;cur.updatedAt=Date.now();res.noted=true;
+    }
+    if(status==='booked'&&crm.status!=='won'){crm.status='won';res.won=true;}
+    if(res.noted||res.won){
+      await saveCRM();
+      if(crmCompany===company){renderCallHistory(crm);document.querySelectorAll('.status-btn').forEach(b=>b.classList.remove('active-status'));document.querySelector('.s-'+(crm.status||'pending'))?.classList.add('active-status');}
+      if(outreachInit)renderOutreach();
+    }
+    return res;
+  },
+  // The quote was re-saved under a different company: hide its note on the old one
+  async voidQuote(company,quoteNo){
+    const cur=(CRM[company]?.callLog||[]).find(l=>l.type==='quote'&&l.quoteNo===quoteNo);
+    if(!cur||cur.void)return;
+    cur.void=true;cur.updatedAt=Date.now();
+    await saveCRM();
+    if(crmCompany===company)renderCallHistory(CRM[company]);
   },
 };
 function ensureQuotesFrame(){
@@ -2033,24 +2075,7 @@ async function init(){
         } else {
           _mergeCSQ(CRM[key], incoming[key]);
           if(_mergeProspectFields(key, incoming)) continue;
-          // Realtime merge — incoming server data fills gaps; followupDone is sticky in BOTH directions
-          const localLogs = CRM[key].callLog || [];
-          const serverLogs = incoming[key].callLog || [];
-          const serverById = new Map(serverLogs.map(l => [l.id, l]));
-          const localById = new Map(localLogs.map(l => [l.id, l]));
-          for(const l of localLogs){
-            const s = serverById.get(l.id);
-            if(s && s.followupDone) l.followupDone = true;
-          }
-          for(const s of serverLogs){
-            const local = localById.get(s.id);
-            if(!local){
-              localLogs.push(s);
-            }else if(local.followupDone){
-              s.followupDone = true; // not strictly needed but defensive
-            }
-          }
-          CRM[key].callLog = localLogs.sort((a,b) => (b.id||0) - (a.id||0));
+          CRM[key].callLog = _mergeLogs(CRM[key].callLog || [], incoming[key].callLog || []);
           if(incoming[key].status && !CRM[key]._localEdit) CRM[key].status = incoming[key].status;
           _mergeAssign(CRM[key], incoming[key], true);
         }
